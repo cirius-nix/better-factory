@@ -29,3 +29,8 @@ write two rows.
 | phase protocol | context-factory | The rule that each change runs Plan-Pn then Build-Pn with one phase in one commit. | - |
 | handoff | context-factory | The coordinator message that gives one phase of one change to one owner. | - |
 | readiness gate | context-factory | The item list that a change passes before the release copy. | - |
+| design method | context-factory | The selected design approach of the project, either unset or ddd. | - |
+| design review | context-factory | The procedure that checks a design and records findings in a report without edits. | - |
+| designer | context-factory | The expert that owns the Design artifact and the flow, layout, and interaction of the product. | - |
+| design tool | context-factory | The selected aid of the designer, for example figma or pencil, that never gates code. | - |
+| Design artifact | context-factory | The document that holds the flow, layout, and interaction of the product. | - |

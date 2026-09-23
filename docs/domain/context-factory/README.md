@@ -39,6 +39,11 @@ each generated file.
 | phase protocol | The rule that each change runs Plan-Pn then Build-Pn with one phase in one commit. |
 | handoff | The coordinator message that gives one phase of one change to one owner. |
 | readiness gate | The item list that a change passes before the release copy. |
+| design method | The selected design approach of the project, either unset or ddd. |
+| design review | The procedure that checks a design and records findings in a report without edits. |
+| designer | The expert that owns the Design artifact and the flow, layout, and interaction of the product. |
+| design tool | The selected aid of the designer, for example figma or pencil, that never gates code. |
+| Design artifact | The document that holds the flow, layout, and interaction of the product. |
 
 ## Business rules
 
@@ -52,6 +57,11 @@ each generated file.
 - One MCP source serves the dialect of each selected harness.
 - One role source serves each selected harness with its chapter appends.
 - Each version is a copy that passes a readiness gate before release.
+- The project uses one design method selected with design.use.
+- Each context holds a context canvas, an aggregate canvas, and a glossary.
+- The design review writes findings in a report and makes no edits.
+- The designer owns the Design artifact and never owns business rules or aggregates.
+- The design tool aids the designer only and never gates code.
 
 ## Inbound messages
 
