@@ -8,4 +8,4 @@ before you add or change a feature.
 
 | Feature | Summary |
 | --- | --- |
-| [feat-name](feat-name/README.md) | One sentence that says what the feature does. |
+| [feat-foundation](feat-foundation/README.md) | One layout, one architecture choice, one seed check, one facade, and three copy modes for new repositories. |
