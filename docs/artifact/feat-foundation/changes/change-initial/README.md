@@ -20,6 +20,7 @@ feat-delivery. This change defines the facade root and the enforceable keys only
 
 - `services/factory/default.nix`
 - `services/factory/modules/foundation.nix`
+- `services/factory/README.md`
 - `services/factory/assets/base`
 - `services/factory/assets/overlays/single`
 - `services/factory/assets/overlays/multiple`
