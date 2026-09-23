@@ -1,0 +1,19 @@
+default: true
+
+# The repository uses authored prose lines longer than 80 characters.
+MD013: false
+
+# Artifact templates and generated integration content use HTML placeholders and markers.
+MD033: false
+
+# Some shipped files are fragments that are appended below an existing H1.
+MD001: false
+MD041: false
+
+# Procedures use conventional ascending list numbers, including across code blocks.
+MD029:
+  style: ordered
+
+# Template placeholders and regular expressions can contain literal table pipes.
+MD056: false
+MD060: false
