@@ -259,9 +259,11 @@ let
   # value gives one log line. `enabled` takes the value of the last layer
   # that sets it. A user entry takes the last layer that sets each field.
   # proj and loc are validated entry sets or null when the layer holds no
-  # entry of this name.
+  # entry of this name. selected is true when the tool feed selects this
+  # entry (C-14): the default of `enabled` is then true, else false. The
+  # feed changes the entry set and the default of `enabled` only.
   mergeMcpEntry =
-    name: proj: loc:
+    name: proj: loc: selected:
     let
       canonical = if builtins.hasAttr name canonicalMcp then canonicalMcp.${name} else null;
       pick =
@@ -285,7 +287,7 @@ let
           command = canonical.command;
           args = canonical.args;
           env = canonical.env;
-          enabled = pick "enabled" false;
+          enabled = pick "enabled" (if selected then true else false);
         };
         traces = builtins.concatLists (
           builtins.map managedFieldTraces [
@@ -306,19 +308,29 @@ let
         traces = [ ];
       };
 
-  # Merge the MCP source of the project and local layers. Returns the merged
-  # entries with defaults applied and the managed-wins trace lines.
+  # Merge the MCP source of the project and local layers with the tool
+  # feed (C-14, spec-designer-scope). Returns the merged entries with
+  # defaults applied and the managed-wins trace lines. The merged entry set
+  # holds the canonical entry of the selected tool with the default
+  # `enabled = true`, also when no layer declares the entry. A canonical
+  # entry that the tool does not select is present only when the project
+  # layer or the local layer declares it, with the default
+  # `enabled = false`. The feed adds no other entry.
   mergeMcp =
-    projectMcp: localMcp:
+    projectMcp: localMcp: tool:
     let
       p = if projectMcp == null then { } else projectMcp;
       l = if localMcp == null then { } else localMcp;
-      names = builtins.attrNames p ++ builtins.filter (n: !(builtins.hasAttr n p)) (builtins.attrNames l);
+      declared =
+        builtins.attrNames p ++ builtins.filter (n: !(builtins.hasAttr n p)) (builtins.attrNames l);
+      selected = if builtins.hasAttr tool canonicalMcp then tool else null;
+      names =
+        declared ++ (if selected != null && !(builtins.elem selected declared) then [ selected ] else [ ]);
       per =
         n:
         mergeMcpEntry n (if builtins.hasAttr n p then p.${n} else null) (
           if builtins.hasAttr n l then l.${n} else null
-        );
+        ) (selected != null && n == selected);
     in
     {
       entries = builtins.listToAttrs (
@@ -351,6 +363,15 @@ let
       env = entry.env;
     };
   };
+  # The built-in declaration of the designer-expert role (C-18,
+  # spec-designer-role). The factory adds it to the role set after the
+  # validation of the project layer and the local layer. The source is the
+  # role source `assets/roles/designer-expert/ROLE.md`.
+  designerBuiltIn = {
+    description = "The role owns the Design artifact and the flow, the layout, and the interaction of the product. Use for writing the Design artifact of a change.";
+    source = ../assets/roles/designer-expert/ROLE.md;
+  };
+
   # Deep user-wins merge of two layers. Attribute sets recurse per leaf key;
   # any other value takes the second (later) layer.
   deepUserWins =
@@ -382,16 +403,27 @@ let
       project,
       local ? { },
       roleNames ? [ ],
+      tool ? "unset",
+      ux ? false,
     }:
     let
       p = project;
       l = local;
       mergedUses = if l ? uses then l.uses else (p.uses or [ ]);
       selected = h: builtins.elem h mergedUses;
-      mcpMerged = mergeMcp (p.mcp or null) (l.mcp or null);
+      mcpMerged = mergeMcp (p.mcp or null) (l.mcp or null) tool;
       mergedMcp = mcpMerged.entries;
       mcpTraces = if mergedUses == [ ] then [ ] else mcpMerged.traces;
-      mergedRoles = deepUserWins (p.roles or { }) (l.roles or { });
+      mergedUserRoles = deepUserWins (p.roles or { }) (l.roles or { });
+      # The built-in declaration of the designer-expert role joins the role
+      # set after the validation of the project layer and the local layer
+      # (C-18): the name is `designer-expert` and the source is the role
+      # source. The built-in declaration passes the reserved-name rule, and
+      # no merged user declaration of the name exists: both layers reject
+      # the name in evalAgents. When the ux flag is false, the role set
+      # holds no designer-expert declaration.
+      mergedRoles =
+        if ux then mergedUserRoles // { designer-expert = designerBuiltIn; } else mergedUserRoles;
       mergedHarness = h: deepUserWins (p.${h} or { }) (l.${h} or { });
       baseOpencode = mergedHarness "opencode";
       managed = managedOpencodeSettings roleNames;
@@ -544,6 +576,7 @@ in
     resolveHarnessGroup
     emptyAgents
     canonicalMcp
+    designerBuiltIn
     mergeMcpEntry
     mergeMcp
     mcpDialectEntry

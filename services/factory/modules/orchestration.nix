@@ -172,21 +172,41 @@ let
           throw "agents-type: the key `roles` of the group `agents` must be an attribute set, got `${builtins.typeOf value.roles}`"
         else
           let
-            checkedMcp = builtins.mapAttrs checkMcpEntry (value.mcp or { });
-            checkedRoles = builtins.mapAttrs roles.checkRole (value.roles or { });
-            result =
-              (if value ? uses then { uses = value.uses; } else { })
-              // {
-                mcp = checkedMcp;
-                roles = checkedRoles;
-              }
-              // (if value ? opencode then { opencode = harness.resolveHarnessGroup value.opencode; } else { })
-              // (if value ? claude then { claude = harness.resolveHarnessGroup value.claude; } else { })
-              // (if value ? codex then { codex = harness.resolveHarnessGroup value.codex; } else { });
+            # The name `designer-expert` is reserved to the factory (C-18,
+            # spec-designer-role). A declaration of the name in the project
+            # layer or in the local layer fails evaluation with a message
+            # that names the reserved name. Both layers validate here: the
+            # project declaration through evalAgents and the local
+            # declaration through readLocalAgents.
+            roleNameOf =
+              n:
+              let
+                d = value.roles.${n};
+              in
+              if builtins.isAttrs d && d ? name && builtins.isString d.name then d.name else n;
+            reserved = builtins.filter (
+              n: builtins.elem n roles.reservedRoleNames || builtins.elem (roleNameOf n) roles.reservedRoleNames
+            ) (builtins.attrNames (value.roles or { }));
           in
-          builtins.deepSeq (builtins.attrValues checkedMcp) (
-            builtins.deepSeq (builtins.attrValues checkedRoles) result
-          );
+          if reserved != [ ] then
+            throw "role-reserved: the name `designer-expert` is reserved to the factory; declare no role with the name `designer-expert` in the project layer or the local layer"
+          else
+            let
+              checkedMcp = builtins.mapAttrs checkMcpEntry (value.mcp or { });
+              checkedRoles = builtins.mapAttrs roles.checkRole (value.roles or { });
+              result =
+                (if value ? uses then { uses = value.uses; } else { })
+                // {
+                  mcp = checkedMcp;
+                  roles = checkedRoles;
+                }
+                // (if value ? opencode then { opencode = harness.resolveHarnessGroup value.opencode; } else { })
+                // (if value ? claude then { claude = harness.resolveHarnessGroup value.claude; } else { })
+                // (if value ? codex then { codex = harness.resolveHarnessGroup value.codex; } else { });
+            in
+            builtins.deepSeq (builtins.attrValues checkedMcp) (
+              builtins.deepSeq (builtins.attrValues checkedRoles) result
+            );
 
   # Validate one MCP entry of the group `factory.project.agents.mcp.<name>`
   # (spec-mcp-dialect). `command` is a required non-empty string, except for

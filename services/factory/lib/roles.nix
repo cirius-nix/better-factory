@@ -9,6 +9,16 @@ let
 
   namePattern = "[A-Za-z0-9._-]+";
 
+  # Role names reserved to the factory (C-18, spec-designer-role). A
+  # declaration of a reserved name in the project layer or in the local
+  # layer fails evaluation with a message that names the reserved name.
+  # The factory adds the built-in declaration after the layer validation,
+  # so the built-in declaration passes and no merged user declaration of
+  # the name exists.
+  reservedRoleNames = [
+    "designer-expert"
+  ];
+
   roleFields = [
     "enable"
     "name"
@@ -29,11 +39,18 @@ let
   # exact field list, a non-empty string `description`, a `source` that
   # `builtins.pathExists` matches, a `name` that matches `[A-Za-z0-9._-]+`
   # and is not `.` or `..`, and the exact `harness` group. An unknown field
-  # fails evaluation. Returns the normalized declaration: `enable` defaults
-  # to true, `name` to the attribute name, and each harness group to the
-  # empty set. The structural header keys always win over a harness extra
-  # with the same name.
-  checkRole =
+  # fails evaluation. A reserved name fails evaluation unless allowReserved
+  # is true: the project layer and the local layer validate with
+  # `checkRole`, so a user declaration of a reserved name fails; the role
+  # render validates the merged set with allowReserved, so the
+  # factory-injected built-in declaration passes. Returns the normalized
+  # declaration: `enable` defaults to true, `name` to the attribute name,
+  # and each harness group to the empty set. The structural header keys
+  # always win over a harness extra with the same name.
+  checkRoleWith =
+    {
+      allowReserved ? false,
+    }:
     attrName: decl:
     if !(builtins.isAttrs decl) then
       throw "role-type: the declaration `roles.${attrName}` must be an attribute set, got `${builtins.typeOf decl}`"
@@ -59,6 +76,8 @@ let
           !(builtins.isString name) || builtins.match namePattern name == null || name == "." || name == ".."
         then
           throw "role-name: the `name` of the declaration `roles.${attrName}` must match [A-Za-z0-9._-]+ and must not be `.` or `..`"
+        else if !allowReserved && builtins.elem name reservedRoleNames then
+          throw "role-reserved: the name `${name}` of the declaration `roles.${attrName}` is reserved to the factory"
         else if (decl ? harness) && !(builtins.isAttrs decl.harness) then
           throw "role-harness: the `harness` of the declaration `roles.${attrName}` must be an attribute set"
         else
@@ -88,6 +107,8 @@ let
                 };
               };
 
+  checkRole = checkRoleWith { };
+
   # Trim trailing newline characters from rendered text.
   trimRight =
     s:
@@ -101,12 +122,10 @@ let
     else
       s;
 
-  # Compose the rendered body: the role source, then each active chapter.
-  # The order is the DDD chapter first and the UX chapter second. One blank
-  # line separates the parts. The chapter list is empty at this version; the
-  # chapter content and the options that activate a chapter belong to
-  # feat-design (F3). The check passes one fixture chapter list to the
-  # render. chapters is a list of chapter body texts.
+  # Compose the rendered body: the role source, then the chapters of the
+  # map of that role. The order is the DDD chapter first and the UX chapter
+  # second. One blank line separates the parts. chapters is the chapter
+  # list of one role.
   composeBody =
     sourceText: chapters:
     builtins.concatStringsSep "\n\n" ([ (trimRight sourceText) ] ++ builtins.map trimRight chapters)
@@ -114,7 +133,13 @@ let
 
   # Render each enabled role declaration for each selected harness. roles
   # maps the attribute name to its declaration; uses holds the selected
-  # harnesses. An unselected harness receives no role file. Each file has
+  # harnesses; chapterMap holds one chapter list per role name
+  # (spec-design-option, C-13). The body of one role is the role source
+  # plus the chapters of the map of that role. An absent role name gives
+  # the empty list, so the body is the role source only. One blank line
+  # separates the parts (spec-role-render of feat-orchestration 1.0.0). The
+  # codex file holds the composed body in `developer_instructions`. An
+  # unselected harness receives no role file. Each file has
   # the copy mode `managed`. No task permission is held in a role
   # frontmatter. Returns the file declarations, the rendered-source list,
   # and the codex `agents` fragment as data: one `agents.<name>` entry with
@@ -126,17 +151,18 @@ let
     {
       roles,
       uses,
-      chapters ? [ ],
+      chapterMap ? { },
     }:
     let
       given = if roles == null then { } else roles;
-      checked = builtins.mapAttrs checkRole given;
+      checked = builtins.mapAttrs (checkRoleWith { allowReserved = true; }) given;
       enabled = builtins.filter (n: checked.${n}.enable) (builtins.attrNames checked);
       select = h: builtins.elem h uses;
       one =
         n:
         let
           decl = checked.${n};
+          chapters = chapterMap.${decl.name} or [ ];
           body = composeBody (builtins.readFile decl.source) chapters;
           opencodeFront = yaml.renderYaml (decl.harness.opencode // { description = decl.description; });
           claudeFront = yaml.renderYaml (
@@ -226,8 +252,10 @@ in
 {
   inherit
     namePattern
+    reservedRoleNames
     roleFields
     harnessFields
+    checkRoleWith
     checkRole
     trimRight
     composeBody

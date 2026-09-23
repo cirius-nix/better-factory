@@ -5,6 +5,7 @@ let
   factoryModules = [
     ./modules/foundation.nix
     ./modules/orchestration.nix
+    ./modules/design.nix
   ];
   isAssetOrExample =
     m:

@@ -31,9 +31,12 @@
     domain = {
       documentation.use = "artifact-driven";
       repo-arch.use = "multiple";
-      design.use = "ddd";
     };
     project = {
+      design = {
+        use = "ddd";
+        tool = "unset";
+      };
       agents = {
         uses = [
           "opencode"

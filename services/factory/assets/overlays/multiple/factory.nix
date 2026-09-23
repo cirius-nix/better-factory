@@ -14,5 +14,10 @@
       mcp = { };
       roles = { };
     };
+    design = {
+      use = "unset";
+      tool = "unset";
+    };
+    ux = false;
   };
 }

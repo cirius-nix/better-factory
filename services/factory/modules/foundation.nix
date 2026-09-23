@@ -10,6 +10,7 @@ let
   copyModes = import ./copy-modes.nix;
   yamlRenderer = import ../lib/yaml.nix;
   orchestration = import ./orchestration.nix;
+  design = import ./design.nix;
   layout = {
     starterFeature = "feat-example";
     firstChange = "change-initial";
@@ -42,5 +43,6 @@ in
     copyModes
     yamlRenderer
     orchestration
+    design
     ;
 }

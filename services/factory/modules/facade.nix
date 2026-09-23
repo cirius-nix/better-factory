@@ -3,11 +3,14 @@
 # Pure validation with one naming message per invariant. No nixpkgs dependency.
 let
   orchestration = import ./orchestration.nix;
+  designMod = import ./design.nix;
   modeledKeys = [
     "arch"
     "advanced"
     "secrets"
     "agents"
+    "design"
+    "ux"
   ];
   archValues = [
     "single"
@@ -36,6 +39,16 @@ let
       type = "group agents";
       default = { };
       description = "Harness settings of the repository (spec-harness-merge).";
+    };
+    design = {
+      type = "group design";
+      default = { };
+      description = "Design method and design tool (spec-design-option).";
+    };
+    ux = {
+      type = "bool";
+      default = false;
+      description = "Activates the designer work (spec-designer-role).";
     };
   };
 
@@ -174,13 +187,29 @@ let
           orchestration.emptyAgents
         else
           orchestration.evalAgents project.agents;
+      design =
+        if !(project ? design) || project.design == null then
+          designMod.evalDesign null
+        else
+          designMod.evalDesign project.design;
+      ux =
+        if !(project ? ux) || project.ux == null then
+          designMod.evalUx null
+        else
+          designMod.evalUx project.ux;
     in
     assert strict;
     assert topOk;
     assert failNow;
     {
       arch = project.arch;
-      inherit advanced secrets agents;
+      inherit
+        advanced
+        secrets
+        agents
+        design
+        ux
+        ;
     };
 in
 {
