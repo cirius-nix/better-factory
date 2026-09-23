@@ -28,13 +28,17 @@ reference-only; any edit to feat-foundation, which this change builds upon.
 - `services/factory/modules/foundation.nix`
 - `services/factory/modules/facade.nix`
 - `services/factory/modules/file-plan.nix`
+- `services/factory/modules/seed-check.nix`
 - `services/factory/lib/harness.nix`
 - `services/factory/lib/roles.nix`
 - `services/factory/lib/yaml.nix`
 - `services/factory/lib/toml.nix`
 - `services/factory/assets/roles`
 - `services/factory/assets/base`
+- `services/factory/examples/single`
+- `services/factory/examples/multiple`
 - `devenv.nix`
+- `.agents/skills/expert-role`
 
 ## Artifacts
 
