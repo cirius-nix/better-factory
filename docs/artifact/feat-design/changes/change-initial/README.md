@@ -26,6 +26,7 @@ feat-orchestration, which this change builds upon.
 - `services/factory/modules/design.nix`
 - `services/factory/modules/foundation.nix`
 - `services/factory/modules/facade.nix`
+- `services/factory/modules/orchestration.nix`
 - `services/factory/modules/seed-check.nix`
 - `services/factory/lib/roles.nix`
 - `services/factory/lib/harness.nix`
@@ -33,7 +34,10 @@ feat-orchestration, which this change builds upon.
 - `services/factory/assets/roles/designer-expert`
 - `services/factory/assets/base`
 - `services/factory/assets/overlays/multiple`
+- `services/factory/examples/single`
+- `services/factory/examples/multiple`
 - `devenv.nix`
+- `docs/wiki/design/ddd`
 - `.agents/skills/ddd-review`
 - `.opencode/agents`
 
@@ -42,3 +46,4 @@ feat-orchestration, which this change builds upon.
 - [Requirements](requirements/README.md)
 - [Specifications](specifications/README.md)
 - [Decisions](decisions/)
+- [Implementation plan](tasks/README.md)
