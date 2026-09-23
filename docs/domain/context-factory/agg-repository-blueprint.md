@@ -7,13 +7,14 @@
 
 The repository blueprint is the declared plan of one repository that the factory emits.
 It holds the layout, the arch, the facade settings, the selected harnesses, the merged harness
-settings, the MCP source, the role declarations, the file plan with one copy mode per file, and
-the result of the seed check.
+settings, the MCP source, the role declarations, the design method, the ux flag, the design
+tool, the design files and chapters, the file plan with one copy mode per file, and the result
+of the seed check.
 One transaction computes the plan from the author declaration and writes the files.
 The rules are simple, so the implementation uses a transaction script.
 One aggregate instance covers one emitted repository.
-The blueprint also renders the role files that carry the phase protocol and the release gate
-(spec-protocol, spec-release-gate).
+The blueprint also renders the role files that carry the phase protocol, the release gate, and
+the design work (spec-protocol, spec-release-gate, spec-designer-role).
 
 ## State transitions
 
@@ -25,6 +26,8 @@ The blueprint also renders the role files that carry the phase protocol and the 
 | declared | Select harnesses | declared |
 | declared | Declare MCP entry | declared |
 | declared | Declare role | declared |
+| declared | Select design option | declared |
+| declared | Select design tool | declared |
 | declared | Declare local settings | declared |
 | declared | Copy file | emitted |
 | emitted | Check seed | verified |
@@ -47,6 +50,16 @@ The blueprint also renders the role files that carry the phase protocol and the 
 - One MCP source renders each enabled entry into the dialect of each selected harness.
 - One role source renders each enabled role for each selected harness. The body is the role
   source plus the ordered chapter appends.
+- The design method is one of `unset` and `ddd`. The ux flag is a bool. The design tool is one
+  of `unset`, `figma`, and `pencil`.
+- The emitted file set holds the design files only when their design option is active: the DDD
+  files when the design method is `ddd`, and the designer-expert role when the ux flag is true.
+- Each rendered role holds its active chapters after the body in the fixed order: the DDD
+  chapter first and the UX chapter second.
+- The canonical MCP entry of the selected design tool is enabled unless the project layer or
+  the local layer sets `enabled`. The value of the last layer that sets it wins.
+- No gate reads the design method, the ux flag, or the design tool. The seed check stays green
+  with each value.
 - The release copy holds the change artifacts and no new content.
 - The seed check is green only when every layer passes. The check covers the generated setup
   only.
@@ -67,6 +80,8 @@ the release) belong to the coordinator workflow, not to the blueprint transactio
 | Select harnesses | The blueprint records the selected harnesses. An unknown value is an error. | Harness merged |
 | Declare MCP entry | The blueprint records one MCP source entry. | MCP entry translated |
 | Declare role | The blueprint records one role source and its declaration. | Role rendered |
+| Select design option | The blueprint records the design method and the ux flag, and computes the design files and chapters. An unknown value is an error. | Design option selected |
+| Select design tool | The blueprint records the design tool and activates the canonical MCP entry of the tool. An unknown value is an error. | Design tool selected |
 | Declare local settings | The blueprint merges the local layer last. A managed key keeps its canonical value with a log line. | Harness merged |
 | Copy file | The blueprint writes one planned file as its copy mode says. | File copied |
 | Check seed | The blueprint materializes the tree and runs the seed check. | Seed checked |
@@ -81,6 +96,8 @@ the release) belong to the coordinator workflow, not to the blueprint transactio
 | Harness merged | The selected harnesses and the merged key groups. |
 | MCP entry translated | The entry name, the selected harness, and the rendered path. |
 | Role rendered | The role name, the selected harness, and the rendered path. |
+| Design option selected | The design method, the ux flag, the design files, and the chapters. |
+| Design tool selected | The design tool and the enabled canonical entry. |
 | File copied | The path and the copy mode. |
 | Seed checked | The result and the layers. |
 
@@ -95,6 +112,9 @@ None. The blueprint holds every fact of one repository and references no other a
 - The phase protocol messages (Phase planned, Phase built, Expert assigned, Version released)
   belong to the coordinator workflow. The blueprint renders the role files that carry the
   protocol; it emits no protocol event.
+- The design workflow messages (Domain model declared, Design reviewed, Designer assigned)
+  belong to the design workflow. The blueprint emits no workflow event. The blueprint computes
+  the design files and chapters from the design option and the design tool.
 - No second aggregate exists. The coordination holds no factory data that one transaction must
   keep consistent.
 - The reference semantics in `../repofactory` stay reference-only.

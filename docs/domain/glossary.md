@@ -34,3 +34,10 @@ write two rows.
 | designer | context-factory | The expert that owns the Design artifact and the flow, layout, and interaction of the product. | - |
 | design tool | context-factory | The selected aid of the designer, for example figma or pencil, that never gates code. | - |
 | Design artifact | context-factory | The document that holds the flow, layout, and interaction of the product. | - |
+| design option | context-factory | The selected value of the group factory.project.design that activates design content. | - |
+| ux flag | context-factory | The key factory.project.ux that activates the designer role and the UX chapter. | - |
+| context canvas | context-factory | The bounded context canvas artifact at docs/domain/context-<name>/README.md. | - |
+| aggregate canvas | context-factory | The aggregate canvas artifact at docs/domain/context-<name>/agg-<name>.md. | - |
+| DDD chapter | context-factory | The chapter append that carries the domain-driven design steps of a role. | - |
+| UX chapter | context-factory | The chapter append that carries the design-work steps of a role. | - |
+| review report | context-factory | The report with findings that the review procedure writes without edits. | - |

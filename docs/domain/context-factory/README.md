@@ -8,8 +8,9 @@
 
 The factory context gives repository authors one standard way to start a repository.
 It decides the layout of changes and versions, the architecture choice, the seed check,
-the facade root for settings, the harness delivery, the phase protocol, and the copy mode of
-each generated file.
+the facade root for settings, the harness delivery, the phase protocol, the copy mode of
+each generated file, and the design method with its domain model, its review, and its
+designer role.
 
 ## Ubiquitous language
 
@@ -44,6 +45,13 @@ each generated file.
 | designer | The expert that owns the Design artifact and the flow, layout, and interaction of the product. |
 | design tool | The selected aid of the designer, for example figma or pencil, that never gates code. |
 | Design artifact | The document that holds the flow, layout, and interaction of the product. |
+| design option | The selected value of the group factory.project.design that activates design content. |
+| ux flag | The key factory.project.ux that activates the designer role and the UX chapter. |
+| context canvas | The bounded context canvas artifact at docs/domain/context-<name>/README.md. |
+| aggregate canvas | The aggregate canvas artifact at docs/domain/context-<name>/agg-<name>.md. |
+| DDD chapter | The chapter append that carries the domain-driven design steps of a role. |
+| UX chapter | The chapter append that carries the design-work steps of a role. |
+| review report | The report with findings that the review procedure writes without edits. |
 
 ## Business rules
 
@@ -62,6 +70,9 @@ each generated file.
 - The design review writes findings in a report and makes no edits.
 - The designer owns the Design artifact and never owns business rules or aggregates.
 - The design tool aids the designer only and never gates code.
+- The emitted file set holds the design files only when their design option is active.
+- Each rendered role holds its active chapters after the body in the fixed order.
+- No gate reads the design method, the ux flag, or the design tool.
 
 ## Inbound messages
 
@@ -74,9 +85,14 @@ each generated file.
 | Declare MCP entry | command | repository author |
 | Declare role | command | repository author |
 | Declare local settings | command | repository author |
+| Select design option | command | repository author |
+| Select design tool | command | repository author |
+| Declare domain model | command | solution expert |
+| Review design | query | reviewer |
 | Check seed | query | repository author |
 | Run phase | command | change coordinator |
 | Assign expert | command | change coordinator |
+| Assign designer | command | change coordinator |
 | Confirm readiness | query | solution expert |
 | Release version | command | change coordinator |
 
@@ -92,6 +108,11 @@ each generated file.
 | Role rendered | event | repository author |
 | File copied | event | repository author |
 | Seed checked | event | repository author |
+| Design option selected | event | repository author |
+| Design tool selected | event | repository author |
+| Domain model declared | event | solution expert |
+| Design reviewed | event | reviewer |
+| Designer assigned | event | designer expert |
 | Phase planned | event | repository author |
 | Phase built | event | repository author |
 | Expert assigned | event | content expert |

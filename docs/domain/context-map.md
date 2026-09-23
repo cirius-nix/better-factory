@@ -8,5 +8,8 @@
 
 ## Relationships
 
+The context has no upstream context and no downstream context at this version. The design work
+stays in `context-factory`.
+
 | Upstream | Downstream | Contract | Shared code |
 | --- | --- | --- | --- |
