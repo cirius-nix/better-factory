@@ -56,9 +56,17 @@ notifier, one publish target, and named presets.
 | UX chapter | The chapter append that carries the design-work steps of a role. |
 | review report | The report with findings that the review procedure writes without edits. |
 | CI provider | The selected build system, either unset, github-actions, or azure-pipelines. |
+| CI file | The workflow file or the pipeline file of the selected CI provider. |
+| CI folder | The repository folder that holds the pipeline file of the azure-pipelines provider. |
 | notifier | The single fan-out that sends deploy messages to google-chat, slack, or telegram. |
 | publish target | The selected site host, either github-pages or azure-static-web-app. |
+| deploy tool | The mechanism that uploads a Static Web App, either official-task or swa-cli. |
 | preset | A named bundle, either minimal, docs-only, or full, that selects keys of F1 through F4. |
+| bundle | The key-selection map of one preset. |
+| site project | The emitted application that renders the docs tree as one browsable site. |
+| feature index | The ordered feature table of docs/artifact/README.md. |
+| feature order | The sidebar order of the feature folders, derived from the feature index. |
+| static directory | A directory of static files that the site build copies to the site root. |
 
 ## Business rules
 
@@ -85,6 +93,9 @@ notifier, one publish target, and named presets.
 - The notifier sends deploy messages only and holds secret names only.
 - Each project publishes the site to one target with github-pages as the default.
 - Named presets select keys of F1 through F4 and live in feat-delivery.
+- The sidebar feature order derives from the feature index, and no hand list exists.
+- A preset selects no key outside F1 through F4, and no dead key exists.
+- The site files are emitted only when the site is enabled, and the CI file builds the site.
 
 ## Inbound messages
 
@@ -107,6 +118,11 @@ notifier, one publish target, and named presets.
 | Assign designer | command | change coordinator |
 | Confirm readiness | query | solution expert |
 | Release version | command | change coordinator |
+| Select CI | command | repository author |
+| Select publish target | command | repository author |
+| Apply preset | command | repository author |
+| Publish docs | command | repository author |
+| Notify deploy | command | repository author |
 
 ## Outbound messages
 
@@ -129,6 +145,11 @@ notifier, one publish target, and named presets.
 | Phase built | event | repository author |
 | Expert assigned | event | content expert |
 | Version released | event | repository author |
+| CI selected | event | repository author |
+| Publish target selected | event | repository author |
+| Preset applied | event | repository author |
+| Docs published | event | repository author |
+| Deploy notified | event | repository author |
 
 ## Aggregates
 

@@ -21,9 +21,30 @@ any edit to `../repofactory`, which stays reference-only; any edit to
 feat-foundation, feat-orchestration, or feat-design, which this change builds
 upon.
 
+## Code paths
+
+- `services/factory/default.nix`
+- `services/factory/modules/delivery.nix`
+- `services/factory/modules/foundation.nix`
+- `services/factory/modules/facade.nix`
+- `services/factory/modules/seed-check.nix`
+- `services/factory/lib/site.nix`
+- `services/factory/lib/ci.nix`
+- `services/factory/lib/notify.nix`
+- `services/factory/lib/presets.nix`
+- `services/factory/assets/delivery`
+- `services/factory/assets/base`
+- `services/factory/assets/overlays/multiple`
+- `services/factory/examples/single`
+- `services/factory/examples/multiple`
+- `apps/documentation`
+- `devenv.nix`
+
 ## Artifacts
 
 - [Requirements](requirements/README.md)
+- [Specifications](specifications/README.md)
+- [Decisions](decisions/)
 
 ## Removed artifacts
 

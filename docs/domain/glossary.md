@@ -42,6 +42,14 @@ write two rows.
 | UX chapter | context-factory | The chapter append that carries the design-work steps of a role. | - |
 | review report | context-factory | The report with findings that the review procedure writes without edits. | - |
 | CI provider | context-factory | The selected build system, either unset, github-actions, or azure-pipelines. | - |
+| CI file | context-factory | The workflow file or the pipeline file of the selected CI provider. | - |
+| CI folder | context-factory | The repository folder that holds the pipeline file of the azure-pipelines provider. | - |
 | notifier | context-factory | The single fan-out that sends deploy messages to google-chat, slack, or telegram. | - |
 | publish target | context-factory | The selected site host, either github-pages or azure-static-web-app. | - |
+| deploy tool | context-factory | The mechanism that uploads a Static Web App, either official-task or swa-cli. | - |
 | preset | context-factory | A named bundle, either minimal, docs-only, or full, that selects keys of F1 through F4. | - |
+| bundle | context-factory | The key-selection map of one preset. | - |
+| site project | context-factory | The emitted application that renders the docs tree as one browsable site. | - |
+| feature index | context-factory | The ordered feature table of docs/artifact/README.md. | - |
+| feature order | context-factory | The sidebar order of the feature folders, derived from the feature index. | - |
+| static directory | context-factory | A directory of static files that the site build copies to the site root. | - |
