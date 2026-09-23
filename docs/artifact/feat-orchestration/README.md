@@ -1,12 +1,18 @@
 # Feature: orchestration
 
-**Current version:** none
+**Current version:** 1.0.0
 
 ## Summary
 
 The orchestration gives change coordinators one protocol for moving a change
 through its phases, and it gives repository authors harness settings, MCP
 entries, and expert roles for each harness that they select.
+
+## Current artifacts
+
+- [Requirements](versions/1.0.0/requirements/README.md)
+- [Specifications](versions/1.0.0/specifications/README.md)
+- [Decisions](versions/1.0.0/decisions/)
 
 ## Versions
 
