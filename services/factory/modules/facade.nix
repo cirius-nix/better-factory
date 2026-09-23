@@ -2,10 +2,12 @@
 # Facade root factory.project (spec-facade-root).
 # Pure validation with one naming message per invariant. No nixpkgs dependency.
 let
+  orchestration = import ./orchestration.nix;
   modeledKeys = [
     "arch"
     "advanced"
     "secrets"
+    "agents"
   ];
   archValues = [
     "single"
@@ -29,6 +31,11 @@ let
       type = "list of names";
       default = [ ];
       description = "Environment-variable names only, never values.";
+    };
+    agents = {
+      type = "group agents";
+      default = { };
+      description = "Harness settings of the repository (spec-harness-merge).";
     };
   };
 
@@ -162,13 +169,18 @@ let
           project.secrets
         else
           throw "secret-name: the group `secrets` below the root `factory.project` must be a list of names matching `${secretPattern}`";
+      agents =
+        if !(project ? agents) || project.agents == null then
+          orchestration.emptyAgents
+        else
+          orchestration.evalAgents project.agents;
     in
     assert strict;
     assert topOk;
     assert failNow;
     {
       arch = project.arch;
-      inherit advanced secrets;
+      inherit advanced secrets agents;
     };
 in
 {

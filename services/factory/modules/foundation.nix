@@ -8,7 +8,8 @@ let
   facade = import ./facade.nix;
   filePlan = import ./file-plan.nix;
   copyModes = import ./copy-modes.nix;
-  yamlRenderer = import ./yaml-renderer.nix;
+  yamlRenderer = import ../lib/yaml.nix;
+  orchestration = import ./orchestration.nix;
   layout = {
     starterFeature = "feat-example";
     firstChange = "change-initial";
@@ -40,5 +41,6 @@ in
     filePlan
     copyModes
     yamlRenderer
+    orchestration
     ;
 }

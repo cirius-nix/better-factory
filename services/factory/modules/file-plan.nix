@@ -61,6 +61,7 @@ let
       arch,
       baseDir,
       overlayDir,
+      renderedSources ? [ ],
       rel,
       source,
     }:
@@ -68,11 +69,12 @@ let
       s = toString source;
       basePrefix = toString baseDir + "/";
       overlayPrefix = toString overlayDir + "/";
+      rendered = builtins.map toString renderedSources;
     in
-    if hasPrefix basePrefix s || hasPrefix overlayPrefix s then
+    if hasPrefix basePrefix s || hasPrefix overlayPrefix s || builtins.elem s rendered then
       true
     else
-      throw "file plan: source of `${rel}` is outside assets/base/ and assets/overlays/${arch}/";
+      throw "file plan: source of `${rel}` is neither an asset tree path under assets/base/ or assets/overlays/${arch}/ (base files, overlay files, extraFiles) nor a rendered path of the rendered-source list ${builtins.toJSON rendered} of the run";
 
   checkDuplication =
     {
@@ -104,12 +106,18 @@ let
   # The file plan of one arch: base files plus exactly one overlay.
   # A path in the base and in the active overlay appears once; the overlay
   # file wins. modes maps a relative path to its copy mode (default seed).
+  # extraFiles joins the plan in the same transaction: each entry holds
+  # `rel`, `source`, and an optional `copyMode` (default managed). The
+  # source of each entry is either an asset tree path or a rendered path of
+  # renderedSources, the rendered-source list of the run. An entry of
+  # neither kind fails the check, as does an arbitrary store path.
   planForArch =
     {
       arch,
       factoryDir,
       modes ? { },
       extraFiles ? [ ],
+      renderedSources ? [ ],
     }:
     let
       _arch =
@@ -155,23 +163,35 @@ let
         f:
         let
           _allowed = checkSourceAllowed {
-            inherit arch baseDir overlayDir;
+            inherit
+              arch
+              baseDir
+              overlayDir
+              renderedSources
+              ;
             inherit (f) rel source;
           };
         in
         assert _allowed;
-        true
+        {
+          name = f.rel;
+          value = mkFileDecl {
+            rel = f.rel;
+            source = f.source;
+            copyMode = f.copyMode or "managed";
+          };
+        }
       ) extraFiles;
     in
     assert _arch;
     assert _names;
     assert builtins.all (x: x) _dups;
-    assert builtins.all (x: x) _extra;
+    assert builtins.all (e: builtins.isAttrs e.value) _extra;
     {
       inherit arch;
       baseFiles = baseRels;
       overlayFiles = overlayRels;
-      files = builtins.listToAttrs (builtins.map one allRels);
+      files = builtins.listToAttrs (builtins.map one allRels) // builtins.listToAttrs _extra;
     };
 in
 {

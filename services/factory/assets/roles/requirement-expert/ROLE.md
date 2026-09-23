@@ -1,9 +1,3 @@
----
-description: "Write the requirements of a change in phase 1. Own the requirements content only. Use for writing requirements of a change."
-model: "opencode-go/muse-spark-1.3-contributor"
-variant: "medium"
----
-
 # Requirement Expert
 
 You are the implementation expert of the requirements phase. You own phase 1 of the

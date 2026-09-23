@@ -1,0 +1,3 @@
+# Local layer file of the factory (spec-harness-merge).
+# The workstation owns devenv.local.nix; it stays outside version control.
+devenv.local.nix

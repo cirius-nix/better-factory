@@ -32,51 +32,46 @@
       documentation.use = "artifact-driven";
       repo-arch.use = "multiple";
       design.use = "ddd";
-      agent = {
-        harness = {
-          uses = [
-            "opencode"
-          ];
-          opencode.settings = {
-            agent = {
-              explore.model = "opencode-go/deepseek-v4.1-flash";
-              plan.model = "opencode-go/muse-spark-1.3-contributor";
-              build.model = "opencode-go/deepseek-v4.1-flash";
-            };
-          };
-        };
-        role.builder = {
-          artifact-master.harness = {
-            # sonnet-high or opus-medium
-            opencode = {
+    };
+    project = {
+      agents = {
+        uses = [
+          "opencode"
+        ];
+        roles = {
+          artifact-master = {
+            description = "Coordinate one artifact-driven change phase by phase with Plan-Pn then Build-Pn. Own coordination only and start each phase owner. Use for coordinating a change, planning then building a phase, or running the next artifact phase.";
+            source = ./services/factory/assets/roles/artifact-master/ROLE.md;
+            harness.opencode = {
               model = "opencode-go/muse-spark-1.3-contributor";
               variant = "medium";
             };
           };
-          requirement-expert.harness = {
-            opencode = {
-              # sonnet or opus medium
+          requirement-expert = {
+            description = "Write the requirements of a change in phase 1. Own the requirements content only. Use for writing requirements of a change.";
+            source = ./services/factory/assets/roles/requirement-expert/ROLE.md;
+            harness.opencode = {
               model = "opencode-go/muse-spark-1.3-contributor";
               variant = "medium";
             };
           };
-          solution-expert.harness = {
-            opencode = {
+          solution-expert = {
+            description = "Write the specifications, decisions, tasks, and readiness confirmation of a change in phases 2 and 3. Use for writing specifications, plans, or readiness checks of a change.";
+            source = ./services/factory/assets/roles/solution-expert/ROLE.md;
+            harness.opencode = {
               model = "opencode-go/deepseek-v4.1-flash";
               variant = "max";
             };
           };
           artifact-release-expert = {
+            description = "Make the copy-only release of a change in phase 5 after the readiness confirmation. Use for releasing a version of a change.";
+            source = ./services/factory/assets/roles/artifact-release-expert/ROLE.md;
             harness.opencode = {
               mode = "subagent";
               model = "opencode-go/deepseek-v4.1-flash";
               variant = "high";
             };
           };
-        };
-        skill.builtins = {
-          asd-ste-100.enable = true;
-          asd-ste-100-chat-no-slop.enable = true;
         };
       };
     };

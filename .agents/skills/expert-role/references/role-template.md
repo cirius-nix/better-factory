@@ -1,7 +1,7 @@
 # Role Body Template
 
 The body of a role is the file `utils/agent/role/<name>/ROLE.md`. The body has no frontmatter
-and no header. The shell adds the header when it renders the role file of each harness. The
+and no header. The factory render adds the header when it renders the role file of each harness. The
 body starts with the title line.
 
 Copy the template. Fill each part for your component. Keep the seven headings in this order.

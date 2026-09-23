@@ -45,3 +45,4 @@ reference-only; any edit to feat-foundation, which this change builds upon.
 - [Requirements](requirements/README.md)
 - [Specifications](specifications/README.md)
 - [Decisions](decisions/)
+- [Implementation plan](tasks/README.md)

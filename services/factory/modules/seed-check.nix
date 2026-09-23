@@ -16,7 +16,9 @@ let
   facade = import ./facade.nix;
   filePlan = import ./file-plan.nix;
   copyModes = import ./copy-modes.nix;
-  yamlRenderer = import ./yaml-renderer.nix;
+  yamlRenderer = import ../lib/yaml.nix;
+  orchestration = import ./orchestration.nix;
+  harnessLib = orchestration.harness;
 
   facadeSrc =
     if arch == "single" then
@@ -34,7 +36,38 @@ let
     else
       throw "arch-value: the declaration selects `${settings.arch}`, the check runs `${arch}`";
 
+  # The starter declaration of each arch holds the group `agents` and
+  # selects no harness (spec-harness-merge point 7). The modeled-key list
+  # and the root option definitions hold `agents` (C-05); evalFactory above
+  # already enforces their agreement.
+  agentsMatch =
+    if settings.agents.uses or null == [ ] && builtins.elem "agents" facade.modeledKeys then
+      true
+    else
+      throw "seed check: the starter declaration of `${arch}` must hold the group `agents` with `uses = [ ]`";
+
+  # Log check fixture (C-12): one managed key set in the project layer and
+  # in the local layer. Forcing the merge writes one pinned line per ignored
+  # value to the standard error of the evaluation. The result file of the
+  # seed check stays exactly five lines; the trace never enters the result
+  # file or the layer logs.
+  logFixtureLocalFile = builtins.toFile "devenv.local.nix" ''
+    { factory.local.agents = { uses = [ "opencode" ]; opencode = { extraSubagent_depth = 9; }; }; }
+  '';
+  logFixture = harnessLib.mergeAgents {
+    project = orchestration.evalAgents {
+      uses = [ "opencode" ];
+      opencode = {
+        extraSubagent_depth = 5;
+      };
+    };
+    local = orchestration.readLocalAgents logFixtureLocalFile;
+    roleNames = [ "artifact-master" ];
+  };
+  logFixtureDepth = logFixture.opencode.subagent_depth == 1;
+
   modes = {
+    ".gitignore" = "managed";
     ".markdownlint.yaml" = "managed";
     "docs/wiki/repo-arch/single-repository.md" = "managed";
     "docs/wiki/repo-arch/multiple-repositories.md" = "managed";
@@ -42,7 +75,17 @@ let
     "factory.config.yaml" = "template";
   };
 
-  plan = filePlan.planForArch { inherit arch factoryDir modes; };
+  plan = filePlan.planForArch {
+    inherit arch factoryDir modes;
+    renderedSources = [ configYaml ];
+    extraFiles = [
+      {
+        rel = "factory.config.yaml";
+        source = configYaml;
+        copyMode = "template";
+      }
+    ];
+  };
 
   configYaml = builtins.toFile "factory.config.yaml" (
     yamlRenderer.renderYaml {
@@ -52,13 +95,7 @@ let
     }
   );
 
-  files = plan.files // {
-    "factory.config.yaml" = filePlan.mkFileDecl {
-      rel = "factory.config.yaml";
-      source = configYaml;
-      copyMode = "template";
-    };
-  };
+  files = plan.files;
 
   paths = builtins.attrNames files;
 
@@ -86,6 +123,7 @@ let
   evalAssertions =
     let
       baseCovered = builtins.all (rel: builtins.elem rel paths) plan.baseFiles;
+      baseGitignore = builtins.elem ".gitignore" plan.baseFiles;
       oneOverlay =
         builtins.sort builtins.lessThan plan.overlayFiles
         == builtins.sort builtins.lessThan expectedOverlay;
@@ -94,6 +132,8 @@ let
     in
     if !baseCovered then
       throw "seed check: the file plan of `${arch}` misses a base file"
+    else if !baseGitignore then
+      throw "seed check: the file plan of `${arch}` misses the base file `.gitignore`"
     else if !oneOverlay then
       throw "seed check: the file plan of `${arch}` holds ${builtins.toJSON plan.overlayFiles}"
     else if !inactiveAbsent then
@@ -110,6 +150,8 @@ let
   lintBin = pkgs.nodePackages.markdownlint-cli + "/bin/markdownlint";
 in
 assert archMatch;
+assert agentsMatch;
+assert logFixtureDepth;
 assert evalAssertions;
 pkgs.stdenv.mkDerivation {
   name = "seed-check-${arch}";

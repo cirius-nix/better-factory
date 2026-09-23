@@ -1,5 +1,6 @@
 # Starter factory declaration (copy mode seed).
-# Sets the root factory.project, the arch, and the two groups.
+# Sets the root factory.project, the arch, and the three groups. The group
+# `agents` selects no harness (spec-harness-merge point 7).
 {
   factory.project = {
     arch = "single";
@@ -8,5 +9,10 @@
     secrets = [
       "GITHUB_TOKEN"
     ];
+    agents = {
+      uses = [ ];
+      mcp = { };
+      roles = { };
+    };
   };
 }
