@@ -2,6 +2,7 @@
 
 **Subdomain:** factory
 **Type:** Core
+**Component:** services/factory
 
 ## Purpose
 
@@ -18,26 +19,40 @@ the facade root for settings, and the copy mode of each generated file.
 | e2e seed | The first check that proves the generated setup works end to end. |
 | facade | The single root named factory.project that holds all project settings. |
 | copy mode | The ownership rule of a generated file: seed, managed, or template. |
+| repository blueprint | The declared plan of one repository that the factory emits. |
+| base assets | The architecture-neutral file set that every generated repository receives. |
+| overlay | The file set of one arch value that the factory adds to the base assets. |
+| drift check | The check that fails when a managed file differs from its factory source. |
 
 ## Business rules
 
 - Each unit of work is a change, and each released state is a version.
 - All project settings sit under the factory.project root.
 - Each generated file carries one copy mode that fixes who owns it.
+- The factory emits the base assets and the overlay of the selected arch.
 
 ## Inbound messages
 
 | Message | Kind | From |
 | --- | --- | --- |
+| Adopt layout | command | repository author |
+| Select architecture | command | repository author |
+| Declare project | command | repository author |
+| Check seed | query | repository author |
 
 ## Outbound messages
 
 | Message | Kind | To |
 | --- | --- | --- |
+| Layout adopted | event | repository author |
+| Architecture selected | event | repository author |
+| Project declared | event | repository author |
+| File copied | event | repository author |
+| Seed checked | event | repository author |
 
 ## Aggregates
 
-None defined in phase 1. Tactical design belongs to phase 2.
+- [agg-repository-blueprint](agg-repository-blueprint.md)
 
 ## Assumptions
 

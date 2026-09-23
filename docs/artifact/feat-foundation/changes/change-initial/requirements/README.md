@@ -17,7 +17,7 @@ all project settings, and three copy modes that say who owns each generated file
 - In scope: end-to-end seed check.
 - In scope: facade root `factory.project` for all project settings.
 - In scope: copy modes seed, managed, and template.
-- Out of scope: option presets (minimal, docs-only, full); presets are phase 2 scope.
+- Out of scope: option presets (minimal, docs-only, full); presets defer to feat-delivery.
 - Out of scope: migration of the 11 legacy features; the foundation starts fresh at 1.0.0.
 - Out of scope: edits to `../repofactory`; it stays reference-only.
 

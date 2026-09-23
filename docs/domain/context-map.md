@@ -4,7 +4,7 @@
 
 | Context | Purpose | Component |
 | --- | --- | --- |
-| [context-factory](context-factory/README.md) | One standard setup for new repositories. | |
+| [context-factory](context-factory/README.md) | One standard setup for new repositories. | `services/factory` |
 
 ## Relationships
 
