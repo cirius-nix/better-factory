@@ -41,3 +41,7 @@ write two rows.
 | DDD chapter | context-factory | The chapter append that carries the domain-driven design steps of a role. | - |
 | UX chapter | context-factory | The chapter append that carries the design-work steps of a role. | - |
 | review report | context-factory | The report with findings that the review procedure writes without edits. | - |
+| CI provider | context-factory | The selected build system, either unset, github-actions, or azure-pipelines. | - |
+| notifier | context-factory | The single fan-out that sends deploy messages to google-chat, slack, or telegram. | - |
+| publish target | context-factory | The selected site host, either github-pages or azure-static-web-app. | - |
+| preset | context-factory | A named bundle, either minimal, docs-only, or full, that selects keys of F1 through F4. | - |

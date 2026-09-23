@@ -12,6 +12,9 @@ the facade root for settings, the harness delivery, the phase protocol, the copy
 each generated file, and the design method with its domain model, its review, and its
 designer role.
 
+It also fixes the delivery path with one docs site, one CI choice, one
+notifier, one publish target, and named presets.
+
 ## Ubiquitous language
 
 | Term | Meaning |
@@ -52,6 +55,10 @@ designer role.
 | DDD chapter | The chapter append that carries the domain-driven design steps of a role. |
 | UX chapter | The chapter append that carries the design-work steps of a role. |
 | review report | The report with findings that the review procedure writes without edits. |
+| CI provider | The selected build system, either unset, github-actions, or azure-pipelines. |
+| notifier | The single fan-out that sends deploy messages to google-chat, slack, or telegram. |
+| publish target | The selected site host, either github-pages or azure-static-web-app. |
+| preset | A named bundle, either minimal, docs-only, or full, that selects keys of F1 through F4. |
 
 ## Business rules
 
@@ -73,6 +80,11 @@ designer role.
 - The emitted file set holds the design files only when their design option is active.
 - Each rendered role holds its active chapters after the body in the fixed order.
 - No gate reads the design method, the ux flag, or the design tool.
+- The docs tree renders as one browsable site.
+- Each project uses one CI choice with one folder option and no per-feature CI tree.
+- The notifier sends deploy messages only and holds secret names only.
+- Each project publishes the site to one target with github-pages as the default.
+- Named presets select keys of F1 through F4 and live in feat-delivery.
 
 ## Inbound messages
 
