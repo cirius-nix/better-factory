@@ -21,3 +21,11 @@ write two rows.
 | managed layer | context-factory | The canonical harness settings that the factory owns and that win with a log line. | - |
 | project layer | context-factory | The harness settings that the repository author declares in the project. | - |
 | local layer | context-factory | The harness settings of one workstation that stay outside version control. | - |
+| managed key | context-factory | The harness key whose canonical value always wins in the merge with a log line. | - |
+| extra key | context-factory | A harness key whose name starts with extra; the factory copies it without a schema check. | - |
+| MCP source | context-factory | The one declaration of the MCP entries that the factory renders into each harness dialect. | - |
+| role source | context-factory | The one body file of a role that the factory renders for each selected harness. | - |
+| chapter append | context-factory | A file that the factory appends after the role source when its design option is active. | - |
+| phase protocol | context-factory | The rule that each change runs Plan-Pn then Build-Pn with one phase in one commit. | - |
+| handoff | context-factory | The coordinator message that gives one phase of one change to one owner. | - |
+| readiness gate | context-factory | The item list that a change passes before the release copy. | - |

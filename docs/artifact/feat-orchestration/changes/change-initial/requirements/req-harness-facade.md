@@ -7,8 +7,9 @@
 ## Statement
 
 The project must merge harness settings from three layers, namely managed then
-project then local, under `factory.project.agents`, with typed keys and extra
-passthrough. The local layer must stay outside version control.
+project then local, with typed keys and extra passthrough. The project layer
+lives under `factory.project.agents` and the local layer lives under
+`factory.local.agents`. The local layer must stay outside version control.
 
 ## Acceptance criteria
 

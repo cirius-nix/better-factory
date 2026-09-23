@@ -21,6 +21,23 @@ the design chapters, which feat-design (F3) owns; the publish targets, which
 feat-delivery (F4) owns; any edit to `../repofactory`, which stays
 reference-only; any edit to feat-foundation, which this change builds upon.
 
+## Code paths
+
+- `services/factory/default.nix`
+- `services/factory/modules/orchestration.nix`
+- `services/factory/modules/foundation.nix`
+- `services/factory/modules/facade.nix`
+- `services/factory/modules/file-plan.nix`
+- `services/factory/lib/harness.nix`
+- `services/factory/lib/roles.nix`
+- `services/factory/lib/yaml.nix`
+- `services/factory/lib/toml.nix`
+- `services/factory/assets/roles`
+- `services/factory/assets/base`
+- `devenv.nix`
+
 ## Artifacts
 
 - [Requirements](requirements/README.md)
+- [Specifications](specifications/README.md)
+- [Decisions](decisions/)

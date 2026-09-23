@@ -8,7 +8,8 @@
 
 The factory context gives repository authors one standard way to start a repository.
 It decides the layout of changes and versions, the architecture choice, the seed check,
-the facade root for settings, and the copy mode of each generated file.
+the facade root for settings, the harness delivery, the phase protocol, and the copy mode of
+each generated file.
 
 ## Ubiquitous language
 
@@ -30,6 +31,14 @@ the facade root for settings, and the copy mode of each generated file.
 | managed layer | The canonical harness settings that the factory owns and that win with a log line. |
 | project layer | The harness settings that the repository author declares in the project. |
 | local layer | The harness settings of one workstation that stay outside version control. |
+| managed key | The harness key whose canonical value always wins in the merge with a log line. |
+| extra key | A harness key whose name starts with extra; the factory copies it without a schema check. |
+| MCP source | The one declaration of the MCP entries that the factory renders into each harness dialect. |
+| role source | The one body file of a role that the factory renders for each selected harness. |
+| chapter append | A file that the factory appends after the role source when its design option is active. |
+| phase protocol | The rule that each change runs Plan-Pn then Build-Pn with one phase in one commit. |
+| handoff | The coordinator message that gives one phase of one change to one owner. |
+| readiness gate | The item list that a change passes before the release copy. |
 
 ## Business rules
 
@@ -51,7 +60,15 @@ the facade root for settings, and the copy mode of each generated file.
 | Adopt layout | command | repository author |
 | Select architecture | command | repository author |
 | Declare project | command | repository author |
+| Select harnesses | command | repository author |
+| Declare MCP entry | command | repository author |
+| Declare role | command | repository author |
+| Declare local settings | command | repository author |
 | Check seed | query | repository author |
+| Run phase | command | change coordinator |
+| Assign expert | command | change coordinator |
+| Confirm readiness | query | solution expert |
+| Release version | command | change coordinator |
 
 ## Outbound messages
 
@@ -60,8 +77,15 @@ the facade root for settings, and the copy mode of each generated file.
 | Layout adopted | event | repository author |
 | Architecture selected | event | repository author |
 | Project declared | event | repository author |
+| Harness merged | event | repository author |
+| MCP entry translated | event | repository author |
+| Role rendered | event | repository author |
 | File copied | event | repository author |
 | Seed checked | event | repository author |
+| Phase planned | event | repository author |
+| Phase built | event | repository author |
+| Expert assigned | event | content expert |
+| Version released | event | repository author |
 
 ## Aggregates
 

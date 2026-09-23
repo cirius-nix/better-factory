@@ -17,7 +17,7 @@ and the module layout of feat-foundation 1.0.0, and it never edits that feature.
 
 - In scope: phase protocol with Plan-Pn then Build-Pn and one phase in one commit.
 - In scope: expert routing where the coordinator owns coordination only.
-- In scope: harness facade with three layers under `factory.project.agents`.
+- In scope: harness facade with three layers with project layer under `factory.project.agents` and local layer under `factory.local.agents`.
 - In scope: one MCP source rendered into each harness dialect.
 - In scope: one role source rendered for each selected harness, with chapter appends.
 - In scope: copy-only release with a readiness gate.
