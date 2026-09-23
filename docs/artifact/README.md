@@ -6,6 +6,8 @@ before you add or change a feature.
 
 ## Features
 
-| Feature | Summary |
-| --- | --- |
-| [feat-foundation](feat-foundation/README.md) | One layout, one architecture choice, one seed check, one facade, and three copy modes for new repositories. |
+| Feature | Version | Summary |
+| --- | --- | --- |
+| [feat-foundation](feat-foundation/README.md) | 1.0.0 | One layout, one architecture choice, one seed check, one facade, and three copy modes for new repositories. |
+
+Read `versions/<current>/` of a feature for its state. Read `changes/` of a feature for its history.
