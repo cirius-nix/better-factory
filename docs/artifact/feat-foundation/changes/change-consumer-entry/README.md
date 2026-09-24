@@ -2,8 +2,8 @@
 
 **Feature:** [foundation](../../README.md)
 **From:** 1.0.0
-**To:** 1.1.0
-**Type:** Specifications
+**To:** 2.0.0
+**Type:** Requirements, Specifications
 
 ## Reason
 
@@ -24,6 +24,8 @@ existing 1.0.0 contracts, and any edit under `versions/1.0.0`.
 - `services/factory/modules/seed-check.nix`
 - `services/factory/consumer-guide.md`
 - `services/factory/examples/consumer`
+- `services/factory/examples/single/flake.lock`
+- `services/factory/examples/multiple/flake.lock`
 - `services/factory/README.md`
 
 ## Artifacts
@@ -31,6 +33,7 @@ existing 1.0.0 contracts, and any edit under `versions/1.0.0`.
 - [Requirements](requirements/README.md)
 - [Specifications](specifications/README.md)
 - [Decisions](decisions/)
+- [Implementation plan](tasks/README.md)
 
 ## Removed artifacts
 
