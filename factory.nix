@@ -5,7 +5,12 @@
     secrets = [ ];
     agents = {
       uses = [ "opencode" ];
-      mcp = { };
+      mcp = {
+        context7 = {
+          enabled = true;
+        };
+      };
+      opencode.extraAgents.artifact-master.model = "opencode-go/deepseek-v4.1-flash";
       roles = {
         factory-expert = {
           description = "Owns phase 4 implementation of the services/factory Nix component and returns feasibility constraints in phases 2 and 3. Use for factory component tasks, seed-check failures, role render changes, or entrypoint and file-plan work.";

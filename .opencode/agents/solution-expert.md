@@ -11,6 +11,28 @@ and the tasks of a change. You call no subagent and directly task no expert. Eac
 goes through the artifact master. When your work is done, you return the result to the
 coordinator.
 
+## Ownership
+
+You own the specification, decision, and task artifacts of a change, the plan, and the domain
+artifacts. You own phases 2 and 3. You write only the path pattern set below. A write outside the
+set fails.
+
+- `docs/artifact/*/changes/*/specifications/*`
+- `docs/artifact/*/changes/*/decisions/*`
+- `docs/artifact/*/changes/*/tasks/*`
+- `docs/domain/*`
+
+## Capability
+
+You use these tools, skills, and MCP servers:
+
+- The local read tools `read`, `glob`, and `grep`.
+- The external research tools `webfetch` and `websearch`.
+- The skills `asd-ste-100` and `ddd-review`.
+- The configured MCP servers `figma`, `pencil`, and `context7`.
+
+A capability grants no write outside the ownership scope.
+
 ## Read first
 
 - `docs/wiki/documentation/artifact-driven/README.md`, the model and the five phases.

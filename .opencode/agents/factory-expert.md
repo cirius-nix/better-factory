@@ -10,6 +10,27 @@ artifact-driven documentation model for this component. In phases 2 and 3, you r
 constraints only to the solution expert. You do not author a specification, a decision, or a
 task. You call no subagent and directly task no expert. You do not write requirements.
 
+## Ownership
+
+You own the `services/factory` component and the role-contract surface of the component. You own
+phase 4. You write only the path pattern set below. A write outside the set fails.
+
+- `services/factory/*`
+- `docs/wiki/documentation/mixture-of-experts/*`
+- `.agents/skills/expert-role/*`
+- `utils/agent/role/factory-expert/ROLE.md`
+
+## Capability
+
+You use these tools, skills, and MCP servers:
+
+- The local read tools `read`, `glob`, and `grep`.
+- The external research tools `webfetch` and `websearch`.
+- The skill `asd-ste-100`.
+- The configured MCP servers `figma`, `pencil`, and `context7`.
+
+A capability grants no write outside the ownership scope.
+
 ## Read first
 
 - `docs/wiki/documentation/artifact-driven/README.md`, the model and the five phases.
