@@ -107,7 +107,6 @@ let
   # seed check and by the entrypoint, so a mode cannot differ between the
   # factory examples and the consumer tree.
   foundationModes = {
-    ".gitignore" = "managed";
     ".markdownlint.yaml" = "managed";
     "docs/wiki/repo-arch/single-repository.md" = "managed";
     "docs/wiki/repo-arch/multiple-repositories.md" = "managed";

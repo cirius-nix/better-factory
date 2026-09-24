@@ -151,8 +151,9 @@ The entrypoint composes one transaction:
 1. The foundation mode map is one table in `modules/file-plan.nix`. The seed check and the
    entrypoint read the same table, so a mode cannot differ between the factory examples and the
    consumer tree.
-2. The table assigns `managed` to `.gitignore`, `.markdownlint.yaml`, each repo-arch page, and
-   `e2e/README.md`, and it assigns `template` to `factory.config.yaml`. Each other asset file
+2. The table assigns `managed` to `.markdownlint.yaml`, each repo-arch page, and
+   `e2e/README.md`, and it assigns `template` to `factory.config.yaml`. `.gitignore` takes the
+   default `seed`, so an adopt keeps the repository file. Each other asset file
    takes the default `seed` (spec-copymode).
 3. The declaration entry sets the mode `seed` in the plan.
 4. The seed check changes one line: it reads the table from the `file-plan.nix` export in
