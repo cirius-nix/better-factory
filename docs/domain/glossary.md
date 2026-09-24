@@ -14,17 +14,17 @@ write two rows.
 | base assets | context-factory | The architecture-neutral file set that every generated repository receives. | - |
 | overlay | context-factory | The file set of one arch value that the factory adds to the base assets. | - |
 | drift check | context-factory | The check that fails when a managed file differs from its factory source. | - |
-| harness | context-factory | A tool that runs agents, for example opencode, claude, or codex. | - |
+| harness | context-factory | A tool that runs agents, namely opencode. | - |
 | role | context-factory | The definition of one expert that the factory renders for a harness. | - |
 | skill | context-factory | A reusable capability that an expert uses during a phase. | - |
-| MCP dialect | context-factory | The key shape of one harness for MCP entries, for example mcp, mcpServers, or mcp_servers. | - |
+| MCP dialect | context-factory | The key shape of opencode for MCP entries, namely `mcp.servers`. | - |
 | managed layer | context-factory | The canonical harness settings that the factory owns and that win with a log line. | - |
 | project layer | context-factory | The harness settings that the repository author declares in the project. | - |
 | local layer | context-factory | The harness settings of one workstation that stay outside version control. | - |
 | managed key | context-factory | The harness key whose canonical value always wins in the merge with a log line. | - |
 | extra key | context-factory | A harness key whose name starts with extra; the factory copies it without a schema check. | - |
-| MCP source | context-factory | The one declaration of the MCP entries that the factory renders into each harness dialect. | - |
-| role source | context-factory | The one body file of a role that the factory renders for each selected harness. | - |
+| MCP source | context-factory | The one declaration of the MCP entries that the factory renders into the opencode dialect. | - |
+| role source | context-factory | The one body file of a role that the factory renders for opencode. | - |
 | chapter append | context-factory | A file that the factory appends after the role source when its design option is active. | - |
 | phase protocol | context-factory | The rule that each change runs Plan-Pn then Build-Pn with one phase in one commit. | - |
 | handoff | context-factory | The coordinator message that gives one phase of one change to one owner. | - |

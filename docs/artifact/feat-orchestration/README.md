@@ -19,6 +19,7 @@ entries, and expert roles for each harness that they select.
 | Version | Change | Type |
 | --- | --- | --- |
 | 1.0.0 | [Initial](changes/change-initial/README.md) | Requirements |
+| 2.0.0 | [opencode-v2](changes/change-opencode-v2/README.md) | Requirements |
 
 ## Artifacts
 

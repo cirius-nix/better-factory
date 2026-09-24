@@ -28,17 +28,17 @@ notifier, one publish target, and named presets.
 | base assets | The architecture-neutral file set that every generated repository receives. |
 | overlay | The file set of one arch value that the factory adds to the base assets. |
 | drift check | The check that fails when a managed file differs from its factory source. |
-| harness | A tool that runs agents, for example opencode, claude, or codex. |
+| harness | A tool that runs agents, namely opencode. |
 | role | The definition of one expert that the factory renders for a harness. |
 | skill | A reusable capability that an expert uses during a phase. |
-| MCP dialect | The key shape of one harness for MCP entries, for example mcp, mcpServers, or mcp_servers. |
+| MCP dialect | The key shape of opencode for MCP entries, namely `mcp.servers`. |
 | managed layer | The canonical harness settings that the factory owns and that win with a log line. |
 | project layer | The harness settings that the repository author declares in the project. |
 | local layer | The harness settings of one workstation that stay outside version control. |
 | managed key | The harness key whose canonical value always wins in the merge with a log line. |
 | extra key | A harness key whose name starts with extra; the factory copies it without a schema check. |
-| MCP source | The one declaration of the MCP entries that the factory renders into each harness dialect. |
-| role source | The one body file of a role that the factory renders for each selected harness. |
+| MCP source | The one declaration of the MCP entries that the factory renders into the opencode dialect. |
+| role source | The one body file of a role that the factory renders for opencode. |
 | chapter append | A file that the factory appends after the role source when its design option is active. |
 | phase protocol | The rule that each change runs Plan-Pn then Build-Pn with one phase in one commit. |
 | handoff | The coordinator message that gives one phase of one change to one owner. |
@@ -83,8 +83,8 @@ notifier, one publish target, and named presets.
 - Each change runs one phase at a time with a plan first and then a build.
 - The coordinator routes content work to one expert and owns no content.
 - Harness settings merge from three layers in fixed order.
-- One MCP source serves the dialect of each selected harness.
-- One role source serves each selected harness with its chapter appends.
+- One MCP source serves the opencode dialect.
+- One role source serves opencode with its chapter appends.
 - Each version is a copy that passes a readiness gate before release.
 - The project uses one design method selected with design.use.
 - Each context holds a context canvas, an aggregate canvas, and a glossary.
