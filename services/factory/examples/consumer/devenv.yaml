@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=https://devenv.sh/devenv.schema.json
+inputs:
+  factory:
+    url: path:../../../..
+    # url: github:<owner>/better-factory  # pinned use
+    flake: false
+imports:
+  - factory/services/factory

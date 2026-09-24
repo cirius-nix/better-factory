@@ -26,7 +26,7 @@ nix flake check --offline ./services/factory/examples/multiple
 
 ## Consumer guide
 
-New consumers start at [consumer-guide](consumer-guide.md). The guide
+New consumers start at [consumer-guide](../../docs/wiki/repo-arch/consumer-guide.md). The guide
 takes the starter declaration to the green check through the composed
 entrypoint `modules/entrypoint.nix`. The consumer example at
 `examples/consumer/` follows the guide.
