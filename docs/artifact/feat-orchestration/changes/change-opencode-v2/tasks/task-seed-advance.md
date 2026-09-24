@@ -42,7 +42,7 @@ the opencode version 2 shape, and keep the seed check green for both archs.
    selected-harness fixture holds the plural key `agents`, the ordered array `permissions`, and
    no singular key `agent` and no singular key `permission`. The document holds no
    `subagent_depth` (C-F08).
-7. Add the MCP version 2 assertions: the rendered document holds the enabled entries under
+7. Add the MCP version 2 assertions: the rendered document holds each merged entry under
    `mcp.servers`. The document holds no `mcpServers` group and no `mcp_servers` group. A
    rendered entry holds `disabled` and no `enabled` (C-F05).
 8. Add the absence assertions: the file declaration list and the composed plan of the fixture
@@ -93,8 +93,9 @@ the opencode version 2 shape, and keep the seed check green for both archs.
 
 ## Out of scope
 
-- The `full` preset bundle of `lib/presets.nix` (C-F10, feat-delivery). The seed check of this
-  task is green only after the sibling code task lands (Path A, FC-06). The artifact master
-  sequences the feat-delivery `change-opencode-only` code task before this Build-P4 run.
+- The `full` preset bundle of `lib/presets.nix` (C-F10). The bundle edit co-lands in this
+  change's phase 4 commit, atomic with the removal of the claude and codex leaves
+  (adr-bundle-landing, Option 1). The feat-delivery change `change-opencode-only` is spec-only.
+  The seed check stays green in the same commit (C-F09).
 - `modules/design.nix` (C-F11, feat-design). The branch is unreachable with `uses = [ "opencode" ]`;
   it stays green.

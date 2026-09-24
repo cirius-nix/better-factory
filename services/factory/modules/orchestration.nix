@@ -1,9 +1,9 @@
 # services/factory/modules/orchestration.nix
 # Facade group `factory.project.agents` (spec-harness-merge). Holds the
 # option declarations and the validation of the group: the typed key `uses`,
-# the typed groups `mcp` and `roles`, and the three harness groups
-# `opencode`, `claude`, and `codex`. The merge itself lives in
-# lib/harness.nix. Pure Nix with no nixpkgs dependency.
+# the typed groups `mcp` and `roles`, and the one harness group `opencode`.
+# The merge itself lives in lib/harness.nix. Pure Nix with no nixpkgs
+# dependency.
 let
   harness = import ../lib/harness.nix;
   roles = import ../lib/roles.nix;
@@ -17,21 +17,17 @@ let
     "mcp"
     "roles"
     "opencode"
-    "claude"
-    "codex"
   ];
 
   harnessGroups = [
     "opencode"
-    "claude"
-    "codex"
   ];
 
   agentsOptions = {
     uses = {
-      type = "list of opencode claude codex";
+      type = "list of opencode";
       default = [ ];
-      description = "Selected harnesses; each entry is one of opencode, claude, codex.";
+      description = "Selected harnesses; the only entry is opencode.";
     };
     mcp = {
       type = "attrs of MCP entries";
@@ -47,16 +43,6 @@ let
       type = "attrs of extra keys";
       default = { };
       description = "Extra opencode settings file keys; each key starts with `extra`.";
-    };
-    claude = {
-      type = "attrs of extra keys";
-      default = { };
-      description = "Extra claude settings file keys; each key starts with `extra`.";
-    };
-    codex = {
-      type = "attrs of extra keys";
-      default = { };
-      description = "Extra codex config file keys; each key starts with `extra`.";
     };
   };
 
@@ -83,9 +69,9 @@ let
           if !(builtins.isList uses) then
             "uses-value: the key `uses` of the group `agents` must be a list of harness names, got `${builtins.typeOf uses}`"
           else if usesBad == [ ] then
-            "uses-value: an entry of `uses` is outside the value set opencode, claude, codex"
+            "uses-value: an entry of `uses` is outside the value set opencode"
           else
-            "uses-value: the entry ${show (builtins.head usesBad)} of `uses` must be one of opencode, claude, codex";
+            "uses-value: the entry ${show (builtins.head usesBad)} of `uses` must be opencode";
       };
       perKey =
         h: k:
@@ -159,7 +145,7 @@ let
         outside = builtins.filter (k: !(builtins.elem k knownKeys)) keys;
       in
       if outside != [ ] then
-        throw "agents-key: the key `${builtins.head outside}` of the group `agents` is outside the typed keys uses, mcp, roles, opencode, claude, codex"
+        throw "agents-key: the key `${builtins.head outside}` of the group `agents` is outside the typed keys uses, mcp, roles, opencode"
       else
         let
           failing = builtins.filter (a: !a.assertion) (agentsAssertions value);
@@ -200,9 +186,7 @@ let
                   mcp = checkedMcp;
                   roles = checkedRoles;
                 }
-                // (if value ? opencode then { opencode = harness.resolveHarnessGroup value.opencode; } else { })
-                // (if value ? claude then { claude = harness.resolveHarnessGroup value.claude; } else { })
-                // (if value ? codex then { codex = harness.resolveHarnessGroup value.codex; } else { });
+                // (if value ? opencode then { opencode = harness.resolveHarnessGroup value.opencode; } else { });
             in
             builtins.deepSeq (builtins.attrValues checkedMcp) (
               builtins.deepSeq (builtins.attrValues checkedRoles) result

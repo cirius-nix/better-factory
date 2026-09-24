@@ -89,11 +89,12 @@ The change also records these scope decisions:
 
 ## External dependencies
 
-- Path A (user decision, FC-06): task-seed-advance evaluates the full preset. The `full` bundle
-  of `lib/presets.nix` names the removed keys `agents.claude` and `agents.codex`, and the removed
-  `uses` entries (C-F10). The seed check is green only after the bundle changes. The
-  feat-delivery change `change-opencode-only` owns the change. The artifact master sequences that
-  code task before the Build-P4 run of this change.
+- Co-landing (user decision, binding): task-seed-advance evaluates the full preset. The `full`
+  bundle of `lib/presets.nix` names the removed keys `agents.claude` and `agents.codex`, and the
+  removed `uses` entries (C-F10). The bundle edit co-lands in this change's phase 4 commit,
+  atomic with the removal of the claude and codex leaves (adr-bundle-landing, Option 1). The
+  feat-delivery change `change-opencode-only` is spec-only and holds no code task. The seed
+  check stays green in the same commit.
 - The `skillFiles` branch and the TOML rows of `lib/design.nix` hold claude and codex items
   (C-F11). The branch is unreachable when `uses` holds `opencode` only, so the phase 4 checks
   stay green without the edit. The feat-design change `change-opencode-only` owns the edit.
@@ -118,8 +119,9 @@ The change does not change these items. They need no code task:
 
 This change holds no task for these items. Each item has an owner pointer:
 
-- C-F10: the `full` bundle of `lib/presets.nix`. Owner: feat-delivery change
-  `change-opencode-only`.
+- C-F10: the `full` bundle of `lib/presets.nix`. Owner: this change's phase 4 (co-landed per
+  adr-bundle-landing). The feat-delivery change `change-opencode-only` owns the specification
+  only.
 - C-F11: the skill branch and the codex bodies of `lib/design.nix`. Owner: feat-design change
   `change-opencode-only`.
 - `AGENTS.md` line 18: an explicit follow-up (see "Decisions").

@@ -61,14 +61,10 @@ let
       "notify.telegram.chatId" = "";
       "agents.uses" = [
         "opencode"
-        "claude"
-        "codex"
       ];
       "agents.mcp" = { };
       "agents.roles" = { };
       "agents.opencode" = { };
-      "agents.claude" = { };
-      "agents.codex" = { };
       "design.use" = "ddd";
       "design.tool" = "unset";
       "ux" = true;

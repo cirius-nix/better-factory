@@ -91,5 +91,6 @@ names, and merge the three layers with the version 2 managed permission keys.
 ## Out of scope
 
 - The render branches. task-mcp-servers, task-role-render, and task-single-harness own them.
-- `lib/presets.nix` (C-F10, feat-delivery).
+- `lib/presets.nix` (C-F10; co-landed in this change's phase 4 per adr-bundle-landing; the
+  feat-delivery change `change-opencode-only` owns the specification).
 - `modules/design.nix` (C-F11, feat-design).

@@ -30,7 +30,8 @@ factory.project.agents.mcp.<name> = {
 3. An unknown field of an entry fails evaluation.
 4. An `args` value that is not a list of strings fails evaluation.
 5. An `env` value that is not an attribute set of strings fails evaluation.
-6. An entry renders only when `enabled = true`.
+6. Each merged entry renders with `disabled = !enabled`. A disabled entry stays configured
+   without a connection.
 7. The entry merges per leaf field from the project layer and the local layer
    (spec-harness-merge). A leaf field takes the value of the last layer that sets it. The
    managed fields of a canonical entry keep the canonical value.
@@ -86,9 +87,9 @@ factory.project.agents.mcp.<name> = {
 | --- | --- | --- |
 | opencode | `.opencode/opencode.jsonc` | `mcp.servers` |
 
-1. The selected harness renders each enabled entry below `mcp.servers`.
+1. The selected harness renders each merged entry below `mcp.servers`.
 2. An unselected harness renders no MCP entry and no MCP file.
-3. No enabled entry: the file holds no `mcp.servers` group.
+3. With no entry: the file holds no `mcp.servers` group.
 4. A canonical entry renders under its source name.
 5. The plan holds no `.mcp.json` file and no `.codex/config.toml` file.
 
@@ -105,7 +106,7 @@ group appear. It proves that no `.mcp.json` file and no `.codex/config.toml` fil
 - An unknown field of an entry fails evaluation.
 - An `args` value that is not a list of strings fails evaluation.
 - An `env` value that is not an attribute set of strings fails evaluation.
-- An entry with `enabled = false` renders in no dialect.
+- An entry with `enabled = false` renders with `disabled = true`.
 - A canonical entry with a project or local value for a managed field keeps the canonical value
   and writes one log line.
 - A selected harness without the `mcp.servers` dialect key fails the check.
@@ -120,7 +121,7 @@ group appear. It proves that no `.mcp.json` file and no `.codex/config.toml` fil
 | Constraint | Final decision | Owner |
 | --- | --- | --- |
 | C-08 | The MCP entries merge per leaf field. The canonical `command`, `args`, and `env` keep the canonical value with one log line for each ignored value; `enabled` is user-wins. A whole-entry replacement does not occur. | services/factory |
-| C-F05 | One MCP source: `command` required and non-empty; `args` a list of strings with default `[ ]`; `env` an attribute set of strings with default `{ }`; `enabled` a bool. An unknown field fails. The source holds no `cwd`, `codemode`, `protocol`, or `timeout`. The opencode render writes `mcp.servers.<name>` with `command = [ command ] ++ args`, `type = "local"`, the `environment` rename, and `disabled = !enabled` always written. Only enabled entries render; no enabled entry gives no group. No `mcpServers`, no `mcp_servers`, no `.mcp.json`, no `.codex/config.toml`. | services/factory |
+| C-F05 | One MCP source: `command` required and non-empty; `args` a list of strings with default `[ ]`; `env` an attribute set of strings with default `{ }`; `enabled` a bool. An unknown field fails. The source holds no `cwd`, `codemode`, `protocol`, or `timeout`. The opencode render writes `mcp.servers.<name>` for each merged entry with `command = [ command ] ++ args`, `type = "local"`, the `environment` rename, and `disabled = !enabled` always written. A disabled entry renders with `disabled` `true`. With no entry, the file holds no `mcp.servers` group. No `mcpServers`, no `mcp_servers`, no `.mcp.json`, no `.codex/config.toml`. | services/factory |
 
 The constraint C-07 of version 1.0.0 (the TOML renderer) is removed. The renderer is deleted
 (adr-toml-deletion).

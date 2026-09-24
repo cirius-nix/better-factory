@@ -87,7 +87,7 @@ let
   # fixture with the method `ddd`, one with the method `ddd` and the flag
   # true, and one with the method `unset`. The chapter map of the role set
   # goes to the render. The fixture proves the DDD chapter placement, the
-  # UX chapter placement and order, the headings, the codex body, the five
+  # UX chapter placement and order, the headings, the five
   # phases, and the empty list of an absent role name.
   chapterRoles = {
     requirement-expert = {
@@ -137,26 +137,17 @@ let
     content: builtins.match ".*## Domain-Driven Design.*## UX Design.*" (flatten content) != null;
   renderedDdd = rolesLib.renderRoles {
     roles = chapterRoles;
-    uses = [
-      "opencode"
-      "codex"
-    ];
+    uses = [ "opencode" ];
     chapterMap = design.chapterMap dddSettings;
   };
   renderedDddUx = rolesLib.renderRoles {
     roles = chapterRoles;
-    uses = [
-      "opencode"
-      "codex"
-    ];
+    uses = [ "opencode" ];
     chapterMap = design.chapterMap dddUxSettings;
   };
   renderedUnset = rolesLib.renderRoles {
     roles = chapterRoles;
-    uses = [
-      "opencode"
-      "codex"
-    ];
+    uses = [ "opencode" ];
     chapterMap = design.chapterMap unsetSettings;
   };
   renderedBare = rolesLib.renderRoles {
@@ -237,15 +228,6 @@ let
         && startsWith uxSolChapter "## UX Design"
         && startsWith uxReleaseChapter "## UX Design";
       message = "chapter-headings: a chapter file starts without the heading `## Domain-Driven Design` or `## UX Design`";
-    }
-    {
-      name = "codex-body";
-      assertion =
-        let
-          codex = contentOf renderedDdd ".codex/agents/solution-expert.toml";
-        in
-        builtins.match ".*developer_instructions.*" (flatten codex) != null && hasDdd codex;
-      message = "codex-body: the codex file holds no composed body with the chapters of the map in `developer_instructions`";
     }
     {
       name = "five-phases";
@@ -414,10 +396,7 @@ let
       tool = "unset";
     };
     agents = {
-      uses = [
-        "opencode"
-        "codex"
-      ];
+      uses = [ "opencode" ];
     };
     ux = false;
   };
@@ -428,14 +407,6 @@ let
     extraFiles = assetDesignOut.extraFiles ++ assetSkillOut.extraFiles;
     renderedSources = assetDesignOut.renderedSources ++ assetSkillOut.renderedSources;
   };
-  assetClaudeOut = design.skillFiles (
-    assetPlanSettings
-    // {
-      agents = {
-        uses = [ "claude" ];
-      };
-    }
-  );
   unsetPlanSettings = {
     design = {
       use = "unset";
@@ -451,12 +422,6 @@ let
   agentsSkillRels = builtins.filter (
     e: e.rel == ".agents/skills/ddd-review/SKILL.md"
   ) assetSkillOut.extraFiles;
-  claudeSkillRels = builtins.filter (
-    e: e.rel == ".claude/skills/ddd-review/SKILL.md"
-  ) assetClaudeOut.extraFiles;
-  agentsSkillRelsClaude = builtins.filter (
-    e: e.rel == ".agents/skills/ddd-review/SKILL.md"
-  ) assetClaudeOut.extraFiles;
   directAssetRejected =
     (builtins.tryEval (
       filePlan.checkSourceAllowed {
@@ -494,14 +459,6 @@ let
           builtins.map toString assetSkillOut.renderedSources
         );
       message = "skill-agents-once: the `.agents/` skill path appears never or more than one time";
-    }
-    {
-      name = "skill-claude";
-      assertion =
-        builtins.length claudeSkillRels == 1
-        && agentsSkillRelsClaude == [ ]
-        && (builtins.head claudeSkillRels).copyMode == "managed";
-      message = "skill-claude: the `claude` fixture holds no `.claude/` skill file only";
     }
     {
       name = "unset-empty";
@@ -618,11 +575,7 @@ let
     };
   };
   uxProject = orchestration.evalAgents {
-    uses = [
-      "opencode"
-      "claude"
-      "codex"
-    ];
+    uses = [ "opencode" ];
     roles = uxFixtureRoles;
   };
   uxMergedTrue = harnessLib.mergeAgents {
@@ -649,11 +602,7 @@ let
   };
   uxRenderTrue = rolesLib.renderRoles {
     roles = uxMergedTrue.roles;
-    uses = [
-      "opencode"
-      "claude"
-      "codex"
-    ];
+    uses = [ "opencode" ];
     chapterMap = design.chapterMap uxSettingsTrue;
   };
   uxRenderOne = rolesLib.renderRoles {
@@ -663,21 +612,12 @@ let
   };
   uxRenderFalse = rolesLib.renderRoles {
     roles = uxMergedFalse.roles;
-    uses = [
-      "opencode"
-      "claude"
-      "codex"
-    ];
+    uses = [ "opencode" ];
     chapterMap = design.chapterMap unsetSettings;
   };
   uxSelectedTrue = harnessLib.renderSelected {
     merged = uxMergedTrue;
-    uses = [
-      "opencode"
-      "claude"
-      "codex"
-    ];
-    agentsFragment = uxRenderTrue.agentsFragment;
+    uses = [ "opencode" ];
   };
   uxFileByRel = decls: rel: builtins.head (builtins.filter (d: d.rel == rel) decls);
   uxHasRel = decls: rel: builtins.any (d: d.rel == rel) decls;
@@ -702,9 +642,6 @@ let
   uxOpencodeJson = builtins.fromJSON (
     builtins.readFile (uxFileByRel uxSelectedTrue.fileDecls ".opencode/opencode.jsonc").source
   );
-  uxCodexConfig = flatten (
-    builtins.readFile (uxFileByRel uxSelectedTrue.fileDecls ".codex/config.toml").source
-  );
   uxAssertions = [
     {
       name = "reserved-project";
@@ -719,15 +656,11 @@ let
     {
       name = "designer-harness";
       assertion =
-        builtins.all (rel: uxHasRel uxRenderTrue.fileDecls rel) [
-          ".opencode/agents/designer-expert.md"
-          ".claude/agents/designer-expert.md"
-          ".codex/agents/designer-expert.toml"
-        ]
+        uxHasRel uxRenderTrue.fileDecls ".opencode/agents/designer-expert.md"
         && builtins.all (d: d.copyMode == "managed") (
           builtins.filter (d: builtins.match ".*designer-expert.*" d.rel != null) uxRenderTrue.fileDecls
         );
-      message = "designer-harness: the ux-true fixture misses a designer-expert file of a selected harness or its mode";
+      message = "designer-harness: the ux-true fixture misses the opencode designer-expert file or its mode";
     }
     {
       name = "designer-one";
@@ -772,8 +705,15 @@ let
     }
     {
       name = "designer-permission";
-      assertion = uxOpencodeJson.agent."designer-expert".permission.task == "deny";
-      message = "designer-permission: `.opencode/opencode.jsonc` holds no `agent.designer-expert.permission.task = \"deny\"`";
+      assertion =
+        uxOpencodeJson.agents."designer-expert".permissions == [
+          {
+            action = "subagent";
+            resource = "*";
+            effect = "deny";
+          }
+        ];
+      message = "designer-permission: `.opencode/opencode.jsonc` holds no `agents.\"designer-expert\".permissions` rule with `effect = \"deny\"`";
     }
     {
       name = "designer-ux-chapter";
@@ -784,9 +724,29 @@ let
       message = "designer-ux-chapter: the ux-true fixture misses the UX chapter in a role of the UX chapter map";
     }
     {
-      name = "designer-codex";
-      assertion = contains uxCodexConfig "designer-expert" && contains uxCodexConfig "config_file";
-      message = "designer-codex: `.codex/config.toml` holds no `agents.designer-expert` entry with the description and `config_file`";
+      name = "harness-plural";
+      assertion =
+        (uxOpencodeJson.agents."artifact-master".permissions or null) == [
+          {
+            action = "subagent";
+            resource = "*";
+            effect = "allow";
+          }
+        ]
+        && !(uxOpencodeJson ? agent)
+        && !(uxOpencodeJson ? permission)
+        && !(uxOpencodeJson ? subagent_depth);
+      message = "harness-plural: `.opencode/opencode.jsonc` misses the plural key `agents` with the ordered array `permissions`, or it holds a singular key `agent`, a singular key `permission`, or `subagent_depth`";
+    }
+    {
+      name = "selected-files";
+      assertion = builtins.all (
+        rel:
+        builtins.match ".*\\.claude/.*" rel == null
+        && builtins.match ".*\\.mcp\\.json" rel == null
+        && builtins.match ".*\\.codex/.*" rel == null
+      ) (builtins.map (d: d.rel) uxSelectedTrue.fileDecls);
+      message = "selected-files: the file declaration list of the selected-harness fixture holds a `.claude/` path, a `.mcp.json` path, or a `.codex/` path";
     }
   ];
   uxFailing = builtins.filter (a: !a.assertion) uxAssertions;
@@ -796,26 +756,142 @@ let
     else
       throw "seed check: the designer fixture of `${arch}` fails ${(builtins.head uxFailing).message}";
 
-  # Log check fixture (C-12): one managed key set in the project layer and
-  # in the local layer. Forcing the merge writes one pinned line per ignored
-  # value to the standard error of the evaluation. The result file of the
-  # seed check stays exactly five lines; the trace never enters the result
-  # file or the layer logs.
+  # Log check fixture (C-12, C-F03, C-F04): one managed key set in the
+  # project layer and in the local layer. Forcing the merge writes one
+  # pinned line per ignored value to the standard error of the evaluation.
+  # The result file of the seed check stays exactly five lines; the trace
+  # never enters the result file or the layer logs.
   logFixtureLocalFile = builtins.toFile "devenv.local.nix" ''
-    { factory.local.agents = { uses = [ "opencode" ]; opencode = { extraSubagent_depth = 9; }; }; }
+    { factory.local.agents = { uses = [ "opencode" ]; opencode = { extraAgents = { artifact-master = { permissions = "custom"; }; }; }; }; }
   '';
   logFixture = harnessLib.mergeAgents {
     project = orchestration.evalAgents {
       uses = [ "opencode" ];
       opencode = {
-        extraSubagent_depth = 5;
+        extraAgents = {
+          artifact-master = {
+            permissions = "custom";
+          };
+        };
       };
     };
     local = orchestration.readLocalAgents logFixtureLocalFile;
     roleNames = [ "artifact-master" ];
     tool = design.toolFeed settings;
   };
-  logFixtureDepth = logFixture.opencode.subagent_depth == 1;
+  logFixturePermissions =
+    logFixture.opencode.agents."artifact-master".permissions == [
+      {
+        action = "subagent";
+        resource = "*";
+        effect = "allow";
+      }
+    ];
+
+  # MCP version 2 fixture (C-F05): one user entry and the canonical entries
+  # with mixed values. The fixture proves the `mcp.servers` dialect key, the
+  # joined `command` array, the `environment` rename, the `disabled` inverse,
+  # and the empty-entry case with no group.
+  mcpV2Project = orchestration.evalAgents {
+    uses = [ "opencode" ];
+    mcp = {
+      custom = {
+        command = "my-server";
+        args = [ "--flag" ];
+        env = {
+          CUSTOM_VAR = "1";
+        };
+        enabled = true;
+      };
+      figma = {
+        enabled = true;
+      };
+      pencil = {
+        enabled = false;
+      };
+    };
+  };
+  mcpV2Merged = harnessLib.mergeAgents {
+    project = mcpV2Project;
+    roleNames = [ ];
+    tool = "unset";
+  };
+  mcpV2Rendered = harnessLib.renderSelected {
+    merged = mcpV2Merged;
+    uses = [ "opencode" ];
+  };
+  mcpV2Doc = builtins.fromJSON (
+    builtins.readFile (fileByRel mcpV2Rendered.fileDecls ".opencode/opencode.jsonc").source
+  );
+  mcpV2EmptyMerged = harnessLib.mergeAgents {
+    project = orchestration.evalAgents {
+      uses = [ "opencode" ];
+    };
+    roleNames = [ ];
+    tool = "unset";
+  };
+  mcpV2EmptyRendered = harnessLib.renderSelected {
+    merged = mcpV2EmptyMerged;
+    uses = [ "opencode" ];
+  };
+  mcpV2EmptyDoc = builtins.fromJSON (
+    builtins.readFile (fileByRel mcpV2EmptyRendered.fileDecls ".opencode/opencode.jsonc").source
+  );
+  mcpV2Assertions = [
+    {
+      name = "mcp-servers-figma";
+      assertion =
+        mcpV2Doc.mcp.servers.figma.command == [
+          "npx"
+          "-y"
+          "figma-ui-mcp"
+        ]
+        && mcpV2Doc.mcp.servers.figma.type == "local"
+        && mcpV2Doc.mcp.servers.figma.environment.FIGMA_UI_MCP_TARGET == "Figma Desktop"
+        && mcpV2Doc.mcp.servers.figma.disabled == false;
+      message = "mcp-servers-figma: the rendered `mcp.servers.figma` entry misses the joined `command` array, `type = \"local\"`, the `environment` map, or `disabled = false`";
+    }
+    {
+      name = "mcp-servers-custom";
+      assertion =
+        mcpV2Doc.mcp.servers.custom.command == [
+          "my-server"
+          "--flag"
+        ]
+        && mcpV2Doc.mcp.servers.custom.type == "local"
+        && mcpV2Doc.mcp.servers.custom.environment.CUSTOM_VAR == "1"
+        && mcpV2Doc.mcp.servers.custom.disabled == false
+        && !(mcpV2Doc.mcp.servers.custom ? env)
+        && !(mcpV2Doc.mcp.servers.custom ? enabled);
+      message = "mcp-servers-custom: the rendered user entry misses the version 2 shape or it holds the key `env` or the key `enabled`";
+    }
+    {
+      name = "mcp-servers-disabled";
+      assertion = mcpV2Doc.mcp.servers.pencil.disabled == true;
+      message = "mcp-servers-disabled: the disabled `pencil` entry holds no `disabled = true`";
+    }
+    {
+      name = "mcp-no-legacy-group";
+      assertion = !(mcpV2Doc ? mcpServers) && !(mcpV2Doc ? mcp_servers);
+      message = "mcp-no-legacy-group: the rendered document holds a `mcpServers` group or a `mcp_servers` group";
+    }
+    {
+      name = "mcp-empty";
+      assertion = !(mcpV2EmptyDoc ? mcp);
+      message = "mcp-empty: the rendered document with no entry holds a `mcp` group";
+    }
+    {
+      name = "mcp-one-file";
+      assertion = builtins.map (d: d.rel) mcpV2Rendered.fileDecls == [ ".opencode/opencode.jsonc" ];
+      message = "mcp-one-file: the file declaration list of the MCP fixture holds more than `.opencode/opencode.jsonc`";
+    }
+  ];
+  mcpV2Failing = builtins.filter (a: !a.assertion) mcpV2Assertions;
+  mcpV2Match =
+    if mcpV2Failing == [ ] then
+      true
+    else
+      throw "seed check: the MCP fixture of `${arch}` fails ${(builtins.head mcpV2Failing).message}";
 
   modes = filePlan.foundationModes;
 
@@ -1871,6 +1947,19 @@ let
     ux = presetFullEff.ux;
   };
   presetFullChapters = design.chapterMap presetFullEff;
+  presetFullRoleRender = rolesLib.renderRoles {
+    roles = presetFullMerged.roles;
+    uses = presetFullMerged.uses;
+    chapterMap = presetFullChapters;
+  };
+  presetFullHarnessRender = harnessLib.renderSelected {
+    merged = presetFullMerged;
+    uses = presetFullMerged.uses;
+  };
+  presetFullRels =
+    builtins.map (d: d.rel) presetFullHarnessRender.fileDecls
+    ++ builtins.map (d: d.rel) presetFullRoleRender.fileDecls
+    ++ builtins.map (e: e.rel) presetFullSkill.extraFiles;
   presetCustomTables = presetTables // {
     delivery = presetTables.delivery // {
       ci = presetTables.delivery.ci // {
@@ -1924,6 +2013,25 @@ let
         && builtins.hasAttr "designer-expert" presetFullMerged.roles
         && (presetFullChapters.artifact-master or [ ]) != [ ];
       message = "preset-full-files: the full fixture misses the design files, the designer role, the UX chapter, the site project, or the CI file";
+    }
+    {
+      name = "preset-full-absence";
+      assertion = builtins.all (
+        rel:
+        builtins.match ".*\\.claude/.*" rel == null
+        && builtins.match ".*\\.mcp\\.json" rel == null
+        && builtins.match ".*\\.codex/.*" rel == null
+      ) presetFullRels;
+      message = "preset-full-absence: the file set of the full fixture holds a `.claude/` path, a `.mcp.json` path, or a `.codex/` path";
+    }
+    {
+      name = "preset-full-designer-file";
+      assertion =
+        uxHasRel presetFullRoleRender.fileDecls ".opencode/agents/designer-expert.md"
+        &&
+          (fileByRel presetFullRoleRender.fileDecls ".opencode/agents/designer-expert.md").copyMode
+          == "managed";
+      message = "preset-full-designer-file: the file set of the full fixture misses the managed `.opencode/agents/designer-expert.md` file";
     }
     {
       name = "preset-no-bundle";
@@ -2032,6 +2140,32 @@ let
     else
       true;
 
+  # Absence fixture (C-F08): the composed plan of the starter holds no
+  # `.claude/` path, no `.mcp.json` path, and no `.codex/` path.
+  planPathAssertions = [
+    {
+      name = "plan-no-claude";
+      assertion = builtins.all (rel: builtins.match ".*\\.claude/.*" rel == null) paths;
+      message = "plan-no-claude: the composed plan holds a `.claude/` path";
+    }
+    {
+      name = "plan-no-mcp-json";
+      assertion = builtins.all (rel: builtins.match ".*\\.mcp\\.json" rel == null) paths;
+      message = "plan-no-mcp-json: the composed plan holds a `.mcp.json` path";
+    }
+    {
+      name = "plan-no-codex";
+      assertion = builtins.all (rel: builtins.match ".*\\.codex/.*" rel == null) paths;
+      message = "plan-no-codex: the composed plan holds a `.codex/` path";
+    }
+  ];
+  planPathFailing = builtins.filter (a: !a.assertion) planPathAssertions;
+  planPathMatch =
+    if planPathFailing == [ ] then
+      true
+    else
+      throw "seed check: the absence fixture of `${arch}` fails ${(builtins.head planPathFailing).message}";
+
   proof = builtins.toFile "facade-proof" "green";
 
   manifest = pkgs.writeText "plan-manifest" (copyModes.manifestText files);
@@ -2053,7 +2187,9 @@ assert chapterMatch;
 assert toolMatch;
 assert assetMatch;
 assert uxMatch;
-assert logFixtureDepth;
+assert mcpV2Match;
+assert planPathMatch;
+assert logFixturePermissions;
 assert evalAssertions;
 pkgs.stdenv.mkDerivation {
   name = "seed-check-${arch}";

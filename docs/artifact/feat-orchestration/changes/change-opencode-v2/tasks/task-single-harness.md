@@ -77,7 +77,8 @@ no per-harness branch and no unreachable row.
 
 ## Out of scope
 
-- `lib/presets.nix` (C-F10, feat-delivery).
+- `lib/presets.nix` (C-F10; co-landed in this change's phase 4 per adr-bundle-landing; the
+  feat-delivery change `change-opencode-only` owns the specification).
 - There is no green gate between this task and task-seed-advance (FC-05). The seed-check
   fixtures still reference the deleted render branches until task-seed-advance. The two tasks run
   consecutively in Build-P4: this task removes the code, and task-seed-advance restores the
