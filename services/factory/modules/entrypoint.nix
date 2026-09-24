@@ -59,13 +59,17 @@ let
   local = if builtins.pathExists localFile then orchestration.readLocalAgents localFile else { };
   projectAgents = settings.agents;
 
-  # Effective role set (C-41): the merge of the project layer roles and the
-  # local layer roles. When the merged set holds no declaration, discover
-  # the shipped role set: one declaration for each directory below
-  # factoryDir + "/assets/roles", except the reserved name
-  # designer-expert. The source of a declaration is
-  # factoryDir + "/assets/roles/<name>/ROLE.md", and the description is the
-  # first line of the source without the leading `#` marker.
+  # Effective role set (C-41): the shipped role set below
+  # factoryDir + "/assets/roles" (except the reserved name
+  # designer-expert) is the default layer. The merge of the project layer
+  # roles and the local layer roles wins per leaf key on top of it, so a
+  # downstream repository declares only its component roles and the four
+  # content roles are present without a declaration. `enable = false` on
+  # any name renders no file for it. The source of a shipped declaration
+  # is factoryDir + "/assets/roles/<name>/ROLE.md", the description is the
+  # first line of the source without the leading `#` marker, and the
+  # default harness mode is `all` for artifact-master and `subagent` for
+  # each other role.
   roleDir = factoryDir + "/assets/roles";
   roleEntries = builtins.readDir roleDir;
   shippedNames = builtins.filter (n: roleEntries.${n} == "directory" && n != "designer-expert") (
@@ -89,11 +93,16 @@ let
       value = {
         description = stripHash (firstLine (builtins.readFile (roleDir + "/${n}/ROLE.md")));
         source = roleDir + "/${n}/ROLE.md";
+        harness = {
+          opencode = {
+            mode = if n == "artifact-master" then "all" else "subagent";
+          };
+        };
       };
     }) shippedNames
   );
   mergedUserRoles = harnessLib.deepUserWins (projectAgents.roles or { }) (local.roles or { });
-  effectiveRoles = if mergedUserRoles == { } then discoveredRoles else mergedUserRoles;
+  effectiveRoles = harnessLib.deepUserWins discoveredRoles mergedUserRoles;
 
   # roleNames (C-41): the names of the enabled roles of the effective role
   # set, plus designer-expert when ux = true. The entrypoint holds no hand
