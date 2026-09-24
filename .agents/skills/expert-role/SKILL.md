@@ -27,11 +27,12 @@ in `utils/agent/role/`.
 2. Write the body at `utils/agent/role/<name>/ROLE.md` from `references/role-template.md`.
    Write the body only. Do not write a frontmatter or a header. The shell adds the header.
 3. Declare the role in `factory.nix` as `references/role-builder.md` shows.
-4. Enter the shell again. The shell renders the files when it starts. Check the rendered role
+4. Run `factory-adopt --dry-run` to preview the render, then run `factory-adopt` to write
+   the files. Check the rendered role
    file `.opencode/agents/<name>.md`. It holds the YAML frontmatter, the body, and the chapter
    appends. The file renders only when `factory.project.agents.uses` holds `opencode`. No other
    harness renders a file. A rendered file is not a source. To change it, change the
-   body or the declaration, then enter the shell again.
+   body or the declaration, then run `factory-adopt` again.
 5. Report the files that you wrote and the result of the check.
 
 ## Rules
