@@ -436,6 +436,7 @@ let
   guideText = builtins.readFile ../assets/design/ddd/README.md;
   phaseText = builtins.readFile ../assets/design/ddd/artifact-driven.md;
   skillText = builtins.readFile ../assets/design/ddd/skill/SKILL.md;
+  designText = builtins.readFile ./design.nix;
   skillFlat = flatten skillText;
   assetAssertions = [
     {
@@ -464,6 +465,13 @@ let
       name = "unset-empty";
       assertion = unsetDesignOut.extraFiles == [ ] && unsetSkillOut.extraFiles == [ ];
       message = "unset-empty: the `unset` fixture holds a design file or a skill file";
+    }
+    {
+      name = "skill-branch-opencode-only";
+      assertion =
+        !(contains designText "builtins.elem \"codex\"")
+        && !(contains designText ".claude/skills/ddd-review/SKILL.md");
+      message = "skill-branch-opencode-only: the skill branch holds a superseded harness item";
     }
     {
       name = "no-direct-asset";

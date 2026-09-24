@@ -256,13 +256,10 @@ let
       };
 
   # The emitted review skill (C-17, spec-review). Takes the evaluated
-  # settings and reads the selected harnesses from the agents group. One
-  # `.agents/skills/ddd-review/` entry joins the plan when `opencode` or
-  # `codex` is selected; one `.claude/skills/ddd-review/` entry joins when
-  # `claude` is selected. The plan holds the `.agents/` path one time when
-  # `opencode` and `codex` are both selected. Each skill file has the copy
-  # mode `managed`. No skill file joins when the method is `unset` or no
-  # harness is selected.
+  # settings and reads the selected harness from the agents group. One
+  # `.agents/skills/ddd-review/` entry joins the plan when `opencode`
+  # is selected. The skill file has the copy mode `managed`. No skill
+  # file joins when the method is `unset` or no harness is selected.
   skillFiles =
     settings:
     let
@@ -278,30 +275,16 @@ let
     else
       let
         entries =
-          (
-            if builtins.elem "opencode" uses || builtins.elem "codex" uses then
-              [
-                {
-                  rel = ".agents/skills/ddd-review/SKILL.md";
-                  inherit source;
-                  copyMode = "managed";
-                }
-              ]
-            else
-              [ ]
-          )
-          ++ (
-            if builtins.elem "claude" uses then
-              [
-                {
-                  rel = ".claude/skills/ddd-review/SKILL.md";
-                  inherit source;
-                  copyMode = "managed";
-                }
-              ]
-            else
-              [ ]
-          );
+          if builtins.elem "opencode" uses then
+            [
+              {
+                rel = ".agents/skills/ddd-review/SKILL.md";
+                inherit source;
+                copyMode = "managed";
+              }
+            ]
+          else
+            [ ];
       in
       {
         extraFiles = entries;
