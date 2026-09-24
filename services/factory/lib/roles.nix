@@ -1,11 +1,9 @@
 # services/factory/lib/roles.nix
-# Role render of one role source for each selected harness
+# Role render of one role source for the opencode harness
 # (spec-role-render). Pure Nix with no nixpkgs dependency. Uses lib/yaml.nix
-# for the two markdown frontmatters and lib/toml.nix for the codex files
-# (the one TOML renderer serves the codex config and the codex role files).
+# for the markdown frontmatter.
 let
   yaml = import ./yaml.nix;
-  toml = import ./toml.nix;
 
   namePattern = "[A-Za-z0-9._-]+";
 
@@ -29,8 +27,6 @@ let
 
   harnessFields = [
     "opencode"
-    "claude"
-    "codex"
   ];
 
   isPathLike = v: builtins.typeOf v == "path" || builtins.isString v;
@@ -83,9 +79,18 @@ let
         else
           let
             hg = if decl ? harness then decl.harness else { };
+            rejected = builtins.filter (
+              h:
+              builtins.elem h [
+                "claude"
+                "codex"
+              ]
+            ) (builtins.attrNames hg);
             hUnknown = builtins.filter (f: !(builtins.elem f harnessFields)) (builtins.attrNames hg);
           in
-          if hUnknown != [ ] then
+          if rejected != [ ] then
+            throw "role-harness: the `harness.${builtins.head rejected}` group of the declaration `roles.${attrName}` is removed; the declaration holds `opencode` only"
+          else if hUnknown != [ ] then
             throw "role-harness: the `harness` of the declaration `roles.${attrName}` holds the unknown field `${builtins.head hUnknown}`"
           else
             let
@@ -102,8 +107,6 @@ let
                 source = decl.source;
                 harness = {
                   opencode = if builtins.hasAttr "opencode" hg then hg.opencode else { };
-                  claude = if builtins.hasAttr "claude" hg then hg.claude else { };
-                  codex = if builtins.hasAttr "codex" hg then hg.codex else { };
                 };
               };
 
@@ -131,22 +134,17 @@ let
     builtins.concatStringsSep "\n\n" ([ (trimRight sourceText) ] ++ builtins.map trimRight chapters)
     + "\n";
 
-  # Render each enabled role declaration for each selected harness. roles
+  # Render each enabled role declaration for the opencode harness. roles
   # maps the attribute name to its declaration; uses holds the selected
   # harnesses; chapterMap holds one chapter list per role name
   # (spec-design-option, C-13). The body of one role is the role source
   # plus the chapters of the map of that role. An absent role name gives
   # the empty list, so the body is the role source only. One blank line
-  # separates the parts (spec-role-render of feat-orchestration 1.0.0). The
-  # codex file holds the composed body in `developer_instructions`. An
-  # unselected harness receives no role file. Each file has
+  # separates the parts (spec-role-render of feat-orchestration 1.0.0).
+  # An unselected harness receives no role file. Each file has
   # the copy mode `managed`. No task permission is held in a role
-  # frontmatter. Returns the file declarations, the rendered-source list,
-  # and the codex `agents` fragment as data: one `agents.<name>` entry with
-  # `description` and `config_file` for each rendered role. The file plan
-  # composes `.codex/config.toml` in one pass from the merged codex keys,
-  # the `agents` fragment, and the `mcp_servers` group; no rendered file is
-  # read back (C-09).
+  # frontmatter. Returns the file declarations and the rendered-source
+  # list. No second harness fragment exists.
   renderRoles =
     {
       roles,
@@ -165,62 +163,23 @@ let
           chapters = chapterMap.${decl.name} or [ ];
           body = composeBody (builtins.readFile decl.source) chapters;
           opencodeFront = yaml.renderYaml (decl.harness.opencode // { description = decl.description; });
-          claudeFront = yaml.renderYaml (
-            decl.harness.claude
-            // {
-              name = decl.name;
-              description = decl.description;
-            }
-          );
-          codexDoc = decl.harness.codex // {
-            name = decl.name;
-            description = decl.description;
-            developer_instructions = body;
-          };
           opencodeContent = "---\n${opencodeFront}---\n\n${body}";
-          claudeContent = "---\n${claudeFront}---\n\n${body}";
-          codexContent = toml.renderToml codexDoc;
         in
         {
           decl = decl;
           body = body;
-          files =
-            (
-              if select "opencode" then
-                [
-                  {
-                    rel = ".opencode/agents/${decl.name}.md";
-                    source = builtins.toFile "${decl.name}.md" opencodeContent;
-                    copyMode = "managed";
-                  }
-                ]
-              else
-                [ ]
-            )
-            ++ (
-              if select "claude" then
-                [
-                  {
-                    rel = ".claude/agents/${decl.name}.md";
-                    source = builtins.toFile "${decl.name}.md" claudeContent;
-                    copyMode = "managed";
-                  }
-                ]
-              else
-                [ ]
-            )
-            ++ (
-              if select "codex" then
-                [
-                  {
-                    rel = ".codex/agents/${decl.name}.toml";
-                    source = builtins.toFile "${decl.name}.toml" codexContent;
-                    copyMode = "managed";
-                  }
-                ]
-              else
-                [ ]
-            );
+          files = (
+            if select "opencode" then
+              [
+                {
+                  rel = ".opencode/agents/${decl.name}.md";
+                  source = builtins.toFile "${decl.name}.md" opencodeContent;
+                  copyMode = "managed";
+                }
+              ]
+            else
+              [ ]
+          );
         };
       rendered = builtins.listToAttrs (
         builtins.map (n: {
@@ -229,21 +188,8 @@ let
         }) enabled
       );
       fileDecls = builtins.concatLists (builtins.map (n: rendered.${n}.files) enabled);
-      agentsFragment =
-        if select "codex" then
-          builtins.listToAttrs (
-            builtins.map (n: {
-              name = rendered.${n}.decl.name;
-              value = {
-                description = rendered.${n}.decl.description;
-                config_file = "agents/${rendered.${n}.decl.name}.toml";
-              };
-            }) enabled
-          )
-        else
-          { };
       outcome = {
-        inherit fileDecls agentsFragment;
+        inherit fileDecls;
         renderedSources = builtins.map (d: d.source) fileDecls;
       };
     in

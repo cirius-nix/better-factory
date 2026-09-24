@@ -133,7 +133,6 @@ let
   harnessRender = harnessLib.renderSelected {
     inherit merged;
     uses = merged.uses;
-    agentsFragment = roleRender.agentsFragment;
   };
 
   # Design file set and skill file set (spec-domain-templates, spec-review).

@@ -128,36 +128,32 @@ task results in one commit.
 
 ## Harness rendering
 
-A harness is a coding agent product. The project selects one or more harnesses. Each selected
-harness receives the same instruction body for each built-in role from one canonical role body.
-The factory renders the canonical role body into the file format of the harness. Harness
+A harness is a coding agent product. The project selects the opencode harness. The harness
+receives the same instruction body for each built-in role from one canonical role body.
+The factory renders the canonical role body into the opencode file format. Harness
 frontmatter and other declaration data can differ. The role contract does not change.
 
-The factory renders the artifact-master role for these harnesses:
+The factory renders the artifact-master role for this harness:
 
 | Harness | Rendered role | Role selection |
 | --- | --- | --- |
 | OpenCode | `.opencode/agents/artifact-master.md` | Selectable coordinator role. |
-| Claude | `.claude/agents/artifact-master.md` | Delegated role. |
-| Codex | `.codex/agents/artifact-master.toml` | Delegated role. |
 
 For the factory-rendered OpenCode roles, the global settings declare the task permission of each
-role. The settings declare `allow` for the artifact master and `deny` for each factory-rendered
-content expert. An absent task permission is not a deny. The subagent depth is `1`. OpenCode
-renders the artifact master with mode `all` and each content expert with mode `subagent`. The
-OpenCode user must select the artifact master as the primary agent before coordination starts.
-Depth `1` lets the master start one content expert and stops expert nesting. The rendered
-configuration gives a declared permission. It does not prove the runtime behavior of OpenCode.
+role in the ordered array `agents.<role>.permissions`. Each rule uses the action `subagent`.
+The rule uses `allow` for the artifact master and `deny` for each other factory-rendered
+content expert. An absent rule is not a deny. The settings hold no `subagent_depth`. The
+settings hold each MCP entry under `mcp.servers`. The OpenCode user must select the artifact
+master as the primary agent before coordination starts. The rendered configuration gives a
+declared permission. It does not prove the runtime behavior of OpenCode.
 
 ## Skill load
 
 The artifact-master skill loads the rendered role for the harness in use. The rendered
 `artifact-master` role is the source of the coordination contract. The skill does not repeat the
-role body. The skill gives the path of each rendered role:
+role body. The skill gives the path of the rendered role:
 
 - OpenCode: `.opencode/agents/artifact-master.md`.
-- Claude: `.claude/agents/artifact-master.md`.
-- Codex: `.codex/agents/artifact-master.toml`.
 
 The harness loads the skill on request. The skill tells the OpenCode user to select
 `artifact-master` as the primary agent. The skill then tells the harness to load the rendered

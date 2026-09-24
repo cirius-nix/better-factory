@@ -10,12 +10,8 @@
 # evaluation (builtins.trace). The merge forces the comparison of each
 # managed key path of each selected harness at each layer (C-02).
 let
-  toml = import ./toml.nix;
-
   harnessNames = [
     "opencode"
-    "claude"
-    "codex"
   ];
 
   # Explicit letter table for the extra-key first character (C-01). An `A`
@@ -164,38 +160,39 @@ let
     mcp = { };
     roles = { };
     opencode = { };
-    claude = { };
-    codex = { };
   };
 
   # Managed opencode settings (spec-harness-merge, the managed keys table).
-  # roleNames are the rendered content experts: `artifact-master` keeps
-  # `permission.task = "allow"`; each other role keeps `"deny"`. An absent
-  # permission is not a deny, so each rendered role holds an explicit value.
+  # roleNames are the rendered content experts: `artifact-master` keeps the
+  # `permissions` rule with `effect = "allow"`; each other rendered content
+  # expert keeps the same rule with `effect = "deny"`. An absent rule is not
+  # a deny, so each rendered role holds an explicit rule.
   managedOpencodeSettings = roleNames: {
-    subagent_depth = 1;
-    agent = builtins.listToAttrs (
+    agents = builtins.listToAttrs (
       builtins.map (r: {
         name = r;
         value = {
-          permission = {
-            task = if r == "artifact-master" then "allow" else "deny";
-          };
+          permissions = [
+            {
+              action = "subagent";
+              resource = "*";
+              effect = if r == "artifact-master" then "allow" else "deny";
+            }
+          ];
         };
       }) roleNames
     );
   };
 
   # Managed key paths of the rendered opencode file as attribute paths. Each
-  # path is a path in the rendered file (spec-harness-merge).
+  # path is a rendered path in the file `agents.<role>.permissions`
+  # (spec-harness-merge).
   managedOpencodePathLists =
     roleNames:
-    [ [ "subagent_depth" ] ]
-    ++ builtins.map (r: [
-      "agent"
+    builtins.map (r: [
+      "agents"
       r
-      "permission"
-      "task"
+      "permissions"
     ]) roleNames;
 
   showPath = path: builtins.concatStringsSep "." path;
@@ -342,26 +339,16 @@ let
       traces = builtins.concatLists (builtins.map (n: (per n).traces) names);
     };
 
-  # One MCP source rendered into the dialect of one harness
-  # (spec-mcp-dialect, the dialect mapping table). The rendered entry name
-  # is the source name.
+  # One MCP source rendered into the opencode version 2 dialect
+  # (spec-mcp-dialect, the dialect mapping table): `command` and `args`
+  # join into the `command` array with `type = "local"`, `env` renders as
+  # `environment`, and `enabled` renders as the inverse `disabled`, always
+  # written. The rendered entry name is the source name.
   mcpDialectEntry = name: entry: {
-    opencode = {
-      command = [ entry.command ] ++ entry.args;
-      type = "local";
-      environment = entry.env;
-      enabled = entry.enabled;
-    };
-    claude = {
-      command = entry.command;
-      args = entry.args;
-      env = entry.env;
-    };
-    codex = {
-      command = entry.command;
-      args = entry.args;
-      env = entry.env;
-    };
+    command = [ entry.command ] ++ entry.args;
+    type = "local";
+    environment = entry.env;
+    disabled = !entry.enabled;
   };
   # The built-in declaration of the designer-expert role (C-18,
   # spec-designer-role). The factory adds it to the role set after the
@@ -450,112 +437,56 @@ let
         mcp = mergedMcp;
         roles = mergedRoles;
         opencode = withManaged;
-        claude = mergedHarness "claude";
-        codex = mergedHarness "codex";
       };
     in
     builtins.deepSeq force result;
 
-  # Compose `.codex/config.toml` in one pass from the merged codex keys,
-  # the `agents` fragment of the role render, and the `mcp_servers` group.
-  # The composition reads no rendered file back (C-09). A group with no
-  # entries is absent from the document. The one TOML renderer serves this
-  # file and each codex role file.
-  composeCodexConfig =
-    {
-      codexKeys,
-      agentsFragment ? { },
-      mcpServers ? { },
-    }:
-    let
-      doc = deepUserWins codexKeys (
-        (if agentsFragment == { } then { } else { agents = agentsFragment; })
-        // (if mcpServers == { } then { } else { mcp_servers = mcpServers; })
-      );
-    in
-    toml.renderToml doc;
-
-  # Render the merged settings of each selected harness. An unselected
-  # harness receives no file and no entry. An entry renders only when
-  # `enabled = true`; with no enabled entry the files hold no dialect group.
-  # Returns the file declarations and the rendered-source list of the run
-  # (C-03). Each file has the copy mode `managed`. agentsFragment is the
-  # codex `agents` fragment of the role render (task-role-render adds it).
+  # Render the merged opencode settings in one pass into the one document
+  # `.opencode/opencode.jsonc`. An unselected harness receives no file and
+  # no entry. Each merged entry renders with `disabled = !enabled`, so a
+  # disabled entry stays configured without a connection; with no entry
+  # the opencode file holds no `mcp.servers` group. Returns the file
+  # declarations and the rendered-source list of the run (C-03). Each file
+  # has the copy mode `managed`.
   renderSelected =
     {
       merged,
       uses,
-      agentsFragment ? { },
     }:
     let
       select = h: builtins.elem h uses;
-      enabledNames = builtins.filter (n: merged.mcp.${n}.enabled) (
-        builtins.attrNames (merged.mcp or { })
+      entryNames = builtins.attrNames (merged.mcp or { });
+      dialectGroup = builtins.listToAttrs (
+        builtins.map (n: {
+          name = n;
+          value = mcpDialectEntry n merged.mcp.${n};
+        }) entryNames
       );
-      dialectGroup =
-        h:
-        builtins.listToAttrs (
-          builtins.map (n: {
-            name = n;
-            value = (mcpDialectEntry n merged.mcp.${n}).${h};
-          }) enabledNames
-        );
       opencodeDoc =
         (merged.opencode or { })
-        // (if enabledNames == [ ] then { } else { mcp = dialectGroup "opencode"; });
-      claudeDoc = merged.claude or { };
-      mcpJsonDoc = if enabledNames == [ ] then { } else { mcpServers = dialectGroup "claude"; };
-      codexDoc = composeCodexConfig {
-        codexKeys = merged.codex or { };
-        inherit agentsFragment;
-        mcpServers = dialectGroup "codex";
-      };
-      opencodeSource = builtins.toFile "opencode.jsonc" (builtins.toJSON opencodeDoc);
-      claudeSource = builtins.toFile "settings.json" (builtins.toJSON claudeDoc);
-      mcpJsonSource = builtins.toFile "mcp.json" (builtins.toJSON mcpJsonDoc);
-      codexSource = builtins.toFile "config.toml" codexDoc;
-      decls =
-        (
-          if select "opencode" then
-            [
-              {
-                rel = ".opencode/opencode.jsonc";
-                source = opencodeSource;
-                copyMode = "managed";
-              }
-            ]
+        // (
+          if entryNames == [ ] then
+            { }
           else
-            [ ]
-        )
-        ++ (
-          if select "claude" then
-            [
-              {
-                rel = ".claude/settings.json";
-                source = claudeSource;
-                copyMode = "managed";
-              }
-              {
-                rel = ".mcp.json";
-                source = mcpJsonSource;
-                copyMode = "managed";
-              }
-            ]
-          else
-            [ ]
-        )
-        ++ (
-          if select "codex" then
-            [
-              {
-                rel = ".codex/config.toml";
-                source = codexSource;
-                copyMode = "managed";
-              }
-            ]
-          else
-            [ ]
+            {
+              mcp = {
+                servers = dialectGroup;
+              };
+            }
         );
+      opencodeSource = builtins.toFile "opencode.jsonc" (builtins.toJSON opencodeDoc);
+      decls = (
+        if select "opencode" then
+          [
+            {
+              rel = ".opencode/opencode.jsonc";
+              source = opencodeSource;
+              copyMode = "managed";
+            }
+          ]
+        else
+          [ ]
+      );
     in
     {
       fileDecls = decls;
@@ -580,7 +511,6 @@ in
     mergeMcpEntry
     mergeMcp
     mcpDialectEntry
-    composeCodexConfig
     managedOpencodeSettings
     managedOpencodePathLists
     hasPath
