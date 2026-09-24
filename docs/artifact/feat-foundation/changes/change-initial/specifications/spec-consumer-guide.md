@@ -6,18 +6,26 @@
 
 ## Description
 
-The factory provides one consumer guide at `services/factory/consumer-guide.md`. The guide
-gives the path from the starter declaration to the green check. The factory README links the
-guide. The guide uses the documented import path of spec-consumer-import and the example
-settings of spec-consumer-entry.
+The project holds one consumer guide at `docs/wiki/repo-arch/consumer-guide.md`. The guide is
+governance: the wiki holds the architecture documents and the governance documents of the full
+system. The path `services/factory/consumer-guide.md` is superseded. The guide gives the path
+from the starter declaration to the green check for the flake path (spec-consumer-entry) and
+for the devenv path (spec-consumer-devenv). The factory README links the guide.
 
 ## Contract
+
+### The location
+
+1. The guide lives at `docs/wiki/repo-arch/consumer-guide.md`.
+2. The guide is not a component file and not an emitted asset. The file plan does not hold the
+   guide, and no copy mode applies to it.
+3. The factory README at `services/factory/README.md` links the guide by the governance path.
 
 ### The starter file
 
 1. The guide names one starter file: `services/factory/assets/base/factory.nix`.
 2. The guide instructs the consumer to copy the file to `factory.nix` at the root of the
-   consumer repository.
+   consumer repository. The one file serves the flake path and the devenv path.
 
 ### The keys to change
 
@@ -48,13 +56,22 @@ The guide holds a table of the keys to change with their example values:
    (spec-consumer-entry).
 3. The guide wires `emit` and `check` in the flake outputs.
 
+### The devenv wiring
+
+1. The guide gives the `devenv.yaml` fragment of spec-consumer-devenv: the input
+   `inputs.factory` with `flake: false` and the import `factory/services/factory`.
+2. The guide states that the input root is the factory repository root (spec-consumer-import).
+3. The guide names the scripts `factory-check` and `factory-emit` of spec-consumer-devenv.
+
 ### The checks to run
 
-1. The guide names the check attribute `checks.<system>.seed-check` and the command
+1. The guide names the flake check attribute `checks.<system>.seed-check` and the command
    `nix flake check`.
-2. The check is the seed check equivalent of spec-consumer-entry. The result holds the five
+2. The guide names the devenv check script `factory-check`.
+3. Each check is the seed check equivalent of spec-consumer-entry. The result holds the five
    green lines.
-3. The guide names the emit command and the path of the emitted tree.
+4. The guide names the flake emit command `nix build .#emit` with the path `result/`, and the
+   devenv emit script `factory-emit`.
 
 ### The scratch rule
 
@@ -67,10 +84,13 @@ The guide holds a table of the keys to change with their example values:
 
 - A guide without the starter path, the key table, or the check commands does not follow this
   contract.
+- A guide at another path does not follow this contract. The governance path
+  `docs/wiki/repo-arch/consumer-guide.md` is the source of truth.
 - A guide that names another starter file does not follow this contract.
 - An example value in the guide that differs from the example settings of spec-consumer-entry
   does not follow this contract.
 - A guide without the scratch rule does not follow this contract.
+- A guide without the flake wiring or the devenv wiring does not follow this contract.
 - A guide that states that `arch` differs from the starter value does not follow this contract;
   `arch` keeps the starter value `single`.
 
@@ -79,3 +99,4 @@ The guide holds a table of the keys to change with their example values:
 | Constraint | Final decision | Owner |
 | --- | --- | --- |
 | C-49 | The guide names the keys with their example values. Each example value except `arch` differs from the starter value; `arch` keeps the starter value `single`. The consumer proof of spec-consumer-entry uses the same wording. | services/factory |
+| C-50 | The consumer guide is governance at `docs/wiki/repo-arch/consumer-guide.md`. The path `services/factory/consumer-guide.md` is superseded. The factory README links the guide by the governance path. The guide documents the flake path and the devenv path. | services/factory |
