@@ -16,8 +16,8 @@ A project has one implementation expert for each component. When `docs/domain/` 
 project uses domain-driven design and has one implementation expert for each bounded context.
 This is the same rule: one bounded context is one component.
 
-Do not add a second expert for a component that has one. To find the experts, read
-`role.builder` in `devenv.local.nix` and the folders in `utils/agent/role/`.
+Do not add a second expert for a component that has one. To find the experts, read `factory.project.agents.roles` in `factory.nix` and the folders
+in `utils/agent/role/`.
 
 ## Procedure
 
@@ -26,16 +26,11 @@ Do not add a second expert for a component that has one. To find the experts, re
    expert covers the component.
 2. Write the body at `utils/agent/role/<name>/ROLE.md` from `references/role-template.md`.
    Write the body only. Do not write a frontmatter or a header. The shell adds the header.
-3. Declare the role in `devenv.local.nix` as `references/role-builder.md` shows.
+3. Declare the role in `factory.nix` as `references/role-builder.md` shows.
 4. Enter the shell again. The shell renders the files when it starts. Check the rendered role
-   file of each harness in `factory.domain.agent.harness.uses`:
-   - `.claude/agents/<name>.md` for `claude`.
-   - `.opencode/agents/<name>.md` for `opencode`.
-   - `.codex/agents/<name>.toml` and one `agents.<name>` entry in `.codex/config.toml` for
-     `codex`.
-
-   Each rendered file has the header that the shell adds and the body. A harness that is not
-   in the list has no rendered file. A rendered file is not a source. To change it, change the
+   file `.opencode/agents/<name>.md`. It holds the YAML frontmatter, the body, and the chapter
+   appends. The file renders only when `factory.project.agents.uses` holds `opencode`. No other
+   harness renders a file. A rendered file is not a source. To change it, change the
    body or the declaration, then enter the shell again.
 5. Report the files that you wrote and the result of the check.
 

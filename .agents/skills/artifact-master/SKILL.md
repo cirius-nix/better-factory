@@ -11,10 +11,8 @@ Use this skill when the user wants to start, continue, or finish an artifact-dri
 
 ## Procedure
 
-1. Load the rendered `artifact-master` role before you coordinate a change.
-   - OpenCode: `.opencode/agents/artifact-master.md` (selectable coordinator role).
-   - Claude: `.claude/agents/artifact-master.md` (delegated role).
-   - Codex: `.codex/agents/artifact-master.toml` (delegated role).
+1. Load the rendered `artifact-master` role before you coordinate a change:
+   `.opencode/agents/artifact-master.md` (selectable coordinator role).
 2. In OpenCode, tell the user to select `artifact-master` as the primary agent before
    coordination starts. It is the only role that starts an expert.
 3. Use the role procedure: `Plan-Pn then Build-Pn`. Do one phase at a time.
