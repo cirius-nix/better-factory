@@ -8,9 +8,10 @@
 
 The factory context gives repository authors one standard way to start a repository.
 It decides the layout of changes and versions, the architecture choice, the seed check,
-the facade root for settings, the harness delivery, the phase protocol, the copy mode of
-each generated file, and the design method with its domain model, its review, and its
-designer role.
+the facade root for settings, the harness delivery, the phase protocol, and the copy mode
+of each generated file. It decides the design method with its domain model, its review,
+and its designer role. It also decides the two-axis role contract and the default
+permission set of each shipped expert role.
 
 It also fixes the delivery path with one docs site, one CI choice, one
 notifier, one publish target, and named presets.
@@ -39,6 +40,13 @@ notifier, one publish target, and named presets.
 | extra key | A harness key whose name starts with extra; the factory copies it without a schema check. |
 | MCP source | The one declaration of the MCP entries that the factory renders into the opencode dialect. |
 | role source | The one body file of a role that the factory renders for opencode. |
+| ownership | The content and the write area that a role owns. |
+| capability | The tools, the skills, and the MCP servers that a role uses to do its job. |
+| write scope | The hard, per-role boundary of the files that a role may write. |
+| default permission set | The permission rules that the factory renders for a role from its ownership and its capability. |
+| role contract | The two-axis statement of one role: its ownership and its capability. |
+| external curated knowledge | The documentation that an MCP server supplies to a role on request. |
+| governance rule | A rule that fixes who starts a subagent, who asks the user, and who pushes. |
 | chapter append | A file that the factory appends after the role source when its design option is active. |
 | phase protocol | The rule that each change runs Plan-Pn then Build-Pn with one phase in one commit. |
 | handoff | The coordinator message that gives one phase of one change to one owner. |
@@ -85,6 +93,14 @@ notifier, one publish target, and named presets.
 - Harness settings merge from three layers in fixed order.
 - One MCP source serves the opencode dialect.
 - One role source serves opencode with its chapter appends.
+- Each canonical role body states its ownership and its capability in one consistent shape.
+- The ownership axis is hard and per-role, and a capability never widens it.
+- The factory renders a default permission set for each rendered content role from the two axes.
+- A capability covers local read tools, external research, the skill set, and the configured MCP servers.
+- Only the artifact master starts a subagent and asks the user.
+- A content role does not ask the user directly.
+- The artifact master denies a push.
+- The repository declares external curated knowledge in the one MCP source under `agents.mcp`.
 - Each version is a copy that passes a readiness gate before release.
 - The project uses one design method selected with design.use.
 - Each context holds a context canvas, an aggregate canvas, and a glossary.
@@ -173,7 +189,11 @@ notifier, one publish target, and named presets.
 
 - Repository authors want one standard setup instead of many overlapping rules.
 - The legacy history in ../repofactory stays reference-only and is never migrated.
+- A repository author expects a generated project to be safe by default, so no one hand-edits a managed render.
+- The ownership axis and the capability axis stay separate, so a new capability grant cannot widen a write scope.
 
 ## Open questions
 
 - Which later contexts will consume the factory setup downstream?
+- Does each generated project receive the Context7 MCP server, or does only this repository declare it?
+- Does the generated project enable the Context7 MCP server by default, or does the server stay declared and disabled until the author enables it?

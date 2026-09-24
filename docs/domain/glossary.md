@@ -25,6 +25,13 @@ write two rows.
 | extra key | context-factory | A harness key whose name starts with extra; the factory copies it without a schema check. | - |
 | MCP source | context-factory | The one declaration of the MCP entries that the factory renders into the opencode dialect. | - |
 | role source | context-factory | The one body file of a role that the factory renders for opencode. | - |
+| ownership | context-factory | The content and the write area that a role owns. | - |
+| capability | context-factory | The tools, the skills, and the MCP servers that a role uses to do its job. | - |
+| write scope | context-factory | The hard, per-role boundary of the files that a role may write. | - |
+| default permission set | context-factory | The permission rules that the factory renders for a role from its ownership and its capability. | - |
+| role contract | context-factory | The two-axis statement of one role: its ownership and its capability. | - |
+| external curated knowledge | context-factory | The documentation that an MCP server supplies to a role on request. | - |
+| governance rule | context-factory | A rule that fixes who starts a subagent, who asks the user, and who pushes. | - |
 | chapter append | context-factory | A file that the factory appends after the role source when its design option is active. | - |
 | phase protocol | context-factory | The rule that each change runs Plan-Pn then Build-Pn with one phase in one commit. | - |
 | handoff | context-factory | The coordinator message that gives one phase of one change to one owner. | - |
