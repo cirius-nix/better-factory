@@ -7,9 +7,6 @@
       uses = [ "opencode" ];
       mcp = { };
       roles = {
-        artifact-master = {
-          harness.opencode.model = "opencode-go/deepseek-v4.1-flash";
-        };
         factory-expert = {
           description = "Owns phase 4 implementation of the services/factory Nix component and returns feasibility constraints in phases 2 and 3. Use for factory component tasks, seed-check failures, role render changes, or entrypoint and file-plan work.";
           source = ./utils/agent/role/factory-expert/ROLE.md;
