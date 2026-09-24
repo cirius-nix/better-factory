@@ -47,4 +47,4 @@ unblocks a truthful current-version state. The requirements name no harness
 
 - [Specifications](specifications/README.md)
 - [Decisions](decisions/)
-- [Implementation plan](tasks/README.md) (follows in phase 3)
+- [Implementation plan](tasks/README.md)
