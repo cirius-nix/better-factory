@@ -6,12 +6,12 @@
 ## Description
 
 The repository blueprint is the declared plan of one repository that the factory emits.
-It holds the layout, the arch, the facade settings, the selected harnesses, the merged harness
-settings, the MCP source, the role declarations, the design method, the ux flag, the design
-tool, the design files and chapters, the CI choice and its folder, the site settings and the
-derived feature order, the publish target and its deploy tool, the notifier channels, the
-selected preset, the site files, the CI file, the notifier file, the publish flow, the file
-plan with one copy mode per file, and the result of the seed check.
+It holds the layout, the arch, the facade settings, the selected harness `opencode`, the merged
+opencode version 2 settings, the MCP source, the role declarations, the design method, the ux
+flag, the design tool, the design files and chapters, the CI choice and its folder, the site
+settings and the derived feature order, the publish target and its deploy tool, the notifier
+channels, the selected preset, the site files, the CI file, the notifier file, the publish flow,
+the file plan with one copy mode per file, and the result of the seed check.
 The composed entrypoint reads the consumer declaration and the repository root, computes the
 plan of the consumer repository, and emits the tree below the scratch directory.
 One transaction computes the plan from the author declaration and writes the files.
@@ -53,12 +53,15 @@ the design work (spec-protocol, spec-release-gate, spec-designer-role).
   change is `change-initial`, and a version folder holds the full state of its version.
 - After each factory run, a `managed` file equals its factory source. A `template` file is a
   byte-equal copy of its source. An existing `seed` file keeps the edits of the author.
-- Each selected harness receives its rendered files. An unselected harness receives no file.
+- The selected harness `opencode` receives its rendered files. An unselected harness receives no
+  file. The blueprint holds no claude file and no codex file.
 - The merged value of each managed key is the canonical value. Each ignored project or local
-  value has one log line.
-- One MCP source renders each enabled entry into the dialect of each selected harness.
-- One role source renders each enabled role for each selected harness. The body is the role
-  source plus the ordered chapter appends.
+  value has one log line. The managed key set uses the opencode version 2 shape: the per-role
+  `permissions` rules and the canonical MCP fields. The blueprint holds no `subagent_depth`.
+- One MCP source renders each enabled entry into the opencode version 2 dialect under
+  `mcp.servers`.
+- One role source renders each enabled role for opencode. The body is the role source plus the
+  ordered chapter appends.
 - The effective role set is the merge of the project layer roles and the local layer roles.
   When the declaration holds no role, the blueprint holds the shipped role set: one declaration
   for each role source below `assets/roles/`, except the reserved `designer-expert`.
@@ -108,7 +111,7 @@ the release) belong to the coordinator workflow, not to the blueprint transactio
 | Adopt layout | The blueprint records the layout of changes and versions. | Layout adopted |
 | Select architecture | The blueprint records the arch. An unknown value is an error. | Architecture selected |
 | Declare project | The blueprint records every setting under `factory.project`. | Project declared |
-| Select harnesses | The blueprint records the selected harnesses. An unknown value is an error. | Harness merged |
+| Select harnesses | The blueprint records the selected harness `opencode`. A value other than `opencode` is an error. | Harness merged |
 | Declare MCP entry | The blueprint records one MCP source entry. | MCP entry translated |
 | Declare role | The blueprint records one role source and its declaration. | Role rendered |
 | Select design option | The blueprint records the design method and the ux flag, and computes the design files and chapters. An unknown value is an error. | Design option selected |
@@ -129,9 +132,9 @@ the release) belong to the coordinator workflow, not to the blueprint transactio
 | Layout adopted | The feature list and the change and version contract. |
 | Architecture selected | The arch. |
 | Project declared | The facade root and the setting groups. |
-| Harness merged | The selected harnesses and the merged key groups. |
-| MCP entry translated | The entry name, the selected harness, and the rendered path. |
-| Role rendered | The role name, the selected harness, and the rendered path. |
+| Harness merged | The selected harness and the merged key groups. |
+| MCP entry translated | The entry name and the rendered path in the opencode file. |
+| Role rendered | The role name and the rendered path in the opencode file. |
 | Design option selected | The design method, the ux flag, the design files, and the chapters. |
 | Design tool selected | The design tool and the enabled canonical entry. |
 | CI selected | The CI choice and the folder. |
