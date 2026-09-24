@@ -51,3 +51,4 @@ No code changes in this phase. Later phases will likely touch these paths:
 - [Requirements](requirements/README.md)
 - [Specifications](specifications/README.md)
 - [Decisions](decisions/)
+- [Implementation plan](tasks/README.md)
