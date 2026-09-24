@@ -37,13 +37,13 @@ upon.
 - `services/factory/assets/overlays/multiple`
 - `services/factory/examples/single`
 - `services/factory/examples/multiple`
-- `devenv.nix`
 
 ## Artifacts
 
 - [Requirements](requirements/README.md)
 - [Specifications](specifications/README.md)
 - [Decisions](decisions/)
+- [Implementation plan](tasks/README.md)
 
 ## Removed artifacts
 
