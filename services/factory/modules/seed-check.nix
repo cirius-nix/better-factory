@@ -817,14 +817,7 @@ let
   };
   logFixtureDepth = logFixture.opencode.subagent_depth == 1;
 
-  modes = {
-    ".gitignore" = "managed";
-    ".markdownlint.yaml" = "managed";
-    "docs/wiki/repo-arch/single-repository.md" = "managed";
-    "docs/wiki/repo-arch/multiple-repositories.md" = "managed";
-    "e2e/README.md" = "managed";
-    "factory.config.yaml" = "template";
-  };
+  modes = filePlan.foundationModes;
 
   plan = filePlan.planForArch {
     inherit arch factoryDir modes;

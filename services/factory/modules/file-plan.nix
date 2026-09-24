@@ -103,6 +103,18 @@ let
     else
       throw "file plan: overlays hold ${builtins.toJSON names}, want ${builtins.toJSON overlayNames}";
 
+  # The foundation mode map (spec-consumer-entry). One table read by the
+  # seed check and by the entrypoint, so a mode cannot differ between the
+  # factory examples and the consumer tree.
+  foundationModes = {
+    ".gitignore" = "managed";
+    ".markdownlint.yaml" = "managed";
+    "docs/wiki/repo-arch/single-repository.md" = "managed";
+    "docs/wiki/repo-arch/multiple-repositories.md" = "managed";
+    "e2e/README.md" = "managed";
+    "factory.config.yaml" = "template";
+  };
+
   # The file plan of one arch: base files plus exactly one overlay.
   # A path in the base and in the active overlay appears once; the overlay
   # file wins. modes maps a relative path to its copy mode (default seed).
@@ -204,5 +216,6 @@ in
     checkDuplication
     checkOverlayNames
     planForArch
+    foundationModes
     ;
 }

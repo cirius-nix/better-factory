@@ -3,13 +3,13 @@
     "factory": {
       "flake": false,
       "locked": {
-        "lastModified": 1,
-        "narHash": "sha256-UMrnJrQZ+BtQs5K6EUc3/Qy6S4qUcgA8aNj81A5caqk=",
-        "path": "../..",
+        "lastModified": 0,
+        "narHash": "sha256-Um7Sss0+Jgl1WjrND2Mr4FJZ3iYbGA2OcJA1pVGnQsM=",
+        "path": "../../../..",
         "type": "path"
       },
       "original": {
-        "path": "../..",
+        "path": "../../../..",
         "type": "path"
       }
     },

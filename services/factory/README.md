@@ -23,3 +23,10 @@ Rerun offline with the locked inputs:
 nix flake check --offline ./services/factory/examples/single
 nix flake check --offline ./services/factory/examples/multiple
 ```
+
+## Consumer guide
+
+New consumers start at [consumer-guide](consumer-guide.md). The guide
+takes the starter declaration to the green check through the composed
+entrypoint `modules/entrypoint.nix`. The consumer example at
+`examples/consumer/` follows the guide.
