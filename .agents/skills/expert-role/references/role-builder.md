@@ -1,51 +1,41 @@
 # Role Declaration
 
 A role is one body and one declaration. The body is the file `utils/agent/role/<name>/ROLE.md`.
-The declaration is one entry of the option `factory.domain.agent.role.builder.<name>` in
-`devenv.local.nix`. The shell reads the declaration when it starts. It renders one role file for
-each harness in use.
+The declaration is one entry of the option `factory.project.agents.roles.<name>` in `factory.nix`
+at the repository root. The shell reads the declaration when it starts. It renders the role file
+for OpenCode.
 
 ### Fields
 
-The fields of `factory.domain.agent.role.builder.<name>`:
+The fields of `factory.project.agents.roles.<name>`:
 
 | Field | Type | Default | Meaning |
 | --- | --- | --- | --- |
 | `enable` | bool | `true` | Whether to generate this role. |
-| `name` | str | The attribute name | The file name of the role in each harness. |
+| `name` | str | The attribute name | The file name of the role. |
 | `description` | str | Required | Tells the harness when to use the role. |
-| `instruction` | str | Required | The markdown body of the role file. |
-| `harness.claude` | attrs | `{ }` | Extra frontmatter fields of `.claude/agents/<name>.md`. |
-| `harness.codex` | attrs | `{ }` | Extra keys of `.codex/agents/<name>.toml`. |
+| `source` | path | Required | The body file. The file must exist. |
 | `harness.opencode` | attrs | `{ }` | Extra frontmatter fields of `.opencode/agents/<name>.md`. |
 
-### Rendered files
+### Rendered file
 
-The harness list is `factory.domain.agent.harness.uses`. It is a list with values from
-`claude`, `codex`, and `opencode`. A harness that is not in the list renders no file. Each
-rendered file has the copy mode `copy`: the shell overwrites it on each entry.
-
-| Harness | Rendered file | Content |
-| --- | --- | --- |
-| `claude` | `.claude/agents/<name>.md` | YAML frontmatter with `name` and `description` plus `harness.claude`, then the body. |
-| `opencode` | `.opencode/agents/<name>.md` | YAML frontmatter with `description` plus `harness.opencode`, then the body. |
-| `codex` | `.codex/agents/<name>.toml` | The keys `name`, `description`, and `developer_instructions` (the body) plus `harness.codex`. |
-| `codex` | `.codex/config.toml` | One entry `agents.<name>` with `description` and `config_file = "agents/<name>.toml"`. |
+The role renders `.opencode/agents/<name>.md` when `factory.project.agents.uses` holds
+`opencode`. The file has the copy mode `managed`: the shell overwrites it on each entry. The
+content is the YAML frontmatter with `description` plus `harness.opencode`, then the body, then
+the chapter appends. No other harness renders a file.
 
 ### Declaration
 
-One complete declaration for `devenv.local.nix`:
+One complete declaration for `factory.nix`:
 
 ```nix
-{
-  factory.domain.agent.role.builder.<name> = {
-    description = "<What the expert does. Use for ...>";
-    instruction = builtins.readFile ./utils/agent/role/<name>/ROLE.md;
-    harness.opencode.mode = "subagent";
-  };
-}
+roles.<name> = {
+  description = "<What the expert does. Use for ...>";
+  source = ./utils/agent/role/<name>/ROLE.md;
+  harness.opencode.mode = "subagent";
+};
 ```
 
 - `harness.opencode.mode = "subagent"` is the convention of each shipped role.
 - Copy the declaration. Change only `<name>`, the description, and the body. After the next
-  shell entry, each harness in use has a rendered role file.
+  shell entry, OpenCode has the rendered role file.
