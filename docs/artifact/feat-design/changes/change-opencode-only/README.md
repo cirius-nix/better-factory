@@ -45,5 +45,6 @@ unblocks a truthful current-version state. The requirements name no harness
 
 ## Artifacts
 
-- [Specifications](specifications/README.md) (follows in phase 2)
-- [Implementation plan](tasks/README.md) (follows in phase 3, only if the change needs code)
+- [Specifications](specifications/README.md)
+- [Decisions](decisions/)
+- [Implementation plan](tasks/README.md) (follows in phase 3)
