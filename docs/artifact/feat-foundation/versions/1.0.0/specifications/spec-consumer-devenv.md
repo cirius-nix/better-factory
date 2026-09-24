@@ -11,8 +11,8 @@ The factory component holds one devenv module at `services/factory/devenv.nix`. 
 devenv project declares the factory input with `flake = false` and imports the module with
 `imports: [factory/services/factory]` in `devenv.yaml`. The module composes the entrypoint
 `mkFactory` with the owned declaration of the consumer and the root of the consumer
-repository. It exposes the emit and the check to the devenv shell. The command `Import
-factory` records the pinned factory source and emits `Factory imported`.
+repository. It exposes the emit, the check, and the adopt command to the devenv shell. The
+command `Import factory` records the pinned factory source and emits `Factory imported`.
 
 ## Contract
 
@@ -27,6 +27,7 @@ factory` records the pinned factory source and emits `Factory imported`.
 }: {
   scripts.factory-emit.exec = ...;
   scripts.factory-check.exec = ...;
+  scripts.factory-adopt.exec = ...;
 }
 ```
 
@@ -77,14 +78,20 @@ imports:
 
 ### The exposed commands
 
-1. The module adds two scripts to the consumer devenv shell:
+1. The module adds three scripts to the consumer devenv shell:
    - `factory-check` runs the composed check and prints the five green lines
      (spec-e2e-seed);
-   - `factory-emit` builds the composed emit and prints the path of the emitted tree.
+   - `factory-emit` builds the composed emit and prints the path of the emitted tree;
+   - `factory-adopt` runs the adopt step (spec-copymode) with the manifest of the entrypoint
+     (spec-consumer-entry) and the consumer repository root. The script forwards its arguments
+     to the adopt step: `factory-adopt --dry-run` prints the action of each planned file and
+     writes nothing.
 2. The scripts are the interface of the module to the consumer. The consumer runs them from
    the devenv shell.
-3. The scripts write only below the scratch directory and the derivation output. The factory
-   source and the consumer repository stay unchanged.
+3. The check and the emit write only below the scratch directory and the derivation output. The
+   factory source stays unchanged. The adopt script writes into the consumer repository as the
+   copy modes say. The adopt script never deletes a file outside the plan and never writes
+   below `.devenv/` or `.git/` (spec-copymode).
 4. The check needs no network access: it runs with the locked inputs and the `--offline` flag.
    A run that fetches an input fails.
 
@@ -98,6 +105,8 @@ imports:
    reach the repository root, the input root of the documented paths.
 3. The check of the example is green: the script `factory-check` prints the five green lines.
    The example proves the devenv path on real settings with no fixture starter.
+4. The example proves the adopt command: `factory-adopt --dry-run` prints the action of each
+   planned file and writes nothing.
 
 ## Errors
 
@@ -110,6 +119,8 @@ imports:
 - A red layer of the check writes `<layer>: red: <path>: <reason>` and exits with a non-zero
   code (spec-e2e-seed).
 - A run that writes in the factory source or in the consumer repository fails the scratch rule.
+- A `factory-adopt` run that writes a path outside the plan or below `.git/` or `.devenv/`
+  fails the adopt contract (spec-copymode).
 
 ## Resolved constraints
 
@@ -117,3 +128,4 @@ imports:
 | --- | --- | --- |
 | C-51 | The factory exposes one real devenv module at `services/factory/devenv.nix`. A consumer imports it through `devenv.yaml` with `inputs.factory` (`flake = false`) and `imports: [factory/services/factory]`. The module composes `mkFactory` with the declaration `factory.nix` and the consumer repository root, and exposes the scripts `factory-emit` and `factory-check`. | services/factory |
 | C-52 | The single documented input root is the factory repository root. The flake path and the devenv path start below it. | services/factory |
+| C-55 | The module adds the third script `factory-adopt`. The script runs the adopt step with the manifest of the entrypoint and the consumer repository root, and forwards its arguments. The module passes the root as a string, not as a path value: a path value copies the repository to the store, and the write misses the author tree. | services/factory |

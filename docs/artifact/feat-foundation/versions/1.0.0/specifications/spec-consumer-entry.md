@@ -11,7 +11,8 @@ The composed entrypoint `mkFactory` is the one input of the consumer path. It va
 owned declaration, applies the selected preset, composes the plan of the feature modules, emits
 the downstream tree below the scratch directory, and runs the check of the emitted tree. The
 factory source stays unchanged. The command `Emit repository` composes the plan, emits the
-tree, and emits `Repository emitted`.
+tree, and emits `Repository emitted`. The entrypoint also returns the manifest of the plan.
+The adopt step uses the manifest (spec-copymode).
 
 The entrypoint reads the owned declaration of the consumer. The declaration holds the settings
 under the `factory.project` root of spec-facade-root. Each validation error carries the naming
@@ -34,9 +35,10 @@ The entrypoint returns:
 
 ```nix
 {
-  plan;   # the file plan: files."<path>" = { source; copyMode; } (spec-arch-seed)
-  emit;   # a derivation; $out holds the emitted tree
-  check;  # a derivation; $out/output holds the five green lines (spec-e2e-seed)
+  plan;      # the file plan: files."<path>" = { source; copyMode; } (spec-arch-seed)
+  emit;      # a derivation; $out holds the emitted tree
+  check;     # a derivation; $out/output holds the five green lines (spec-e2e-seed)
+  manifest;  # a derivation; $out holds the manifest lines (spec-copymode)
 }
 ```
 
@@ -177,6 +179,18 @@ The entrypoint composes one transaction:
 7. The emit and the check write only below the scratch directory and the derivation output. The
    factory source and the consumer repository stay unchanged.
 
+### The manifest
+
+1. The entrypoint returns the manifest as a derivation. `manifest.$out` holds one line for each
+   planned file: `<mode><TAB><path><TAB><source>` (spec-copymode).
+2. The entrypoint builds the manifest from the plan. The manifest and the emitted tree cannot
+   disagree on a path or a mode.
+3. The manifest is the one input of the adopt step (spec-copymode). The devenv module reads the
+   manifest to compose the command `factory-adopt` (spec-consumer-devenv).
+4. The manifest holds each planned file, including the declaration entry `factory.nix` with the
+   mode `seed` and the configuration entry `factory.config.yaml` with the mode `template`.
+5. The manifest derivation writes only its output. It needs no network access.
+
 ### The consumer proof
 
 1. The factory repository holds one consumer example at `services/factory/examples/consumer/`.
@@ -192,7 +206,7 @@ The entrypoint composes one transaction:
    reach the repository root, the input root of the documented path. The example derives
    `factoryDir = factory + "/services/factory"`.
 5. The example imports the entrypoint by the documented path (spec-consumer-import) and wires
-   `emit` and `check` in the flake outputs.
+   `emit`, `check`, and `manifest` in the flake outputs.
 6. The example selects one harness and declares no role. The entrypoint discovers the default
    role set, so the emitted tree holds the harness file and the role files of the four shipped
    roles for the selected harness. The example check proves the orchestration file set.
@@ -234,6 +248,8 @@ Each validation error of the declaration carries the naming message of its contr
   contract.
 - A plan that misses the rendered file of a selected harness or of an enabled role of the
   effective role set fails the check.
+- A `manifest` that misses a planned path or holds another line shape does not follow this
+  contract.
 
 ## Resolved constraints
 
@@ -248,3 +264,4 @@ Each validation error of the declaration carries the naming message of its contr
 | C-47 | The input root is the repository root of the factory. The in-repo consumer example declares `factory.url = "path:../../../.."`; from `services/factory/examples/consumer/` the four parent steps reach the repository root. | services/factory |
 | C-48 | The emit work directory is `$TMPDIR/emitted`, and `emit.$out` is the emitted tree. The check work directory is `$TMPDIR/work` and the result file is `$TMPDIR/output`; `check.$out/output` holds exactly the five green lines. The names are distinct. | services/factory |
 | C-49 | The example declaration differs from the fixture starter on each key of the example except `arch`; `arch` keeps the starter value `single`. The consumer proof and the consumer guide use the corrected wording. | services/factory |
+| C-54 | The entrypoint returns the manifest derivation of the plan. The manifest holds one line for each planned file with the mode, the path, and the source (spec-copymode). The devenv module reads the manifest to compose the command `factory-adopt` (spec-consumer-devenv). | services/factory |

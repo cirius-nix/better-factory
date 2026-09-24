@@ -12,6 +12,8 @@ The mode fixes who owns the file.
 The default mode is `seed`.
 The file plan of the factory is the one source of the mode.
 The command `Copy file` writes one file and emits `File copied` with the path and the mode.
+The adopt step applies the plan to the author tree: the command `factory-adopt` copies each
+planned file into the consumer repository as its copy mode says.
 
 ## Contract
 
@@ -60,6 +62,39 @@ More rules:
    - The path is present and the mode is `managed` or `template`: the wrapper replaces the
      current bytes with the source bytes.
 3. An existing `seed` file keeps its bytes and its modification time after a later copy step.
+4. The wrapper takes the optional flag `--dry-run`. With the flag, the wrapper writes nothing
+   and prints one action line for each planned path: `copy-step: <action> <path>`. The action
+   is `create` for an absent path, `keep` for a present `seed` file, and `replace` for a
+   present `managed` or `template` file. The flag changes no decision rule.
+5. A run without the flag writes the files and prints no action line.
+
+### The adopt step
+
+1. The adopt step is the script `scripts/adopt.sh` of the factory component. The step applies
+   the copy step to the author tree. The destination is the consumer repository root. The
+   source is the manifest of the entrypoint (spec-consumer-entry).
+2. The command `factory-adopt` of the devenv module runs the adopt step (spec-consumer-devenv).
+3. The script takes the manifest, the repository root, and the optional flag `--dry-run`:
+   `adopt.sh <manifest> <root> [--dry-run]`. The flag is accepted in any argument position.
+4. For each planned path, the step applies the rules of the copy step:
+   - The path is absent: the step writes the source bytes.
+   - The path is present and the mode is `seed`: the step keeps the current bytes and the
+     modification time.
+   - The path is present and the mode is `managed` or `template`: the step replaces the current
+     bytes with the source bytes.
+5. The step writes each file writable (`chmod u+w`), as the copy step does. A file from the
+   store is read-only, and the author must edit a `seed` file after the step.
+6. The step never deletes a path. A file outside the plan stays.
+7. The step never writes a path whose first component is `.git` or `.devenv`. The plan holds no
+   such path. The guard protects the author tree.
+8. The step fails on a bad path or a missing argument. The error line is
+   `adopt: red: <item>: <reason>`, and the exit code is non-zero. A path that starts with `/`
+   or holds a `..` component is a bad path.
+9. The step reuses the copy step. The copy step holds the one implementation of the decision
+   and the write rule.
+10. The step prints one action line for each planned path: `adopt: <action> <path>`. The action
+    is `create`, `keep`, or `replace`. A dry run prints the lines and writes nothing. A real run
+    prints the lines and writes the files.
 
 ### The drift check
 
@@ -114,6 +149,13 @@ The bytes of the renderer output are part of the contract of the mode.
 - A `seed` file that the factory overwrites fails the check.
 - A `seed` file whose bytes or modification time change after a later copy step fails the
   copy-mode layer.
+- An adopt step that deletes a path outside the plan does not follow this contract.
+- An adopt step that writes below `.git/` or `.devenv/` does not follow this contract.
+- An adopt step with a path that starts with `/` or holds a `..` component fails with an error
+  line that names the path.
+- A dry run that writes a file does not follow this contract.
+- An adopt step with a manifest line of an unknown mode fails with an error line that names the
+  path and the mode.
 
 ## Resolved constraints
 
@@ -123,3 +165,4 @@ The bytes of the renderer output are part of the contract of the mode.
 | C-02 | `.pre-commit-config.yaml` is outside the plan. The git-hooks integration of the repository generates it; the factory does not emit it and no layer compares it. | services/factory |
 | C-03 | The copy-mode layer compares `managed` files; the emit layer compares `template` files; the layers compare disjoint subsets. One line-based renderer renders YAML, and its bytes are part of the contract. | services/factory |
 | C-04 | `files` is an attribute set of submodules with quoted path keys. `source` is a Nix store path. The mode set is exactly `seed`, `managed`, `template`; the two-valued reference set (`copy`, `seed`) is not used. | services/factory |
+| C-53 | The copy step takes the optional `--dry-run` flag and prints `copy-step: <action> <path>` lines. The adopt step `scripts/adopt.sh` reuses the copy step, filters the paths below `.git/` and `.devenv/`, and prints `adopt: <action> <path>` lines. A real adopt run writes the planned files into the consumer repository and never deletes a path outside the plan. | services/factory |

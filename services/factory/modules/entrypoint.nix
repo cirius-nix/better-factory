@@ -1,8 +1,9 @@
 # services/factory/modules/entrypoint.nix
 # Composed entrypoint mkFactory (spec-consumer-entry). Validates the owned
 # declaration, applies the selected preset, composes the plan of the feature
-# modules, emits the downstream tree below the scratch directory, and runs
-# the five-layer check of the emitted tree. The factory source and the
+# modules, emits the downstream tree below the scratch directory, runs
+# the five-layer check of the emitted tree, and returns the manifest of the
+# plan for the adopt step (spec-copymode). The factory source and the
 # consumer repository stay unchanged. Pure evaluation never sees
 # devenv.local.nix: the pinned source holds no local file (C-43).
 {
@@ -245,5 +246,10 @@ let
 in
 assert renderedOk;
 builtins.deepSeq settings {
-  inherit plan emit check;
+  inherit
+    plan
+    emit
+    check
+    manifest
+    ;
 }

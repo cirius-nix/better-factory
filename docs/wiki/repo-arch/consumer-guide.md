@@ -63,7 +63,8 @@ import does not resolve. The devenv root of the consumer repository holds
 the `devenv.yaml` and the declaration `factory.nix`.
 
 The module composes the entrypoint with the declaration and the consumer
-repository root, and names the scripts `factory-check` and `factory-emit`.
+repository root, and names the scripts `factory-check`, `factory-emit`, and
+`factory-adopt`.
 Run the check from the devenv shell with:
 
 ```sh
@@ -76,6 +77,9 @@ facade, copy-mode, emit. Print the path of the emitted tree with:
 ```sh
 factory-emit
 ```
+
+The emitted tree holds the planned bytes. The adopt step of the scratch
+rule copies the same bytes into the consumer repository.
 
 ## Flake wiring
 
@@ -111,11 +115,12 @@ entry = mkFactory {
 };
 ```
 
-Wire `emit` and `check` in the flake outputs:
+Wire `emit`, `check`, and `manifest` in the flake outputs:
 
 ```nix
 checks.<system>.seed-check = entry.check;
 packages.<system>.emit = entry.emit;
+packages.<system>.manifest = entry.manifest;
 ```
 
 ## Checks to run
@@ -141,8 +146,40 @@ The path of the emitted tree is `result/`. The devenv emit script
 
 ## Scratch rule
 
-The emitted tree lands below the scratch directory and outside the
-factory source. The factory source and the consumer repository stay
-unchanged: the emit and the check write only below the scratch directory
-and the derivation output. After the green check, the consumer adopts the
+The emitted tree lands below the scratch directory and outside the factory
+source. The emit and the check write only below the scratch directory and
+the derivation output, so the factory source and the consumer repository
+stay unchanged by them. After the green check, the consumer adopts the
 emitted tree by copy into the consumer repository.
+
+The devenv shell command `factory-adopt` runs the adopt step. The command
+follows the copy mode of each planned file:
+
+- it creates an absent file;
+- it keeps the bytes and the modification time of an existing `seed` file;
+- it replaces an existing `managed` or `template` file with the source
+  bytes.
+
+The command never deletes a file outside the plan. The command never writes
+below `.devenv/` or `.git/`. Run the dry run first to print the action of
+each planned file without a write:
+
+```sh
+factory-adopt --dry-run
+```
+
+Run the adopt step with:
+
+```sh
+factory-adopt
+```
+
+The flake path uses the same copy rules. Build the manifest with
+`nix build .#manifest` and run the adopt script below the factory
+repository root:
+
+```sh
+sh <factory>/services/factory/scripts/adopt.sh "$(readlink -f result)" .
+```
+
+`<factory>` is the factory repository root, the input path of the flake.

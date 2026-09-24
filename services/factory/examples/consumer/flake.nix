@@ -1,8 +1,9 @@
 # Consumer example (spec-consumer-import, spec-consumer-entry).
 # Declares the factory input at the repository root, imports the composed
-# entrypoint by the documented path, and wires emit and check. The example
-# selects one harness and declares no role; the entrypoint discovers the
-# shipped role set.
+# entrypoint by the documented path, and wires emit, check, and manifest.
+# The example selects one harness and declares no role; the entrypoint
+# discovers the shipped role set. The manifest feeds the adopt step
+# (spec-copymode).
 {
   description = "Factory example: consumer entrypoint.";
 
@@ -31,6 +32,9 @@
     in
     {
       checks.${system}.seed-check = entry.check;
-      packages.${system}.emit = entry.emit;
+      packages.${system} = {
+        emit = entry.emit;
+        manifest = entry.manifest;
+      };
     };
 }
