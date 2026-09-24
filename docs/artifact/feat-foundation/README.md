@@ -18,6 +18,7 @@ one seed check, one project facade, and three copy modes for building new reposi
 | Version | Change | Type |
 | --- | --- | --- |
 | 1.0.0 | [Initial](changes/change-initial/README.md) | Requirements |
+| 1.1.0 | [consumer-entry](changes/change-consumer-entry/README.md) | Specifications |
 
 ## Artifacts
 

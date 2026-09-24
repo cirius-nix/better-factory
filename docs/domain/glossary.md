@@ -53,3 +53,5 @@ write two rows.
 | feature index | context-factory | The ordered feature table of docs/artifact/README.md. | - |
 | feature order | context-factory | The sidebar order of the feature folders, derived from the feature index. | - |
 | static directory | context-factory | A directory of static files that the site build copies to the site root. | - |
+| consumer | context-factory | A downstream author who imports the factory and emits an owned repository. | - |
+| entrypoint | context-factory | The composed input that takes downstream settings and emits the downstream tree. | - |

@@ -67,6 +67,8 @@ notifier, one publish target, and named presets.
 | feature index | The ordered feature table of docs/artifact/README.md. |
 | feature order | The sidebar order of the feature folders, derived from the feature index. |
 | static directory | A directory of static files that the site build copies to the site root. |
+| consumer | A downstream author who imports the factory and emits an owned repository. |
+| entrypoint | The composed input that takes downstream settings and emits the downstream tree. |
 
 ## Business rules
 
@@ -96,6 +98,8 @@ notifier, one publish target, and named presets.
 - The sidebar feature order derives from the feature index, and no hand list exists.
 - A preset selects no key outside F1 through F4, and no dead key exists.
 - The site files are emitted only when the site is enabled, and the CI file builds the site.
+- The consumer declares the factory input and imports its modules by the documented path.
+- The entrypoint takes the downstream settings and emits the downstream tree.
 
 ## Inbound messages
 
