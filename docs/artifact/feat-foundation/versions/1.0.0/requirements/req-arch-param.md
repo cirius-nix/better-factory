@@ -13,8 +13,4 @@ The project must offer one architecture parameter with the values `single` and `
 - Given a new project, when the author selects `single`, then the setup builds one
   repository without extra overlay content.
 - Given a new project, when the author selects `multiple`, then the setup builds the
-  multi-repository overlay content.
-
-## Notes
-
-- Source: MASTER-PLAN F1 row (arch param single|multiple).
+   multi-repository overlay content.

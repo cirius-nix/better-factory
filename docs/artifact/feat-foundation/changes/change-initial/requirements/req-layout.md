@@ -18,5 +18,4 @@ released state is a version.
 
 ## Notes
 
-- Source: MASTER-PLAN F1 row (layout changes/versions).
 - The 11 legacy features stay reference-only; no history is migrated.

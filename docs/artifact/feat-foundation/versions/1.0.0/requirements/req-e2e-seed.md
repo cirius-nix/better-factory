@@ -15,6 +15,5 @@ The project must include one seed check that proves the generated setup works en
 
 ## Notes
 
-- Source: MASTER-PLAN F1 row (e2e seed).
 - This seed check covers the generated setup only; live service checks belong to later
   features.

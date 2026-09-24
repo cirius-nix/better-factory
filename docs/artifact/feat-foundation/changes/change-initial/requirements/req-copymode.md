@@ -20,6 +20,5 @@ The project must mark each generated file with one copy mode: `seed`, `managed`,
 
 ## Notes
 
-- Source: MASTER-PLAN F1 row (copymode seed/managed/template).
 - Meanings: `seed` means generated once and then owned by the author; `managed` means
   owned by the factory; `template` means a verbatim copy.
