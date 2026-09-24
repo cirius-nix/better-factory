@@ -366,6 +366,412 @@ let
     else
       throw "seed check: the tool fixture of `${arch}` fails ${(builtins.head toolFailing).message}";
 
+  # Permission fixture (spec-role-permissions, RC01-C1 to RC01-C6). The
+  # fixture renders the six known role names and one unknown role name. It
+  # compares each rendered array with one independent expected fixture
+  # (RC01-C5). The expected fixtures are literal and do not come from the
+  # role-contract table. The fixture also proves the broad-before-specific
+  # rule order, the permission-key identity of the rendered role name, the
+  # enabled-set rule, the governance rules, and that no `edit` allow sits
+  # outside the ownership scope. The role-contract fixture proves that each
+  # rendered body holds the two sections and the literal ownership path
+  # patterns (RC03-C2).
+  permHas = text: needle: builtins.replaceStrings [ needle ] [ "" ] text != text;
+  permFirstIndex =
+    xs: pred:
+    let
+      idxs = builtins.filter (i: pred (builtins.elemAt xs i)) (
+        builtins.genList (i: i) (builtins.length xs)
+      );
+    in
+    if idxs == [ ] then null else builtins.head idxs;
+  permIndices =
+    xs: pred:
+    builtins.filter (i: pred (builtins.elemAt xs i)) (
+      builtins.genList (i: i) (builtins.length xs)
+    );
+  permExpected = {
+    artifact-master = [
+      { action = "edit"; resource = "*"; effect = "deny"; }
+      { action = "read"; resource = "*"; effect = "allow"; }
+      { action = "glob"; resource = "*"; effect = "allow"; }
+      { action = "grep"; resource = "*"; effect = "allow"; }
+      { action = "webfetch"; resource = "*"; effect = "deny"; }
+      { action = "websearch"; resource = "*"; effect = "deny"; }
+      { action = "skill"; resource = "*"; effect = "ask"; }
+      { action = "skill"; resource = "artifact-master"; effect = "allow"; }
+      { action = "skill"; resource = "expert-role"; effect = "allow"; }
+      { action = "subagent"; resource = "*"; effect = "allow"; }
+      { action = "question"; resource = "*"; effect = "allow"; }
+      { action = "shell"; resource = "*"; effect = "ask"; }
+      { action = "shell"; resource = "git status *"; effect = "allow"; }
+      { action = "shell"; resource = "git diff *"; effect = "allow"; }
+      { action = "shell"; resource = "git log *"; effect = "allow"; }
+      { action = "shell"; resource = "git show *"; effect = "allow"; }
+      { action = "shell"; resource = "git add *"; effect = "allow"; }
+      { action = "shell"; resource = "git commit *"; effect = "allow"; }
+      { action = "shell"; resource = "git switch *"; effect = "allow"; }
+      { action = "shell"; resource = "git branch *"; effect = "allow"; }
+      { action = "shell"; resource = "git checkout -b *"; effect = "allow"; }
+      { action = "shell"; resource = "git push *"; effect = "deny"; }
+    ];
+    requirement-expert = [
+      { action = "edit"; resource = "*"; effect = "deny"; }
+      { action = "edit"; resource = "docs/artifact/*/changes/*/README.md"; effect = "allow"; }
+      { action = "edit"; resource = "docs/artifact/*/changes/*/requirements/*"; effect = "allow"; }
+      { action = "edit"; resource = "docs/artifact/README.md"; effect = "allow"; }
+      { action = "edit"; resource = "docs/domain/*"; effect = "allow"; }
+      { action = "read"; resource = "*"; effect = "allow"; }
+      { action = "glob"; resource = "*"; effect = "allow"; }
+      { action = "grep"; resource = "*"; effect = "allow"; }
+      { action = "webfetch"; resource = "*"; effect = "allow"; }
+      { action = "websearch"; resource = "*"; effect = "allow"; }
+      { action = "skill"; resource = "*"; effect = "ask"; }
+      { action = "skill"; resource = "asd-ste-100"; effect = "allow"; }
+      { action = "skill"; resource = "ddd-review"; effect = "allow"; }
+      { action = "subagent"; resource = "*"; effect = "deny"; }
+      { action = "question"; resource = "*"; effect = "deny"; }
+      { action = "shell"; resource = "*"; effect = "deny"; }
+    ];
+    solution-expert = [
+      { action = "edit"; resource = "*"; effect = "deny"; }
+      { action = "edit"; resource = "docs/artifact/*/changes/*/specifications/*"; effect = "allow"; }
+      { action = "edit"; resource = "docs/artifact/*/changes/*/decisions/*"; effect = "allow"; }
+      { action = "edit"; resource = "docs/artifact/*/changes/*/tasks/*"; effect = "allow"; }
+      { action = "edit"; resource = "docs/domain/*"; effect = "allow"; }
+      { action = "read"; resource = "*"; effect = "allow"; }
+      { action = "glob"; resource = "*"; effect = "allow"; }
+      { action = "grep"; resource = "*"; effect = "allow"; }
+      { action = "webfetch"; resource = "*"; effect = "allow"; }
+      { action = "websearch"; resource = "*"; effect = "allow"; }
+      { action = "skill"; resource = "*"; effect = "ask"; }
+      { action = "skill"; resource = "asd-ste-100"; effect = "allow"; }
+      { action = "skill"; resource = "ddd-review"; effect = "allow"; }
+      { action = "subagent"; resource = "*"; effect = "deny"; }
+      { action = "question"; resource = "*"; effect = "deny"; }
+      { action = "shell"; resource = "*"; effect = "deny"; }
+    ];
+    artifact-release-expert = [
+      { action = "edit"; resource = "*"; effect = "deny"; }
+      { action = "edit"; resource = "docs/artifact/*/versions/*"; effect = "allow"; }
+      { action = "edit"; resource = "docs/artifact/*/README.md"; effect = "allow"; }
+      { action = "edit"; resource = "docs/artifact/*/changes/*"; effect = "deny"; }
+      { action = "read"; resource = "*"; effect = "allow"; }
+      { action = "glob"; resource = "*"; effect = "allow"; }
+      { action = "grep"; resource = "*"; effect = "allow"; }
+      { action = "webfetch"; resource = "*"; effect = "allow"; }
+      { action = "websearch"; resource = "*"; effect = "allow"; }
+      { action = "skill"; resource = "*"; effect = "ask"; }
+      { action = "skill"; resource = "asd-ste-100"; effect = "allow"; }
+      { action = "subagent"; resource = "*"; effect = "deny"; }
+      { action = "question"; resource = "*"; effect = "deny"; }
+      { action = "shell"; resource = "*"; effect = "deny"; }
+      { action = "shell"; resource = "cp *"; effect = "allow"; }
+      { action = "shell"; resource = "mkdir -p *"; effect = "allow"; }
+      { action = "shell"; resource = "rm docs/artifact/*"; effect = "allow"; }
+    ];
+    factory-expert = [
+      { action = "edit"; resource = "*"; effect = "deny"; }
+      { action = "edit"; resource = "services/factory/*"; effect = "allow"; }
+      { action = "edit"; resource = "docs/wiki/documentation/mixture-of-experts/*"; effect = "allow"; }
+      { action = "edit"; resource = ".agents/skills/expert-role/*"; effect = "allow"; }
+      { action = "edit"; resource = "utils/agent/role/factory-expert/ROLE.md"; effect = "allow"; }
+      { action = "read"; resource = "*"; effect = "allow"; }
+      { action = "glob"; resource = "*"; effect = "allow"; }
+      { action = "grep"; resource = "*"; effect = "allow"; }
+      { action = "webfetch"; resource = "*"; effect = "allow"; }
+      { action = "websearch"; resource = "*"; effect = "allow"; }
+      { action = "skill"; resource = "*"; effect = "ask"; }
+      { action = "skill"; resource = "asd-ste-100"; effect = "allow"; }
+      { action = "subagent"; resource = "*"; effect = "deny"; }
+      { action = "question"; resource = "*"; effect = "deny"; }
+      { action = "shell"; resource = "*"; effect = "ask"; }
+      { action = "shell"; resource = "nix flake check *"; effect = "allow"; }
+      { action = "shell"; resource = "nix build *"; effect = "allow"; }
+      { action = "shell"; resource = "nix eval *"; effect = "allow"; }
+      { action = "shell"; resource = "git status *"; effect = "allow"; }
+      { action = "shell"; resource = "git diff *"; effect = "allow"; }
+      { action = "shell"; resource = "git log *"; effect = "allow"; }
+      { action = "shell"; resource = "git show *"; effect = "allow"; }
+    ];
+    designer-expert = [
+      { action = "edit"; resource = "*"; effect = "deny"; }
+      { action = "edit"; resource = "docs/artifact/*/changes/*/design/*"; effect = "allow"; }
+      { action = "read"; resource = "*"; effect = "allow"; }
+      { action = "glob"; resource = "*"; effect = "allow"; }
+      { action = "grep"; resource = "*"; effect = "allow"; }
+      { action = "webfetch"; resource = "*"; effect = "allow"; }
+      { action = "websearch"; resource = "*"; effect = "allow"; }
+      { action = "skill"; resource = "*"; effect = "ask"; }
+      { action = "skill"; resource = "asd-ste-100"; effect = "allow"; }
+      { action = "subagent"; resource = "*"; effect = "deny"; }
+      { action = "question"; resource = "*"; effect = "deny"; }
+      { action = "shell"; resource = "*"; effect = "deny"; }
+    ];
+    unknown-role = [
+      { action = "edit"; resource = "*"; effect = "deny"; }
+      { action = "read"; resource = "*"; effect = "allow"; }
+      { action = "glob"; resource = "*"; effect = "allow"; }
+      { action = "grep"; resource = "*"; effect = "allow"; }
+      { action = "webfetch"; resource = "*"; effect = "deny"; }
+      { action = "websearch"; resource = "*"; effect = "deny"; }
+      { action = "skill"; resource = "*"; effect = "ask"; }
+      { action = "subagent"; resource = "*"; effect = "deny"; }
+      { action = "question"; resource = "*"; effect = "deny"; }
+      { action = "shell"; resource = "*"; effect = "deny"; }
+    ];
+  };
+  permRoleNames = [
+    "artifact-master"
+    "requirement-expert"
+    "solution-expert"
+    "artifact-release-expert"
+    "factory-expert"
+    "designer-expert"
+    "unknown-role"
+  ];
+  permDeclaredNames = builtins.filter (n: n != "designer-expert") permRoleNames;
+  permSource = factoryDir + "/assets/roles/artifact-master/ROLE.md";
+  permRoles = builtins.listToAttrs (
+    builtins.map (n: {
+      name = n;
+      value = {
+        description = "permission fixture ${n}";
+        source = permSource;
+      };
+    }) permDeclaredNames
+  );
+  permProject = orchestration.evalAgents {
+    uses = [ "opencode" ];
+    roles = permRoles;
+  };
+  permMerged = harnessLib.mergeAgents {
+    project = permProject;
+    roleNames = permRoleNames;
+    tool = "unset";
+    ux = true;
+  };
+  permSelected = harnessLib.renderSelected {
+    merged = permMerged;
+    uses = [ "opencode" ];
+  };
+  permDoc = builtins.fromJSON (
+    builtins.readFile (fileByRel permSelected.fileDecls ".opencode/opencode.jsonc").source
+  );
+  permRender = rolesLib.renderRoles {
+    roles = permMerged.roles;
+    uses = [ "opencode" ];
+    chapterMap = { };
+  };
+  permKeys = builtins.attrNames permDoc.agents;
+  permFileNames = builtins.map (rel: builtins.head (builtins.match ".*/agents/(.*)\\.md" rel)) (
+    builtins.map (d: d.rel) permRender.fileDecls
+  );
+  permAliasProject = orchestration.evalAgents {
+    uses = [ "opencode" ];
+    roles = {
+      alias = {
+        name = "real-role";
+        description = "permission identity fixture";
+        source = permSource;
+      };
+    };
+  };
+  permAliasNames = builtins.map (n: permAliasProject.roles.${n}.name or n) (
+    builtins.attrNames permAliasProject.roles
+  );
+  permAliasMerged = harnessLib.mergeAgents {
+    project = permAliasProject;
+    roleNames = permAliasNames;
+    tool = "unset";
+  };
+  permAliasSelected = harnessLib.renderSelected {
+    merged = permAliasMerged;
+    uses = [ "opencode" ];
+  };
+  permAliasDoc = builtins.fromJSON (
+    builtins.readFile (fileByRel permAliasSelected.fileDecls ".opencode/opencode.jsonc").source
+  );
+  permAliasRender = rolesLib.renderRoles {
+    roles = permAliasMerged.roles;
+    uses = [ "opencode" ];
+    chapterMap = { };
+  };
+  permAliasIdentity =
+    builtins.attrNames permAliasDoc.agents == [ "real-role" ]
+    && builtins.map (d: d.rel) permAliasRender.fileDecls == [ ".opencode/agents/real-role.md" ];
+  permEnabledChecked = rolesLib.checkRole "no-enable" {
+    description = "enabled fixture";
+    source = permSource;
+  };
+  permEnabledProject = orchestration.evalAgents {
+    uses = [ "opencode" ];
+    roles = {
+      no-enable = {
+        description = "enabled fixture";
+        source = permSource;
+      };
+      off = {
+        enable = false;
+        description = "disabled fixture";
+        source = permSource;
+      };
+    };
+  };
+  permEnabledNames = builtins.filter (n: permEnabledProject.roles.${n}.enable or true) (
+    builtins.attrNames permEnabledProject.roles
+  );
+  permEnabledMerged = harnessLib.mergeAgents {
+    project = permEnabledProject;
+    roleNames = permEnabledNames;
+    tool = "unset";
+  };
+  permEnabledSelected = harnessLib.renderSelected {
+    merged = permEnabledMerged;
+    uses = [ "opencode" ];
+  };
+  permEnabledDoc = builtins.fromJSON (
+    builtins.readFile (fileByRel permEnabledSelected.fileDecls ".opencode/opencode.jsonc").source
+  );
+  permEnabledRender = rolesLib.renderRoles {
+    roles = permEnabledProject.roles;
+    uses = [ "opencode" ];
+    chapterMap = { };
+  };
+  permEnabledOk =
+    permEnabledChecked.enable == true
+    && permEnabledChecked.harness.opencode == { }
+    && permEnabledNames == [ "no-enable" ]
+    && builtins.hasAttr "no-enable" permEnabledDoc.agents
+    && !(builtins.hasAttr "off" permEnabledDoc.agents)
+    && builtins.map (d: d.rel) permEnabledRender.fileDecls == [ ".opencode/agents/no-enable.md" ];
+  permOrderOk =
+    arr:
+    let
+      guard = permFirstIndex arr (r: r.action == "edit" && r.resource == "*" && r.effect == "deny");
+      allows = permIndices arr (r: r.action == "edit" && r.effect == "allow" && r.resource != "*");
+      broadShell = permFirstIndex arr (r: r.action == "shell" && r.resource == "*");
+      specifics = permIndices arr (r: r.action == "shell" && r.resource != "*");
+    in
+    guard != null
+    && builtins.length (permIndices arr (r: r.action == "edit" && r.resource == "*" && r.effect == "deny")) == 1
+    && builtins.all (i: i > guard) allows
+    && broadShell != null
+    && builtins.all (i: i > broadShell) specifics;
+  permScopeOk =
+    rendered: expected:
+    let
+      renderedAllows = builtins.filter (
+        r: r.action == "edit" && r.effect == "allow" && r.resource != "*"
+      ) rendered;
+      expectedAllows = builtins.filter (
+        r: r.action == "edit" && r.effect == "allow" && r.resource != "*"
+      ) expected;
+    in
+    builtins.all (r: builtins.elem r expectedAllows) renderedAllows;
+  permGovernanceOk =
+    arr:
+    builtins.all (a: builtins.length (builtins.filter (r: r.action == a) arr) == 1) [
+      "subagent"
+      "question"
+    ];
+  permContractRoleNames = [
+    "artifact-master"
+    "requirement-expert"
+    "solution-expert"
+    "artifact-release-expert"
+    "designer-expert"
+  ];
+  permContractOwnership = {
+    artifact-master = [ ];
+    requirement-expert = [
+      "docs/artifact/*/changes/*/README.md"
+      "docs/artifact/*/changes/*/requirements/*"
+      "docs/artifact/README.md"
+      "docs/domain/*"
+    ];
+    solution-expert = [
+      "docs/artifact/*/changes/*/specifications/*"
+      "docs/artifact/*/changes/*/decisions/*"
+      "docs/artifact/*/changes/*/tasks/*"
+      "docs/domain/*"
+    ];
+    artifact-release-expert = [
+      "docs/artifact/*/versions/*"
+      "docs/artifact/*/README.md"
+      "docs/artifact/*/changes/*"
+    ];
+    designer-expert = [ "docs/artifact/*/changes/*/design/*" ];
+  };
+  permContractRoles = builtins.listToAttrs (
+    builtins.map (n: {
+      name = n;
+      value = {
+        description = "role-contract fixture ${n}";
+        source = factoryDir + "/assets/roles/${n}/ROLE.md";
+      };
+    }) permContractRoleNames
+  );
+  permContractRender = rolesLib.renderRoles {
+    roles = permContractRoles;
+    uses = [ "opencode" ];
+    chapterMap = { };
+  };
+  permContractBody = n: builtins.readFile (fileByRel permContractRender.fileDecls ".opencode/agents/${n}.md").source;
+  permissionAssertions =
+    builtins.map (role: {
+      name = "permission-array-${role}";
+      assertion = permDoc.agents.${role}.permissions == permExpected.${role};
+      message = "permission-array: the rendered permission array of `${role}` differs from the independent expected fixture";
+    }) permRoleNames
+    ++ builtins.map (role: {
+      name = "permission-order-${role}";
+      assertion = permOrderOk permDoc.agents.${role}.permissions;
+      message = "permission-order: the rule order of `${role}` breaks the broad-before-specific rule";
+    }) permRoleNames
+    ++ builtins.map (role: {
+      name = "permission-scope-${role}";
+      assertion = permScopeOk permDoc.agents.${role}.permissions permExpected.${role};
+      message = "permission-scope: the permission set of `${role}` grants an `edit` allow outside the ownership scope";
+    }) permRoleNames
+    ++ builtins.map (role: {
+      name = "permission-governance-${role}";
+      assertion = permGovernanceOk permDoc.agents.${role}.permissions;
+      message = "permission-governance: the permission set of `${role}` misses the `subagent` rule or the `question` rule";
+    }) permRoleNames
+    ++ [
+      {
+        name = "permission-identity";
+        assertion =
+          builtins.sort builtins.lessThan permKeys == builtins.sort builtins.lessThan permFileNames;
+        message = "permission-identity: the permission key set differs from the rendered role file name set";
+      }
+      {
+        name = "permission-identity-alias";
+        assertion = permAliasIdentity;
+        message = "permission-identity-alias: the permission key differs from the rendered role name or the role file name";
+      }
+      {
+        name = "permission-enabled";
+        assertion = permEnabledOk;
+        message = "permission-enabled: a declaration without the `enable` field is not enabled, or a disabled role holds a permission key";
+      }
+    ]
+    ++ builtins.map (n: {
+      name = "role-contract-${n}";
+      assertion =
+        permHas (permContractBody n) "## Ownership"
+        && permHas (permContractBody n) "## Capability"
+        && builtins.all (p: permHas (permContractBody n) p) permContractOwnership.${n};
+      message = "role-contract: the rendered body of `${n}` misses `## Ownership`, `## Capability`, or a literal ownership path pattern";
+    }) permContractRoleNames;
+  permissionFailing = builtins.filter (a: !a.assertion) permissionAssertions;
+  permissionMatch =
+    if permissionFailing == [ ] then
+      true
+    else
+      throw "seed check: the permission fixture of `${arch}` fails ${(builtins.head permissionFailing).message}";
+
   # Design asset fixture (spec-domain-templates, spec-review, C-15, C-17,
   # C-19): one fixture with the method `ddd` and one fixture with the
   # method `unset`. The fixture proves each file of the emitted-files
@@ -590,6 +996,8 @@ let
     project = uxProject;
     roleNames = [
       "artifact-master"
+      "solution-expert"
+      "artifact-release-expert"
       "designer-expert"
     ];
     tool = "unset";
@@ -714,14 +1122,8 @@ let
     {
       name = "designer-permission";
       assertion =
-        uxOpencodeJson.agents."designer-expert".permissions == [
-          {
-            action = "subagent";
-            resource = "*";
-            effect = "deny";
-          }
-        ];
-      message = "designer-permission: `.opencode/opencode.jsonc` holds no `agents.\"designer-expert\".permissions` rule with `effect = \"deny\"`";
+        uxOpencodeJson.agents."designer-expert".permissions == permExpected.designer-expert;
+      message = "designer-permission: `.opencode/opencode.jsonc` holds no `agents.\"designer-expert\".permissions` with the derived permission set";
     }
     {
       name = "designer-ux-chapter";
@@ -734,17 +1136,11 @@ let
     {
       name = "harness-plural";
       assertion =
-        (uxOpencodeJson.agents."artifact-master".permissions or null) == [
-          {
-            action = "subagent";
-            resource = "*";
-            effect = "allow";
-          }
-        ]
+        (uxOpencodeJson.agents."artifact-master".permissions or null) == permExpected.artifact-master
         && !(uxOpencodeJson ? agent)
         && !(uxOpencodeJson ? permission)
         && !(uxOpencodeJson ? subagent_depth);
-      message = "harness-plural: `.opencode/opencode.jsonc` misses the plural key `agents` with the ordered array `permissions`, or it holds a singular key `agent`, a singular key `permission`, or `subagent_depth`";
+      message = "harness-plural: `.opencode/opencode.jsonc` misses the plural key `agents` with the derived `permissions` array, or it holds a singular key `agent`, a singular key `permission`, or `subagent_depth`";
     }
     {
       name = "selected-files";
@@ -788,13 +1184,7 @@ let
     tool = design.toolFeed settings;
   };
   logFixturePermissions =
-    logFixture.opencode.agents."artifact-master".permissions == [
-      {
-        action = "subagent";
-        resource = "*";
-        effect = "allow";
-      }
-    ];
+    logFixture.opencode.agents."artifact-master".permissions == permExpected.artifact-master;
 
   # MCP version 2 fixture (C-F05): one user entry and the canonical entries
   # with mixed values. The fixture proves the `mcp.servers` dialect key, the
@@ -817,6 +1207,7 @@ let
       pencil = {
         enabled = false;
       };
+      context7 = { };
     };
   };
   mcpV2Merged = harnessLib.mergeAgents {
@@ -845,6 +1236,10 @@ let
   mcpV2EmptyDoc = builtins.fromJSON (
     builtins.readFile (fileByRel mcpV2EmptyRendered.fileDecls ".opencode/opencode.jsonc").source
   );
+  mcpBadFieldRejected =
+    entry:
+    (builtins.tryEval (orchestration.evalAgents { uses = [ ]; mcp = { custom = entry; }; })).success
+    == false;
   mcpV2Assertions = [
     {
       name = "mcp-servers-figma";
@@ -892,6 +1287,34 @@ let
       name = "mcp-one-file";
       assertion = builtins.map (d: d.rel) mcpV2Rendered.fileDecls == [ ".opencode/opencode.jsonc" ];
       message = "mcp-one-file: the file declaration list of the MCP fixture holds more than `.opencode/opencode.jsonc`";
+    }
+    {
+      name = "mcp-servers-context7";
+      assertion =
+        mcpV2Doc.mcp.servers.context7.command == [
+          "npx"
+          "-y"
+          "@upstash/context7-mcp"
+        ]
+        && mcpV2Doc.mcp.servers.context7.type == "local"
+        && mcpV2Doc.mcp.servers.context7.environment == { }
+        && mcpV2Doc.mcp.servers.context7.disabled == true
+        && !(mcpV2Doc.mcp.servers.context7 ? env)
+        && !(mcpV2Doc.mcp.servers.context7 ? enabled);
+      message = "mcp-servers-context7: the rendered `context7` entry misses the canonical joined command array, `type = \"local\"`, the empty `environment` map, or `disabled = true`";
+    }
+    {
+      name = "mcp-no-remote";
+      assertion =
+        mcpBadFieldRejected { command = "x"; type = "remote"; }
+        && mcpBadFieldRejected { command = "x"; url = "https://example.com"; }
+        && mcpBadFieldRejected {
+          command = "x";
+          headers = {
+            A = "B";
+          };
+        };
+      message = "mcp-no-remote: a `type`, `url`, or `headers` field of an MCP entry passes evaluation";
     }
   ];
   mcpV2Failing = builtins.filter (a: !a.assertion) mcpV2Assertions;
@@ -2023,6 +2446,16 @@ let
       message = "preset-full-files: the full fixture misses the design files, the designer role, the UX chapter, the site project, or the CI file";
     }
     {
+      name = "preset-full-mcp";
+      assertion = presetFullEff.agents.mcp == { context7 = { }; };
+      message = "preset-full-mcp: the `full` bundle does not declare `agents.mcp = { context7 = { }; }`";
+    }
+    {
+      name = "preset-full-context7";
+      assertion = presetFullMerged.mcp.context7.enabled == false;
+      message = "preset-full-context7: the `full` fixture misses the canonical `context7` entry with the default `enabled = false`";
+    }
+    {
       name = "preset-full-absence";
       assertion = builtins.all (
         rel:
@@ -2193,6 +2626,7 @@ assert publishMatch;
 assert presetMatch;
 assert chapterMatch;
 assert toolMatch;
+assert permissionMatch;
 assert assetMatch;
 assert uxMatch;
 assert mcpV2Match;

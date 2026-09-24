@@ -16,6 +16,9 @@ mixture and the routing between them. The page needs no other document. It uses 
 | Skill | A folder of instructions that a harness loads on request. |
 | Canonical role body | The shared source of one role contract. |
 | Rendered role | The canonical role body in the file format of one harness. |
+| Ownership | The artifacts and phases of a role and the hard write area of the role. |
+| Capability | The tools, the skills, and the MCP servers that a role uses. |
+| Default permission set | The ordered array `agents.<role>.permissions` that the factory derives from the two axes of a role. |
 
 ## Roles and ownership
 
@@ -34,6 +37,39 @@ phase writes the artifacts of that phase.
 
 The solution expert calls no subagent. It sends each feasibility-review and owner-selection
 request to the artifact master.
+
+## Ownership and capability
+
+Each canonical role body states the role contract in two axes, in the same order and the same
+shape. The section `## Ownership` holds the ownership axis. The section `## Capability` holds the
+capability axis.
+
+- The ownership axis states the artifacts and the phases that the role owns, and the write area
+  of the role. The write area is a set of literal path patterns. The scope is hard: a write
+  outside the set is denied.
+- The capability axis states the tools, the skills, and the MCP servers that the role uses. The
+  two axes stay separate. A capability never widens the ownership.
+
+The write area of each role is:
+
+| Role | Write area |
+| --- | --- |
+| Artifact master | None. The role writes no content. |
+| Requirement expert | The change README, the requirements of a change, the feature index, and the domain artifacts. |
+| Solution expert | The specifications, the decisions, and the tasks of a change, and the domain artifacts. |
+| Implementation expert | The files of its component. |
+| Artifact release expert | The version artifacts and the feature README. |
+| Designer expert | The Design artifact of a change. |
+
+The factory expert also owns the role-contract surface: the mixture-of-experts page, the
+`expert-role` skill files, and its own role body. The role-contract surface keeps one owner for
+the role contract.
+
+The capability axis gives the local read tools, the external research tools, the skill set, and
+the configured MCP servers. The capability of the artifact master denies the external research
+tools. The configured MCP servers are `figma`, `pencil`, and `context7`. The entry `context7`
+gives the solution expert external curated documentation. The entry stays disabled until the
+author enables it.
 
 ## Phase routing
 
@@ -139,13 +175,27 @@ The factory renders the artifact-master role for this harness:
 | --- | --- | --- |
 | OpenCode | `.opencode/agents/artifact-master.md` | Selectable coordinator role. |
 
-For the factory-rendered OpenCode roles, the global settings declare the task permission of each
-role in the ordered array `agents.<role>.permissions`. Each rule uses the action `subagent`.
-The rule uses `allow` for the artifact master and `deny` for each other factory-rendered
-content expert. An absent rule is not a deny. The settings hold no `subagent_depth`. The
-settings hold each MCP entry under `mcp.servers`. The OpenCode user must select the artifact
-master as the primary agent before coordination starts. The rendered configuration gives a
-declared permission. It does not prove the runtime behavior of OpenCode.
+For the factory-rendered OpenCode roles, the global settings declare the default permission set
+of each role in the ordered array `agents.<role>.permissions`. The factory derives the array from
+the two axes of the role contract. The last matching rule wins. The render writes the rules in
+this order:
+
+1. The broad `edit` deny, then the ownership allow rules.
+2. The local read tools, then the external research tools.
+3. The skill rule, then the skill allows.
+4. The governance rules.
+5. The broad `shell` rule, then the specific shell rules.
+
+The broad `edit` deny precedes each ownership allow, so a write outside the ownership scope stays
+denied. The broad `shell` rule precedes each specific shell rule, so a specific rule wins.
+
+The governance rules use the action `subagent` and the action `question`. Only the artifact
+master allows both actions: it starts one expert and asks the user. Each other role denies both
+actions. The artifact master allows the shell commands of one phase commit and denies `git push`.
+The settings hold no `subagent_depth`. The settings hold each MCP entry under `mcp.servers`. The
+OpenCode user must select the artifact master as the primary agent before coordination starts.
+The rendered configuration gives a declared permission. It does not prove the runtime behavior of
+OpenCode.
 
 ## Skill load
 

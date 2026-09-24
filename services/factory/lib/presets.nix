@@ -62,7 +62,9 @@ let
       "agents.uses" = [
         "opencode"
       ];
-      "agents.mcp" = { };
+      "agents.mcp" = {
+        context7 = { };
+      };
       "agents.roles" = { };
       "agents.opencode" = { };
       "design.use" = "ddd";

@@ -162,23 +162,359 @@ let
     opencode = { };
   };
 
+  # The role-contract table (spec-role-permissions, adr-permission-source).
+  # One entry for each known rendered role name. Each entry holds the two
+  # axes as data: the ownership path patterns, the capability set (the
+  # external research effect and the skill list), the governance rules, and
+  # the shell rules of the role. The table is a lookup only: the derive
+  # function writes the rule order as a list literal, because
+  # `builtins.attrNames` sorts the names (RC01-C2).
+  roleContracts = {
+    artifact-master = {
+      ownership = [ ];
+      research = "deny";
+      skills = [
+        "artifact-master"
+        "expert-role"
+      ];
+      governance = {
+        subagent = "allow";
+        question = "allow";
+      };
+      shell = {
+        broad = "ask";
+        specific = [
+          {
+            resource = "git status *";
+            effect = "allow";
+          }
+          {
+            resource = "git diff *";
+            effect = "allow";
+          }
+          {
+            resource = "git log *";
+            effect = "allow";
+          }
+          {
+            resource = "git show *";
+            effect = "allow";
+          }
+          {
+            resource = "git add *";
+            effect = "allow";
+          }
+          {
+            resource = "git commit *";
+            effect = "allow";
+          }
+          {
+            resource = "git switch *";
+            effect = "allow";
+          }
+          {
+            resource = "git branch *";
+            effect = "allow";
+          }
+          {
+            resource = "git checkout -b *";
+            effect = "allow";
+          }
+          {
+            resource = "git push *";
+            effect = "deny";
+          }
+        ];
+      };
+    };
+    requirement-expert = {
+      ownership = [
+        {
+          resource = "docs/artifact/*/changes/*/README.md";
+          effect = "allow";
+        }
+        {
+          resource = "docs/artifact/*/changes/*/requirements/*";
+          effect = "allow";
+        }
+        {
+          resource = "docs/artifact/README.md";
+          effect = "allow";
+        }
+        {
+          resource = "docs/domain/*";
+          effect = "allow";
+        }
+      ];
+      research = "allow";
+      skills = [
+        "asd-ste-100"
+        "ddd-review"
+      ];
+      governance = {
+        subagent = "deny";
+        question = "deny";
+      };
+      shell = {
+        broad = "deny";
+        specific = [ ];
+      };
+    };
+    solution-expert = {
+      ownership = [
+        {
+          resource = "docs/artifact/*/changes/*/specifications/*";
+          effect = "allow";
+        }
+        {
+          resource = "docs/artifact/*/changes/*/decisions/*";
+          effect = "allow";
+        }
+        {
+          resource = "docs/artifact/*/changes/*/tasks/*";
+          effect = "allow";
+        }
+        {
+          resource = "docs/domain/*";
+          effect = "allow";
+        }
+      ];
+      research = "allow";
+      skills = [
+        "asd-ste-100"
+        "ddd-review"
+      ];
+      governance = {
+        subagent = "deny";
+        question = "deny";
+      };
+      shell = {
+        broad = "deny";
+        specific = [ ];
+      };
+    };
+    artifact-release-expert = {
+      ownership = [
+        {
+          resource = "docs/artifact/*/versions/*";
+          effect = "allow";
+        }
+        {
+          resource = "docs/artifact/*/README.md";
+          effect = "allow";
+        }
+        {
+          resource = "docs/artifact/*/changes/*";
+          effect = "deny";
+        }
+      ];
+      research = "allow";
+      skills = [ "asd-ste-100" ];
+      governance = {
+        subagent = "deny";
+        question = "deny";
+      };
+      shell = {
+        broad = "deny";
+        specific = [
+          {
+            resource = "cp *";
+            effect = "allow";
+          }
+          {
+            resource = "mkdir -p *";
+            effect = "allow";
+          }
+          {
+            resource = "rm docs/artifact/*";
+            effect = "allow";
+          }
+        ];
+      };
+    };
+    factory-expert = {
+      ownership = [
+        {
+          resource = "services/factory/*";
+          effect = "allow";
+        }
+        {
+          resource = "docs/wiki/documentation/mixture-of-experts/*";
+          effect = "allow";
+        }
+        {
+          resource = ".agents/skills/expert-role/*";
+          effect = "allow";
+        }
+        {
+          resource = "utils/agent/role/factory-expert/ROLE.md";
+          effect = "allow";
+        }
+      ];
+      research = "allow";
+      skills = [ "asd-ste-100" ];
+      governance = {
+        subagent = "deny";
+        question = "deny";
+      };
+      shell = {
+        broad = "ask";
+        specific = [
+          {
+            resource = "nix flake check *";
+            effect = "allow";
+          }
+          {
+            resource = "nix build *";
+            effect = "allow";
+          }
+          {
+            resource = "nix eval *";
+            effect = "allow";
+          }
+          {
+            resource = "git status *";
+            effect = "allow";
+          }
+          {
+            resource = "git diff *";
+            effect = "allow";
+          }
+          {
+            resource = "git log *";
+            effect = "allow";
+          }
+          {
+            resource = "git show *";
+            effect = "allow";
+          }
+        ];
+      };
+    };
+    designer-expert = {
+      ownership = [
+        {
+          resource = "docs/artifact/*/changes/*/design/*";
+          effect = "allow";
+        }
+      ];
+      research = "allow";
+      skills = [ "asd-ste-100" ];
+      governance = {
+        subagent = "deny";
+        question = "deny";
+      };
+      shell = {
+        broad = "deny";
+        specific = [ ];
+      };
+    };
+  };
+
+  # The restrictive default of a rendered role name outside the table
+  # (spec-role-permissions, "The role names and the default"): the ownership
+  # scope `none`, the local reads, the external research deny, the skill `*`
+  # rule with the effect `ask`, the governance deny, and the broad shell
+  # deny.
+  defaultRoleContract = {
+    ownership = [ ];
+    research = "deny";
+    skills = [ ];
+    governance = {
+      subagent = "deny";
+      question = "deny";
+    };
+    shell = {
+      broad = "deny";
+      specific = [ ];
+    };
+  };
+
+  # Derived ordered permission array of one rendered role name
+  # (spec-role-permissions, "The render order"). The order is a list
+  # literal: the broad `edit` deny, the ownership allows and the specific
+  # ownership deny, the local reads, the external research, the skill set,
+  # the governance, the broad `shell` rule, and the specific shell rules.
+  # The table gives the data of each rule; it is not the source of the order
+  # (RC01-C2). A rendered role name outside the table receives the
+  # restrictive default.
+  permissionRulesFor =
+    roleName:
+    let
+      c =
+        if builtins.hasAttr roleName roleContracts then roleContracts.${roleName} else defaultRoleContract;
+    in
+    [ { action = "edit"; resource = "*"; effect = "deny"; } ]
+    ++ builtins.map (p: { action = "edit"; inherit (p) resource effect; }) c.ownership
+    ++ [
+      {
+        action = "read";
+        resource = "*";
+        effect = "allow";
+      }
+      {
+        action = "glob";
+        resource = "*";
+        effect = "allow";
+      }
+      {
+        action = "grep";
+        resource = "*";
+        effect = "allow";
+      }
+    ]
+    ++ builtins.map (a: {
+      action = a;
+      resource = "*";
+      effect = c.research;
+    }) [
+      "webfetch"
+      "websearch"
+    ]
+    ++ [
+      {
+        action = "skill";
+        resource = "*";
+        effect = "ask";
+      }
+    ]
+    ++ builtins.map (s: {
+      action = "skill";
+      resource = s;
+      effect = "allow";
+    }) c.skills
+    ++ [
+      {
+        action = "subagent";
+        resource = "*";
+        effect = c.governance.subagent;
+      }
+      {
+        action = "question";
+        resource = "*";
+        effect = c.governance.question;
+      }
+    ]
+    ++ [
+      {
+        action = "shell";
+        resource = "*";
+        effect = c.shell.broad;
+      }
+    ]
+    ++ builtins.map (s: { action = "shell"; inherit (s) resource effect; }) c.shell.specific;
+
   # Managed opencode settings (spec-harness-merge, the managed keys table).
-  # roleNames are the rendered content experts: `artifact-master` keeps the
-  # `permissions` rule with `effect = "allow"`; each other rendered content
-  # expert keeps the same rule with `effect = "deny"`. An absent rule is not
-  # a deny, so each rendered role holds an explicit rule.
+  # Each rendered role name receives the derived ordered permission array of
+  # spec-role-permissions in the managed key `agents.<role>.permissions`
+  # (RC01-C1). The key path and the trace path use the rendered role name
+  # (RC01-C3).
   managedOpencodeSettings = roleNames: {
     agents = builtins.listToAttrs (
       builtins.map (r: {
         name = r;
         value = {
-          permissions = [
-            {
-              action = "subagent";
-              resource = "*";
-              effect = if r == "artifact-master" then "allow" else "deny";
-            }
-          ];
+          permissions = permissionRulesFor r;
         };
       }) roleNames
     );
@@ -244,6 +580,14 @@ let
       args = [
         "--app"
         "desktop"
+      ];
+      env = { };
+    };
+    context7 = {
+      command = "npx";
+      args = [
+        "-y"
+        "@upstash/context7-mcp"
       ];
       env = { };
     };
@@ -511,6 +855,9 @@ in
     mergeMcpEntry
     mergeMcp
     mcpDialectEntry
+    roleContracts
+    defaultRoleContract
+    permissionRulesFor
     managedOpencodeSettings
     managedOpencodePathLists
     hasPath

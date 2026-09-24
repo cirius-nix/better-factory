@@ -4,7 +4,7 @@ The body of a role is the file `utils/agent/role/<name>/ROLE.md`. The body has n
 and no header. The shell adds the header when it renders the role file of each harness. The
 body starts with the title line.
 
-Copy the template. Fill each part for your component. Keep the seven headings in this order.
+Copy the template. Fill each part for your component. Keep the nine parts in this order.
 
 ## Template
 
@@ -15,6 +15,16 @@ You are the implementation expert of the `<path>` component. You own phase 4 of 
 artifact-driven documentation model for this component. In phases 2 and 3, you return feasibility
 constraints only to the solution expert. You do not author a specification, a decision, or a
 task. You call no subagent and directly task no expert. You do not write requirements.
+
+## Ownership
+
+<The artifacts and the phases that the role owns. The write area is a list of literal path
+patterns. A write outside the set fails.>
+
+## Capability
+
+<The tools, the skills, and the MCP servers that the role uses. A capability grants no write
+outside the ownership scope.>
 
 ## Read first
 
@@ -71,6 +81,25 @@ You are the implementation expert of the `services/orders` component. You own ph
 artifact-driven documentation model for this component. In phases 2 and 3, you return feasibility
 constraints only to the solution expert. You do not author a specification, a decision, or a
 task. You call no subagent and directly task no expert. You do not write requirements.
+
+## Ownership
+
+You own the orders of the component and the role body of the expert. You own phase 4. You write
+only the path pattern set below. A write outside the set fails.
+
+- `services/orders/*`
+- `utils/agent/role/orders-expert/ROLE.md`
+
+## Capability
+
+You use these tools, skills, and MCP servers:
+
+- The local read tools `read`, `glob`, and `grep`.
+- The external research tools `webfetch` and `websearch`.
+- The skill `asd-ste-100`.
+- The configured MCP servers `figma`, `pencil`, and `context7`.
+
+A capability grants no write outside the ownership scope.
 
 ## Read first
 

@@ -104,16 +104,20 @@ let
   mergedUserRoles = harnessLib.deepUserWins (projectAgents.roles or { }) (local.roles or { });
   effectiveRoles = harnessLib.deepUserWins discoveredRoles mergedUserRoles;
 
-  # roleNames (C-41): the names of the enabled roles of the effective role
-  # set, plus designer-expert when ux = true. The entrypoint holds no hand
-  # list of role names.
+  # roleNames (C-41): the rendered names of the enabled roles of the
+  # effective role set, plus designer-expert when ux = true. The rendered
+  # role name is the `name` field of the declaration, or the attribute name
+  # when the declaration holds no `name` field (RC01-C3). The entrypoint
+  # holds no hand list of role names.
   enabledNames = builtins.filter (n: (effectiveRoles.${n}.enable or true)) (
     builtins.attrNames effectiveRoles
   );
+  renderedNameOf = n: effectiveRoles.${n}.name or n;
+  renderedEnabledNames = builtins.map renderedNameOf enabledNames;
   roleNames =
-    enabledNames
+    renderedEnabledNames
     ++ (
-      if settings.ux && !(builtins.elem "designer-expert" enabledNames) then
+      if settings.ux && !(builtins.elem "designer-expert" renderedEnabledNames) then
         [ "designer-expert" ]
       else
         [ ]
