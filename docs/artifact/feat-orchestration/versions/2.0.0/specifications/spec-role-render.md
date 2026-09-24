@@ -50,9 +50,14 @@ factory.project.agents.roles.<name> = {
    the rejected group.
 6. The role declarations merge per leaf field from the project layer and the local layer
    (spec-harness-merge).
-7. The frontmatter follows the opencode version 2 key set: `description` stays; `disabled`
+7. A declaration may hold only the fields that change. Absent `description`, `source`, and
+   harness fields come from the shipped defaults of the entrypoint (C-41). A declaration of a
+   new name holds the full field set: without a shipped default the render fails the
+   `description` and `source` checks.
+8. The frontmatter follows the opencode version 2 key set: `description` stays; `disabled`
    replaces `disable`; `permissions` replaces `permission`; `mode` holds `primary`, `subagent`,
-   or `all`. The factory renders no `prompt` key and no `system` key; the body is the system
+   or `all`. A harness `opencode` group may hold other frontmatter fields (for example `model`).
+   The factory renders no `prompt` key and no `system` key; the body is the system
    prompt of the agent.
 
 ### The rendered files

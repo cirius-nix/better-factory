@@ -1,6 +1,7 @@
 ---
 description: "Artifact Master"
 mode: "all"
+model: "opencode-go/deepseek-v4.1-flash"
 ---
 
 # Artifact Master
