@@ -37,7 +37,6 @@ upon.
 - `services/factory/assets/overlays/multiple`
 - `services/factory/examples/single`
 - `services/factory/examples/multiple`
-- `apps/documentation`
 - `devenv.nix`
 
 ## Artifacts

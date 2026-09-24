@@ -12,8 +12,7 @@
 | 4 | [task-notify](task-notify.md) | task-delivery-facade, task-site-lib, task-ci-render |
 | 5 | [task-publish](task-publish.md) | task-delivery-facade, task-ci-render, task-notify |
 | 6 | [task-presets](task-presets.md) | task-delivery-facade, task-site-lib, task-ci-render, task-notify, task-publish |
-| 7 | [task-own-site](task-own-site.md) | task-delivery-facade, task-site-lib |
-| 8 | [task-seed-examples](task-seed-examples.md) | task-presets, task-own-site |
+| 7 | [task-seed-examples](task-seed-examples.md) | task-presets |
 
 ## Dependency graph
 
@@ -21,34 +20,31 @@
 task-delivery-facade
         |
         v
-  task-site-lib ------------------+
-        |                         |
-        v                         v
-  task-ci-render            task-own-site
-        |                         |
-        v                         |
-   task-notify                    |
-        |                         |
-        v                         |
-  task-publish                    |
-        |                         |
-        v                         |
-  task-presets                    |
-        |                         |
-        +------------+------------+
-                     |
-                     v
-            task-seed-examples
+  task-site-lib
+        |
+        v
+  task-ci-render
+        |
+        v
+   task-notify
+        |
+        v
+  task-publish
+        |
+        v
+  task-presets
+        |
+        v
+task-seed-examples
 ```
 
-The table gives the direct dependency of each task. The graph shows the main chain and the
-branch of the factory's own site project.
+The table gives the direct dependency of each task. The graph shows the main chain.
 
 ## Parallel groups
 
 | Group | Tasks | Run |
 | --- | --- | --- |
-| 1 | All eight tasks | In sequence |
+| 1 | All seven tasks | In sequence |
 
 Reason: each task touches the component `services/factory`, the context `context-factory`, and
 the aggregate `agg-repository-blueprint`. Tasks that share a component, a context, or an
@@ -61,7 +57,7 @@ gives the task that covers the item, together with the part that the task carrie
 
 | Requirement | Specification | Task |
 | --- | --- | --- |
-| req-browsable-docs | spec-site-render | task-delivery-facade (the group and the keys); task-site-lib (the site project, the assets, the `site.json` contract, the derived order, the gates, and the site check); task-own-site (the factory's own site project and the parity check) |
+| req-browsable-docs | spec-site-render | task-delivery-facade (the group and the keys); task-site-lib (the site project, the assets, the `site.json` contract, the derived order, the gates, and the site check) |
 | req-ci-abstraction | spec-ci-options | task-delivery-facade (the group and the keys); task-ci-render (the choice, the folder, the two renderers, the typed steps, the trigger, and the gate); task-notify (the notification step); task-publish (the publish step of each target) |
 | req-notifier | spec-notify-fanout | task-delivery-facade (the group and the keys); task-notify (the secret names, the script, the fan-out, the message, the environment mapping, the deploy trigger, and the stub check) |
 | req-publish-target | spec-publish | task-delivery-facade (the group and the keys); task-publish (the two flows, the deploy tool, the pinned CLI, and the constants) |
@@ -89,6 +85,4 @@ of the notifier file (adr-notifier-file), and the point where a bundle applies
 - The two examples pass `nix flake check`, and the offline rerun passes.
 - Each delivery check fixture passes: the site fixture, the CI fixture, the notifier fixture,
   the publish fixture, and the preset fixture.
-- The factory repository's own site project equals the site assets, and its
-  `apps/documentation/site.json` holds the four index rows in order.
 - The acceptance criteria of each requirement pass.

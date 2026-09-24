@@ -50,7 +50,7 @@ the CI gate.
    also supports a manual run for setup and recovery. The trigger does not change per publish
    target.
 7. Write the build step order of spec-ci-options on both providers: the checkout, each
-   `beforeNodeSetup` step in list order, the Node.js 22 setup, `npm ci` in
+   `beforeNodeSetup` step in list order, the Node.js 22 setup, `npm install` in
    `apps/documentation`, each `beforeSiteBuild` step in list order, `npm run build` in
    `apps/documentation`, and each `afterSiteBuild` step in list order. A custom run step
    inherits the working directory `apps/documentation` unless it sets `workingDirectory`. A
@@ -58,7 +58,7 @@ the CI gate.
 8. Write the provider shapes of spec-ci-options. The GitHub Actions shape renders a `uses` step
    with `uses`, `name`, `with`, and `env`, and a `run` step with `run`, `name`, `env`, and
    `working-directory`. The build job uses `actions/setup-node@v4` with the Node.js 22 version
-   and the npm cache of `apps/documentation/package-lock.json`. The Azure Pipelines shape
+   and the npm cache of `apps/documentation/package.json`. The Azure Pipelines shape
    renders a `uses` step with the task `uses` and `displayName` and `inputs` from `with`, and a
    `run` step with `script`, `displayName`, `env`, and `workingDirectory`. The build job uses
    the Node.js tool task with the Node.js 22 version.

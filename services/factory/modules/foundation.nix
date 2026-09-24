@@ -11,6 +11,7 @@ let
   yamlRenderer = import ../lib/yaml.nix;
   orchestration = import ./orchestration.nix;
   design = import ./design.nix;
+  delivery = import ./delivery.nix;
   layout = {
     starterFeature = "feat-example";
     firstChange = "change-initial";
@@ -44,5 +45,6 @@ in
     yamlRenderer
     orchestration
     design
+    delivery
     ;
 }

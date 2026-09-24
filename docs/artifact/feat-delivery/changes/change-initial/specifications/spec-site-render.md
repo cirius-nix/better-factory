@@ -55,7 +55,6 @@ factory.project.site = {
 | Emitted path | Content source | Copy mode |
 | --- | --- | --- |
 | `apps/documentation/package.json` | `assets/delivery/site/package.json` | `managed` |
-| `apps/documentation/package-lock.json` | `assets/delivery/site/package-lock.json` | `managed` |
 | `apps/documentation/docusaurus.config.js` | `assets/delivery/site/docusaurus.config.js` | `managed` |
 | `apps/documentation/sidebars.js` | `assets/delivery/site/sidebars.js` | `managed` |
 | `apps/documentation/site.json` | a rendered JSON store path of the run | `managed` |
@@ -78,17 +77,14 @@ factory.project.site = {
    role files, the MCP files, the design files, the skill file, the CI file, and the notifier
    file. The transaction reads the effective settings after the preset bundle (spec-presets,
    C-39).
-5. The site project pins its dependencies. The factory owns `package.json` and
-   `package-lock.json`. The project does not edit them. The copy mode `managed` fails the drift
-   check on a hand edit (spec-copymode of feat-foundation 1.0.0).
+5. The site project pins its dependencies in `package.json`. The factory owns `package.json`.
+   The project does not edit it. The copy mode `managed` fails the drift check on a hand edit
+   (spec-copymode of feat-foundation 1.0.0). The factory emits no `package-lock.json`. The
+   emitted repository generates the lock file with `npm install` (spec-ci-options).
 6. `custom.css` and `README.md` use the copy mode `seed`. The author owns the style and the
    guide. The factory never replaces them after the first write.
 7. The emitted `README.md` states the manual steps of the azure-static-web-app target
    (spec-publish).
-8. The factory repository holds its own site project at `apps/documentation/`. Each copy
-   equals the content source of the emitted-files table. The factory's own `site.json` holds
-   the derived feature order of the factory index. The site check proves the equality and the
-   order. The factory repository holds no second hand-written site project.
 
 ### The `site.json` data contract
 
@@ -124,9 +120,6 @@ The delivery module writes this value with `builtins.toJSON`:
    repository without an index holds the alphabetical order of its feature folders.
 4. The site group holds no feature-order option. The factory holds no hand list of feature
    names.
-5. The feature order of the factory repository itself holds its four features in the order of
-   its index: `feat-foundation`, `feat-orchestration`, `feat-design`, and `feat-delivery`. The
-   factory's own `apps/documentation/site.json` holds these four rows in that order.
 
 ### The site configuration
 
@@ -168,9 +161,6 @@ It proves:
   equals the row order of that fixture index;
 - a fixture index without a row for a feature folder puts that folder after the listed folders
   in alphabetical order;
-- the factory repository's own feature order equals the order of its four index rows;
-- the factory's own `apps/documentation/site.json` holds the four index rows in order;
-- the factory repository's own site project files equal the asset files;
 - the factory holds no hand list of feature names;
 - the config asset holds the read of `site.featureOrder` and a marker of each comparator rule;
 - the check runs no `npm` command and no JavaScript file; the comparator proof reads the
@@ -208,5 +198,5 @@ It proves:
 | C-23 | The site check reads the config asset for the required text and does not run JavaScript. A site build proves the comparator order. The site check proves the `site.json` round-trip value and the derived order. | services/factory |
 | C-32 | The delivery module takes the repository root as one argument, `repoRoot`, for the feature-index read. The check supplies a fixture index and calls the module with the fixture root. The check proves the row order of the fixture index and the alphabetical fallback of an unlisted folder. | services/factory |
 | C-33 | The site files, the CI file, and the notifier file join the plan as `extraFiles` entries. Each `source` is a `builtins.toFile` store path of the asset content or of the rendered text. The file `site.json` uses a `builtins.toJSON` store path. Each store path joins the rendered-source list of the run. The file-plan allowlist stays the base tree, the active overlay tree, and the rendered-source list. A direct path under `assets/delivery/` fails the file-plan check. | services/factory |
-| C-36 | The factory owns `apps/documentation/package.json` and `apps/documentation/package-lock.json` with the copy mode `managed`; a hand edit fails the drift check. The seed check runs no `npm` command. The site check proves the comparator by the required text markers of the config asset and runs no JavaScript. | services/factory |
-| C-37 | The factory repository holds its own site project at `apps/documentation/`. Each file equals the content source of the emitted-files table. The factory's own `apps/documentation/site.json` holds the derived feature order of the four index rows. The factory holds no second hand-written site project. | services/factory |
+| C-36 | The factory owns `apps/documentation/package.json` with the copy mode `managed`; a hand edit fails the drift check. The factory emits no `package-lock.json`, and the emitted repository generates the lock file with `npm install`. The seed check runs no `npm` command. The site check proves the comparator by the required text markers of the config asset and runs no JavaScript. | services/factory |
+| C-37 | The site check fixtures prove the site file set and the derived feature order. The factory repository holds no site project. The check does not build the site content. | services/factory |

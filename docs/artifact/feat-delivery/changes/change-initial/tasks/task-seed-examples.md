@@ -5,7 +5,7 @@
 **Context:** context-factory
 **Component:** services/factory
 **Aggregate:** agg-repository-blueprint
-**Depends on:** [task-presets](task-presets.md), [task-own-site](task-own-site.md).
+**Depends on:** [task-presets](task-presets.md).
 **can-parallel:** No. The task touches the component `services/factory`, the context
 `context-factory`, and the aggregate `agg-repository-blueprint`. Tasks that share a component,
 a context, or an aggregate run in sequence.
@@ -26,8 +26,7 @@ Keep the two examples green, run each delivery check, and pass the lint.
    passes.
 4. Run the seed check of each example with `--offline`. Both are green.
 5. Run markdownlint with the repository configuration on each new or changed markdown file:
-   the site `README.md` asset, the factory's own `apps/documentation/README.md`, and the
-   emitted `docs/` content in scope. No error appears.
+   the site `README.md` asset and the emitted `docs/` content in scope. No error appears.
 6. Run `git status --short` after the offline runs. The command shows no change to the
    repository.
 7. Check the starter plan of each arch. The starter selects the minimal bundle, so the plan
@@ -43,7 +42,6 @@ Keep the two examples green, run each delivery check, and pass the lint.
 - Run the notifier stub test. It passes in the no-network sandbox.
 - Run markdownlint on the new markdown files. No error appears.
 - Run `git status --short` after an offline run. The command shows no change.
-- Read `apps/documentation/site.json`. It holds the four index rows in order.
 
 ## Done criteria
 
@@ -51,5 +49,3 @@ Keep the two examples green, run each delivery check, and pass the lint.
 - Both lockfiles are committed.
 - Each delivery check fixture passes.
 - Each new markdown file passes markdownlint.
-- The factory's own site project equals the site assets, and its `site.json` holds the four
-  index rows in order.

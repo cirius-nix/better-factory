@@ -47,7 +47,7 @@ For this table, `folder` is the option `factory.project.ci.folder`.
 | `github-actions` | `.github/workflows/docs-site.yml` | Build job plus a Pages deploy job. | Build job plus a Static Web App deploy step. No Pages job. |
 | `azure-pipelines` | `${folder}/docs-site.yml` | Build steps plus a `gh-pages` publish. | Build steps plus a Static Web App task. No `gh-pages` publish. |
 
-1. The build part does not change per target. It keeps the Node.js 22 setup, `npm ci`, the
+1. The build part does not change per target. It keeps the Node.js 22 setup, `npm install`, the
    site build, the three typed build hooks in list order, and the watch paths.
 2. The publish source stays `apps/documentation/build` on both targets.
 3. A target selection changes no `site.json` field, no site configuration file, and no pinned

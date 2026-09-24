@@ -91,7 +91,8 @@ The build uses this order on both providers and both targets:
 1. Check out the repository.
 2. Run each `beforeNodeSetup` step in list order.
 3. Set up Node.js 22.
-4. Run `npm ci` in `apps/documentation`.
+4. Run `npm install` in `apps/documentation`. The command generates the lock file
+   `package-lock.json` of the emitted repository (spec-site-render).
 5. Run each `beforeSiteBuild` step in list order.
 6. Run `npm run build` in `apps/documentation`.
 7. Run each `afterSiteBuild` step in list order.
@@ -152,7 +153,7 @@ step = {
    - a `uses` step renders `uses`, `name`, `with`, and `env`;
    - a `run` step renders `run`, `name`, `env`, and `working-directory`;
    - the build job uses `actions/setup-node@v4` with the Node.js 22 version and the npm cache
-     of `apps/documentation/package-lock.json`.
+     of `apps/documentation/package.json`.
 7. The Azure Pipelines shape:
    - a `uses` step renders the task `uses` with `displayName` and `inputs` from `with`;
    - a `run` step renders `script` with `displayName`, `env`, and `workingDirectory`;

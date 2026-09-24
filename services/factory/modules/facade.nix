@@ -4,6 +4,8 @@
 let
   orchestration = import ./orchestration.nix;
   designMod = import ./design.nix;
+  deliveryMod = import ./delivery.nix;
+  presetsLib = import ../lib/presets.nix;
   modeledKeys = [
     "arch"
     "advanced"
@@ -11,6 +13,11 @@ let
     "agents"
     "design"
     "ux"
+    "ci"
+    "site"
+    "publish"
+    "notify"
+    "preset"
   ];
   archValues = [
     "single"
@@ -49,6 +56,30 @@ let
       type = "bool";
       default = false;
       description = "Activates the designer work (spec-designer-role).";
+    };
+    ci = {
+      type = "group ci";
+      default = { };
+      description = "CI provider and folder (spec-ci-options).";
+    };
+    site = {
+      type = "group site";
+      default = { };
+      description = "Docs site settings (spec-site-render).";
+    };
+    publish = {
+      type = "group publish";
+      default = { };
+      description = "Publish target and deploy tool (spec-publish).";
+    };
+    notify = {
+      type = "group notify";
+      default = { };
+      description = "Deploy notifier channels (spec-notify-fanout).";
+    };
+    preset = {
+      type = "enum minimal docs-only full";
+      description = "Named preset bundle; absent gives no bundle (spec-presets).";
     };
   };
 
@@ -168,35 +199,78 @@ let
       checks = facadeAssertions project;
       failing = builtins.filter (a: !a.assertion) checks;
       failNow = if failing == [ ] then true else throw (builtins.head failing).message;
-      advanced =
-        if !(project ? advanced) then
-          { }
-        else if builtins.isAttrs project.advanced then
-          project.advanced
+      # The selected bundle applies to the project value before the group
+      # evaluation. The effective settings feed each gate and each emitted
+      # file set. The tables come from the option tables of the modules.
+      presetName =
+        if !(project ? preset) || project.preset == null then
+          null
         else
-          throw "root-type: the group `advanced` below the root `factory.project` must be an attribute set, got `${builtins.typeOf project.advanced}`";
+          deliveryMod.evalPreset project.preset;
+      tables = {
+        agents = orchestration.agentsOptions;
+        design = designMod.designOptions;
+        ux = designMod.uxOptions;
+        delivery = deliveryMod.deliveryOptions;
+      };
+      effective = presetsLib.applyPreset {
+        preset = presetName;
+        inherit project tables;
+      };
+      advanced =
+        if !(effective ? advanced) then
+          { }
+        else if builtins.isAttrs effective.advanced then
+          effective.advanced
+        else
+          throw "root-type: the group `advanced` below the root `factory.project` must be an attribute set, got `${builtins.typeOf effective.advanced}`";
       secrets =
-        if !(project ? secrets) then
+        if !(effective ? secrets) then
           [ ]
-        else if builtins.isList project.secrets then
-          project.secrets
+        else if builtins.isList effective.secrets then
+          effective.secrets
         else
           throw "secret-name: the group `secrets` below the root `factory.project` must be a list of names matching `${secretPattern}`";
       agents =
-        if !(project ? agents) || project.agents == null then
+        if !(effective ? agents) || effective.agents == null then
           orchestration.emptyAgents
         else
-          orchestration.evalAgents project.agents;
+          orchestration.evalAgents effective.agents;
       design =
-        if !(project ? design) || project.design == null then
+        if !(effective ? design) || effective.design == null then
           designMod.evalDesign null
         else
-          designMod.evalDesign project.design;
+          designMod.evalDesign effective.design;
       ux =
-        if !(project ? ux) || project.ux == null then
+        if !(effective ? ux) || effective.ux == null then
           designMod.evalUx null
         else
-          designMod.evalUx project.ux;
+          designMod.evalUx effective.ux;
+      ci =
+        if !(effective ? ci) || effective.ci == null then
+          deliveryMod.evalCi null
+        else
+          deliveryMod.evalCi effective.ci;
+      site =
+        if !(effective ? site) || effective.site == null then
+          deliveryMod.evalSite null
+        else
+          deliveryMod.evalSite effective.site;
+      publish =
+        if !(effective ? publish) || effective.publish == null then
+          deliveryMod.evalPublish null
+        else
+          deliveryMod.evalPublish effective.publish;
+      notify =
+        if !(effective ? notify) || effective.notify == null then
+          deliveryMod.evalNotify null
+        else
+          deliveryMod.evalNotify effective.notify;
+      preset =
+        if !(effective ? preset) || effective.preset == null then
+          deliveryMod.evalPreset null
+        else
+          deliveryMod.evalPreset effective.preset;
     in
     assert strict;
     assert topOk;
@@ -209,6 +283,11 @@ let
         agents
         design
         ux
+        ci
+        site
+        publish
+        notify
+        preset
         ;
     };
 in

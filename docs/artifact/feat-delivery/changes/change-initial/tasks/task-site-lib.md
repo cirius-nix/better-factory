@@ -18,12 +18,13 @@ feature order, and join the site files to the file plan as rendered files.
 ## Steps
 
 1. Create the asset tree `assets/delivery/site/` with the content sources of the emitted-files
-   table of spec-site-render: `package.json`, `package-lock.json`, `docusaurus.config.js`,
-   `sidebars.js`, `.gitignore`, `src/css/custom.css`, and `README.md`. The file `site.json` is
-   not an asset; the module renders it.
-2. Pin the packages of `package.json` at one exact version and commit `package-lock.json`. The
-   factory owns both files. The copy mode `managed` fails the drift check on a hand edit
-   (C-36).
+   table of spec-site-render: `package.json`, `docusaurus.config.js`, `sidebars.js`,
+   `.gitignore`, `src/css/custom.css`, and `README.md`. The file `site.json` is not an asset;
+   the module renders it.
+2. Pin the packages of `package.json` at one exact version. The factory owns `package.json`.
+   The copy mode `managed` fails the drift check on a hand edit (C-36). The factory emits no
+   `package-lock.json`; the emitted repository generates the lock file with `npm install`
+   (spec-ci-options).
 3. Write `docusaurus.config.js` with the rules of spec-site-render point 4: the file reads
    `./site.json` for `title`, `url`, `baseUrl`, `staticDirectories`, and `featureOrder`; the
    docs path is `../../docs`; the docs route is `/`; the sidebar path is `./sidebars.js`;
@@ -106,7 +107,7 @@ feature order, and join the site files to the file plan as rendered files.
 
 ## Done criteria
 
-- The asset tree holds the seven content sources of the emitted-files table (C-36).
+- The asset tree holds the six content sources of the emitted-files table (C-36).
 - The site files join the plan as `extraFiles` entries with rendered sources, and no plan entry
   has a direct source under `assets/delivery/` (C-21, C-33).
 - The feature order derives from the feature index of the repository under generation

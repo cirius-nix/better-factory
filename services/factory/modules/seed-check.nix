@@ -21,6 +21,7 @@ let
   harnessLib = orchestration.harness;
   rolesLib = import ../lib/roles.nix;
   design = import ./design.nix;
+  delivery = import ./delivery.nix;
 
   facadeSrc =
     if arch == "single" then
@@ -59,6 +60,28 @@ let
       true
     else
       throw "seed check: the starter declaration of `${arch}` fails ${(builtins.head designFailing).message}";
+
+  # Delivery fixture (feat-delivery task-delivery-facade): the starter
+  # declaration of each arch holds the four groups and the key preset with
+  # the off values. One assertion per invariant proves the group keys, each
+  # value set, the duplicate rule of notify.uses, and the modeled-key list.
+  deliveryFixture = delivery.deliveryAssertions settings facade.modeledKeys;
+  deliveryFailing = builtins.filter (a: !a.assertion) deliveryFixture;
+  deliveryStarterMatch =
+    if
+      (settings.preset or null) == "minimal"
+      && (settings.ci.use or "other") == "unset"
+      && (settings.site.enable or null) == false
+      && (settings.notify.uses or null) == [ ]
+    then
+      true
+    else
+      throw "seed check: the starter declaration of `${arch}` must hold preset = \"minimal\", ci.use = \"unset\", site.enable = false, and notify.uses = [ ]";
+  deliveryMatch =
+    if deliveryFailing == [ ] then
+      deliveryStarterMatch
+    else
+      throw "seed check: the starter declaration of `${arch}` fails ${(builtins.head deliveryFailing).message}";
 
   # Chapter map fixture (spec-design-option, spec-designer-role, C-13): one
   # fixture with the method `ddd`, one with the method `ddd` and the flag
@@ -805,7 +828,12 @@ let
 
   plan = filePlan.planForArch {
     inherit arch factoryDir modes;
-    renderedSources = [ configYaml ] ++ designOut.renderedSources ++ skillOut.renderedSources;
+    renderedSources = [
+      configYaml
+    ]
+    ++ designOut.renderedSources
+    ++ skillOut.renderedSources
+    ++ deliveryOut.renderedSources;
     extraFiles = [
       {
         rel = "factory.config.yaml";
@@ -814,7 +842,8 @@ let
       }
     ]
     ++ designOut.extraFiles
-    ++ skillOut.extraFiles;
+    ++ skillOut.extraFiles
+    ++ deliveryOut.extraFiles;
   };
 
   # The design files and the skill file join the one transaction that
@@ -823,6 +852,1136 @@ let
   # `unset`, so the starter plan holds no design file and no skill file.
   designOut = design.designFiles settings;
   skillOut = design.skillFiles settings;
+
+  # Delivery files of the starter run (feat-delivery task-site-lib): the
+  # site files join the one transaction. The starter selects
+  # site.enable = false, so the starter plan holds no site file.
+  deliveryOut = delivery.deliveryFiles settings factoryDir;
+
+  # Site fixtures (spec-site-render): one fixture with enable = true, one
+  # with enable = false, one fixture index, and one fixture without an
+  # index. The check proves the emitted-files table, the rendered sources,
+  # the site.json round trip, and the derived order with its fallbacks.
+  siteLib = import ../lib/site.nix;
+  siteIndexRoot = factoryDir + "/assets/delivery/fixtures/index";
+  siteNoIndexRoot = factoryDir + "/assets/delivery/fixtures/no-index";
+  sitePartialRoot = factoryDir + "/assets/delivery/fixtures/partial";
+  siteEnabledSettings = {
+    site = {
+      enable = true;
+      title = "Documentation";
+      url = "https://owner.github.io";
+      baseUrl = "/repository/";
+      staticDirectories = [ "static" ];
+    };
+  };
+  siteDisabledSettings = {
+    site = {
+      enable = false;
+      title = "Documentation";
+      url = "";
+      baseUrl = "/";
+      staticDirectories = [ ];
+    };
+  };
+  siteEnabledOut = siteLib.siteFiles siteEnabledSettings siteIndexRoot;
+  siteDisabledOut = siteLib.siteFiles siteDisabledSettings siteIndexRoot;
+  siteJsonEntry = builtins.head (
+    builtins.filter (e: e.rel == "apps/documentation/site.json") siteEnabledOut.extraFiles
+  );
+  siteJsonValue = builtins.fromJSON (builtins.readFile siteJsonEntry.source);
+  siteConfigText = builtins.readFile ../assets/delivery/site/docusaurus.config.js;
+  siteLibText = builtins.readFile ../lib/site.nix;
+  deliveryText = builtins.readFile ./delivery.nix;
+  siteScriptTexts = builtins.concatStringsSep "\n" (
+    builtins.map (s: builtins.readFile (../scripts + "/${s}")) [
+      "seed-check.sh"
+      "layer-layout.sh"
+      "layer-arch.sh"
+      "layer-facade.sh"
+      "layer-copymode.sh"
+      "layer-emit.sh"
+      "copy-step.sh"
+    ]
+  );
+  sitePkgNeedle = builtins.concatStringsSep "" [
+    "n"
+    "pm"
+  ];
+  siteDirectRejected =
+    (builtins.tryEval (
+      filePlan.checkSourceAllowed {
+        inherit arch;
+        baseDir = factoryDir + "/assets/base";
+        overlayDir = factoryDir + "/assets/overlays/${arch}";
+        renderedSources = siteEnabledOut.renderedSources;
+        rel = "apps/documentation/package.json";
+        source = factoryDir + "/assets/delivery/site/package.json";
+      }
+    )).success == false;
+  siteAssertions = [
+    {
+      name = "site-disabled";
+      assertion = siteDisabledOut.extraFiles == [ ] && siteDisabledOut.renderedSources == [ ];
+      message = "site-disabled: the enable = false fixture holds a site file";
+    }
+    {
+      name = "site-table";
+      assertion = builtins.all (
+        f: builtins.any (e: e.rel == f.rel && e.copyMode == f.copyMode) siteEnabledOut.extraFiles
+      ) siteLib.emittedSiteFiles;
+      message = "site-table: the enable = true fixture misses a file of the emitted-files table with its copy mode";
+    }
+    {
+      name = "site-json-entry";
+      assertion =
+        builtins.any (
+          e: e.rel == "apps/documentation/site.json" && e.copyMode == "managed"
+        ) siteEnabledOut.extraFiles
+        && builtins.elem (toString siteJsonEntry.source) (
+          builtins.map toString siteEnabledOut.renderedSources
+        );
+      message = "site-json-entry: the rendered site.json misses its plan entry or its rendered source";
+    }
+    {
+      name = "site-rendered";
+      assertion = builtins.all (
+        e: builtins.elem (toString e.source) (builtins.map toString siteEnabledOut.renderedSources)
+      ) siteEnabledOut.extraFiles;
+      message = "site-rendered: a site file misses its rendered source";
+    }
+    {
+      name = "site-no-direct";
+      assertion = siteDirectRejected;
+      message = "site-no-direct: the file-plan check accepts a direct source under `assets/delivery/site/`";
+    }
+    {
+      name = "site-json-roundtrip";
+      assertion =
+        siteJsonValue.title == "Documentation"
+        && siteJsonValue.url == "https://owner.github.io"
+        && siteJsonValue.baseUrl == "/repository/"
+        && siteJsonValue.staticDirectories == [ "static" ]
+        &&
+          siteJsonValue.featureOrder == [
+            "feat-gamma"
+            "feat-alpha"
+            "feat-beta"
+          ];
+      message = "site-json-roundtrip: the rendered site.json differs from the fixture settings and the derived order";
+    }
+    {
+      name = "site-index-order";
+      assertion =
+        siteLib.featureOrder siteIndexRoot == [
+          "feat-gamma"
+          "feat-alpha"
+          "feat-beta"
+        ];
+      message = "site-index-order: the derived order differs from the row order of the fixture index";
+    }
+    {
+      name = "site-partial-order";
+      assertion =
+        siteLib.featureOrder sitePartialRoot == [
+          "feat-beta"
+          "feat-alpha"
+          "feat-delta"
+        ];
+      message = "site-partial-order: an unlisted folder does not follow the listed folders in alphabetical order";
+    }
+    {
+      name = "site-no-index-order";
+      assertion =
+        siteLib.featureOrder siteNoIndexRoot == [
+          "feat-alpha"
+          "feat-beta"
+        ];
+      message = "site-no-index-order: the order without an index is not the alphabetical order of the feature folders";
+    }
+    {
+      name = "site-config-markers";
+      assertion = builtins.all (m: contains siteConfigText m) [
+        "site.featureOrder"
+        "index"
+        "README"
+        "requirements"
+        "specifications"
+        "decisions"
+        "tasks"
+        "change-initial"
+        "toLowerCase"
+        "versions"
+        "changes"
+      ];
+      message = "site-config-markers: the config asset misses the read of `site.featureOrder` or a comparator-rule marker";
+    }
+    {
+      name = "site-no-package-manager";
+      assertion = builtins.replaceStrings [ sitePkgNeedle ] [ "" ] siteScriptTexts == siteScriptTexts;
+      message = "site-no-package-manager: the seed check runs a package-manager command";
+    }
+    {
+      name = "site-no-hand-list";
+      assertion =
+        builtins.all
+          (
+            n: builtins.replaceStrings [ n ] [ "" ] (siteLibText + deliveryText) == (siteLibText + deliveryText)
+          )
+          [
+            "feat-foundation"
+            "feat-orchestration"
+            "feat-design"
+            "feat-delivery"
+          ];
+      message = "site-no-hand-list: the factory holds a hand list of feature names";
+    }
+    {
+      name = "site-seed-mode";
+      assertion =
+        builtins.all (rel: builtins.any (e: e.rel == rel && e.copyMode == "seed") siteEnabledOut.extraFiles)
+          [
+            "apps/documentation/src/css/custom.css"
+            "apps/documentation/README.md"
+          ];
+      message = "site-seed-mode: a seed site file misses the copy mode seed";
+    }
+  ];
+  siteFailing = builtins.filter (a: !a.assertion) siteAssertions;
+  siteMatch =
+    if siteFailing == [ ] then
+      true
+    else
+      throw "seed check: the site fixture of `${arch}` fails ${(builtins.head siteFailing).message}";
+
+  # CI fixtures (spec-ci-options): one fixture with each provider, each
+  # publish target, the default folder, and a custom folder. The check
+  # proves the gate, the emitted paths, the trigger order, the build-step
+  # order, the typed steps, the provider shapes, the rendered sources, the
+  # pinned bytes, and the single-renderer rules.
+  ciLib = import ../lib/ci.nix;
+  ciSiteOn = {
+    enable = true;
+    title = "Documentation";
+    url = "";
+    baseUrl = "/";
+    staticDirectories = [ ];
+  };
+  ciSiteOff = ciSiteOn // {
+    enable = false;
+  };
+  ciBuildEmpty = {
+    beforeNodeSetup = [ ];
+    beforeSiteBuild = [ ];
+    afterSiteBuild = [ ];
+  };
+  ciHookSteps = {
+    beforeNodeSetup = [
+      {
+        name = "First hook";
+        run = "echo first";
+      }
+    ];
+    beforeSiteBuild = [
+      {
+        name = "Second hook";
+        uses = "actions/cache@v4";
+        "with" = {
+          path = "cache";
+        };
+      }
+    ];
+    afterSiteBuild = [
+      {
+        name = "Third hook";
+        run = "echo third";
+        workingDirectory = "utils";
+      }
+    ];
+  };
+  ciSettingsOf = ci: site: {
+    inherit ci site;
+    publish = {
+      target = "github-pages";
+      deployTool = "official-task";
+    };
+    notify = {
+      uses = [ ];
+      google-chat = {
+        secret = "NOTIFY_GOOGLE_CHAT_WEBHOOK";
+      };
+      slack = {
+        secret = "NOTIFY_SLACK_WEBHOOK";
+      };
+      telegram = {
+        secret = "NOTIFY_TELEGRAM_TOKEN";
+        chatId = "";
+      };
+    };
+  };
+  ciUnsetOut = ciLib.ciFiles (
+    ciSettingsOf {
+      use = "unset";
+      folder = "azure-pipelines";
+      watchPaths = [ ];
+      build = ciBuildEmpty;
+    } ciSiteOn
+  );
+  ciGhOut = ciLib.ciFiles (
+    ciSettingsOf {
+      use = "github-actions";
+      folder = "azure-pipelines";
+      watchPaths = [ "utils/**" ];
+      build = ciBuildEmpty;
+    } ciSiteOn
+  );
+  ciAzOut = ciLib.ciFiles (
+    ciSettingsOf {
+      use = "azure-pipelines";
+      folder = "azure-pipelines";
+      watchPaths = [ "utils/**" ];
+      build = ciBuildEmpty;
+    } ciSiteOn
+  );
+  ciAzCustomOut = ciLib.ciFiles (
+    ciSettingsOf {
+      use = "azure-pipelines";
+      folder = "custom-folder";
+      watchPaths = [ "utils/**" ];
+      build = ciBuildEmpty;
+    } ciSiteOn
+  );
+  ciDisabledOut = ciLib.ciFiles (
+    ciSettingsOf {
+      use = "github-actions";
+      folder = "azure-pipelines";
+      watchPaths = [ ];
+      build = ciBuildEmpty;
+    } ciSiteOff
+  );
+  ciGhText = ciLib.githubWorkflow (
+    ciSettingsOf {
+      use = "github-actions";
+      folder = "azure-pipelines";
+      watchPaths = [ "utils/**" ];
+      build = ciBuildEmpty;
+    } ciSiteOn
+  );
+  ciAzText = ciLib.azurePipeline "azure-pipelines" (
+    ciSettingsOf {
+      use = "azure-pipelines";
+      folder = "azure-pipelines";
+      watchPaths = [ "utils/**" ];
+      build = ciBuildEmpty;
+    } ciSiteOn
+  );
+  ciAzCustomText = ciLib.azurePipeline "custom-folder" (
+    ciSettingsOf {
+      use = "azure-pipelines";
+      folder = "custom-folder";
+      watchPaths = [ "utils/**" ];
+      build = ciBuildEmpty;
+    } ciSiteOn
+  );
+  ciGhHookText = ciLib.githubWorkflow (
+    ciSettingsOf {
+      use = "github-actions";
+      folder = "azure-pipelines";
+      watchPaths = [ ];
+      build = ciHookSteps;
+    } ciSiteOn
+  );
+  ciAzHookText = ciLib.azurePipeline "azure-pipelines" (
+    ciSettingsOf {
+      use = "azure-pipelines";
+      folder = "azure-pipelines";
+      watchPaths = [ ];
+      build = ciHookSteps;
+    } ciSiteOn
+  );
+  ciGhSource = (builtins.head ciGhOut.extraFiles).source;
+  ciAzSource = (builtins.head ciAzOut.extraFiles).source;
+  ciHookSettings = ciSettingsOf {
+    use = "github-actions";
+    folder = "azure-pipelines";
+    watchPaths = [ ];
+    build = ciHookSteps;
+  } ciSiteOn;
+  ciEvalFails =
+    project:
+    (builtins.tryEval (builtins.deepSeq (facade.evalFactory { factory.project = project; }) true))
+    .success == false;
+  ciBaseProject = {
+    arch = "single";
+    advanced = { };
+    secrets = [ ];
+  };
+  ciBadFolders = [
+    "/abs"
+    "a//b"
+    "a/../b"
+    "a\\b"
+  ];
+  ciBadUses = [
+    "unset"
+    "github-actions"
+    "azure-pipelines"
+  ];
+  ciFolderFails = builtins.all (
+    use:
+    builtins.all (folder: ciEvalFails (ciBaseProject // { ci = { inherit use folder; }; })) ciBadFolders
+  ) ciBadUses;
+  ciBadSteps = [
+    { }
+    {
+      uses = "actions/cache@v4";
+      run = "echo both";
+    }
+    {
+      run = "echo with";
+      "with" = {
+        path = "cache";
+      };
+    }
+    {
+      uses = "actions/cache@v4";
+      workingDirectory = "utils";
+    }
+    {
+      run = "echo unknown";
+      bogus = 1;
+    }
+    {
+      uses = "";
+    }
+    {
+      run = "";
+    }
+  ];
+  ciStepsFail = builtins.all (
+    step:
+    ciEvalFails (
+      ciBaseProject
+      // {
+        ci = {
+          use = "github-actions";
+          build = {
+            beforeNodeSetup = [ step ];
+            beforeSiteBuild = [ ];
+            afterSiteBuild = [ ];
+          };
+        };
+      }
+    )
+  ) ciBadSteps;
+  countOcc =
+    needle: text:
+    (
+      builtins.stringLength text - builtins.stringLength (builtins.replaceStrings [ needle ] [ "" ] text)
+    )
+    / builtins.stringLength needle;
+  listNixFiles =
+    dir:
+    let
+      entries = builtins.readDir dir;
+      names = builtins.attrNames entries;
+      walk =
+        name:
+        let
+          kind = entries.${name};
+        in
+        if kind == "directory" then
+          listNixFiles (dir + "/${name}")
+        else if kind == "regular" && builtins.match ".*\\.nix" name != null then
+          [ (dir + "/${name}") ]
+        else
+          [ ];
+    in
+    builtins.concatLists (builtins.map walk names);
+  ciComponentFiles = listNixFiles (factoryDir + "/lib") ++ listNixFiles (factoryDir + "/modules");
+  ciYamlNeedle = builtins.concatStringsSep "" [
+    "render"
+    "Yaml ="
+  ];
+  ciYamlDefs = builtins.filter (f: countOcc ciYamlNeedle (builtins.readFile f) > 0) ciComponentFiles;
+  ciLibText = builtins.readFile ../lib/ci.nix;
+  ciDirectRejected =
+    (builtins.tryEval (
+      filePlan.checkSourceAllowed {
+        inherit arch;
+        baseDir = factoryDir + "/assets/base";
+        overlayDir = factoryDir + "/assets/overlays/${arch}";
+        renderedSources = ciGhOut.renderedSources;
+        rel = ".github/workflows/docs-site.yml";
+        source = factoryDir + "/assets/delivery/site/package.json";
+      }
+    )).success == false;
+  ciAssertions = [
+    {
+      name = "ci-folder-rule";
+      assertion = ciFolderFails;
+      message = "ci-folder: an invalid `folder` value passes evaluation for a `use` value";
+    }
+    {
+      name = "ci-step-model";
+      assertion = ciStepsFail;
+      message = "ci-step-model: an invalid build step passes evaluation";
+    }
+    {
+      name = "ci-unset";
+      assertion = ciUnsetOut.extraFiles == [ ] && ciUnsetOut.renderedSources == [ ];
+      message = "ci-unset: the `unset` fixture holds a CI file";
+    }
+    {
+      name = "ci-github-path";
+      assertion =
+        builtins.map (e: e.rel) ciGhOut.extraFiles == [ ".github/workflows/docs-site.yml" ]
+        && builtins.all (e: e.copyMode == "managed") ciGhOut.extraFiles
+        && builtins.elem (toString ciGhSource) (builtins.map toString ciGhOut.renderedSources);
+      message = "ci-github-path: the `github-actions` fixture misses `.github/workflows/docs-site.yml` with a rendered managed source";
+    }
+    {
+      name = "ci-azure-path";
+      assertion = builtins.map (e: e.rel) ciAzOut.extraFiles == [ "azure-pipelines/docs-site.yml" ];
+      message = "ci-azure-path: the `azure-pipelines` fixture misses its folder path docs-site.yml";
+    }
+    {
+      name = "ci-custom-folder";
+      assertion =
+        builtins.map (e: e.rel) ciAzCustomOut.extraFiles == [ "custom-folder/docs-site.yml" ]
+        && builtins.replaceStrings [ "custom-folder" ] [ "azure-pipelines" ] ciAzCustomText == ciAzText;
+      message = "ci-custom-folder: a custom folder changes more than the emitted path and the trigger self-path";
+    }
+    {
+      name = "ci-site-gate";
+      assertion = ciDisabledOut.extraFiles == [ ] && ciDisabledOut.renderedSources == [ ];
+      message = "ci-site-gate: a CI fixture with the site disabled holds a CI file";
+    }
+    {
+      name = "ci-trigger";
+      assertion =
+        ciLib.triggerPaths ".github/workflows/docs-site.yml" ciHookSettings == [
+          "docs/**"
+          "apps/documentation/**"
+          ".github/workflows/docs-site.yml"
+        ]
+        && contains ciGhText "\"docs/**\""
+        && contains ciGhText "\"apps/documentation/**\""
+        && contains ciGhText "\"utils/**\"";
+      message = "ci-trigger: the trigger misses the three factory paths first or the watch paths in order";
+    }
+    {
+      name = "ci-build-order";
+      assertion =
+        pairsOk ciGhText [
+          "actions/checkout@v4"
+          "actions/setup-node@v4"
+          "npm install"
+          "npm run build"
+        ]
+        && pairsOk ciAzText [
+          "checkout"
+          "NodeTool@0"
+          "npm install"
+          "npm run build"
+        ];
+      message = "ci-build-order: the build steps miss a step or break the build-step order";
+    }
+    {
+      name = "ci-empty-hook";
+      assertion =
+        countOcc "echo" ciGhText == 0
+        && pairsOk ciGhHookText [
+          "echo first"
+          "actions/setup-node@v4"
+          "echo third"
+        ];
+      message = "ci-empty-hook: an empty hook list adds a step or a typed step misses its hook";
+    }
+    {
+      name = "ci-hook-order";
+      assertion =
+        pairsOk ciGhHookText [
+          "echo first"
+          "npm install"
+          "actions/cache@v4"
+          "npm run build"
+          "echo third"
+        ]
+        && pairsOk ciAzHookText [
+          "echo first"
+          "npm install"
+          "actions/cache@v4"
+          "npm run build"
+          "echo third"
+        ];
+      message = "ci-hook-order: a typed step misses its hook or breaks the list order";
+    }
+    {
+      name = "ci-gh-shape";
+      assertion = builtins.all (m: contains ciGhText m) [
+        "actions/setup-node@v4"
+        "cache-dependency-path"
+        "apps/documentation/package.json"
+        "working-directory"
+        "workflow_dispatch"
+      ];
+      message = "ci-gh-shape: the GitHub Actions render misses its provider shape";
+    }
+    {
+      name = "ci-az-shape";
+      assertion = builtins.all (m: contains ciAzText m) [
+        "NodeTool@0"
+        "versionSpec"
+        "displayName"
+        "workingDirectory"
+      ];
+      message = "ci-az-shape: the Azure Pipelines render misses its provider shape";
+    }
+    {
+      name = "ci-no-direct";
+      assertion = ciDirectRejected;
+      message = "ci-no-direct: the file-plan check accepts a direct source under `assets/delivery/`";
+    }
+    {
+      name = "ci-pinned";
+      assertion =
+        ciLib.githubWorkflow (
+          ciSettingsOf {
+            use = "github-actions";
+            folder = "azure-pipelines";
+            watchPaths = [ "utils/**" ];
+            build = ciBuildEmpty;
+          } ciSiteOn
+        ) == ciGhText;
+      message = "ci-pinned: two renders of one fixture differ";
+    }
+    {
+      name = "ci-one-yaml";
+      assertion = ciYamlDefs == [ (factoryDir + "/lib/yaml.nix") ];
+      message = "ci-one-yaml: the component holds a second YAML renderer definition";
+    }
+    {
+      name = "ci-two-renderers";
+      assertion =
+        countOcc "githubWorkflow =" ciLibText == 1
+        && countOcc "azurePipeline =" ciLibText == 1
+        && countOcc "Workflow =" ciLibText == 1
+        && countOcc "Pipeline =" ciLibText == 1;
+      message = "ci-two-renderers: lib/ci.nix misses a provider renderer or holds a third one";
+    }
+  ];
+  ciFailing = builtins.filter (a: !a.assertion) ciAssertions;
+  ciMatch =
+    if ciFailing == [ ] then
+      true
+    else
+      throw "seed check: the CI fixture of `${arch}` fails ${(builtins.head ciFailing).message}";
+
+  # Notifier fixtures (spec-notify-fanout): one fixture with uses = [ ],
+  # one fixture with uses = [ "slack" ], and the secret-name and
+  # chat-ID rules. The check proves the gate, the managed file with its
+  # rendered source, the absence of a direct asset source, the
+  # notification step of each provider, and the option validation. The
+  # stub test runs in the derivation with the python3 interpreter of
+  # pkgs; the result file stays exactly five lines.
+  notifyLib = import ../lib/notify.nix;
+  notifyBase = {
+    ci = {
+      use = "github-actions";
+      folder = "azure-pipelines";
+      watchPaths = [ ];
+      build = {
+        beforeNodeSetup = [ ];
+        beforeSiteBuild = [ ];
+        afterSiteBuild = [ ];
+      };
+    };
+    site = {
+      enable = true;
+      title = "Documentation";
+      url = "https://owner.github.io";
+      baseUrl = "/";
+      staticDirectories = [ ];
+    };
+    publish = {
+      target = "github-pages";
+      deployTool = "official-task";
+    };
+  };
+  notifyOffSettings = notifyBase // {
+    notify = {
+      uses = [ ];
+      google-chat = {
+        secret = "NOTIFY_GOOGLE_CHAT_WEBHOOK";
+      };
+      slack = {
+        secret = "NOTIFY_SLACK_WEBHOOK";
+      };
+      telegram = {
+        secret = "NOTIFY_TELEGRAM_TOKEN";
+        chatId = "";
+      };
+    };
+  };
+  notifyOnSettings = notifyBase // {
+    notify = {
+      uses = [ "slack" ];
+      google-chat = {
+        secret = "NOTIFY_GOOGLE_CHAT_WEBHOOK";
+      };
+      slack = {
+        secret = "NOTIFY_SLACK_WEBHOOK";
+      };
+      telegram = {
+        secret = "NOTIFY_TELEGRAM_TOKEN";
+        chatId = "";
+      };
+    };
+  };
+  notifyOffOut = notifyLib.notifyFiles notifyOffSettings;
+  notifyOnOut = notifyLib.notifyFiles notifyOnSettings;
+  notifyGhText = ciLib.githubWorkflow notifyOnSettings;
+  notifyAzText = ciLib.azurePipeline "azure-pipelines" notifyOnSettings;
+  notifyOffGhText = ciLib.githubWorkflow notifyOffSettings;
+  notifyEvalFails =
+    notify:
+    (builtins.tryEval (
+      builtins.deepSeq (facade.evalFactory {
+        factory.project = ciBaseProject // {
+          inherit notify;
+        };
+      }) true
+    )).success == false;
+  notifyAssertions = [
+    {
+      name = "notify-secret-rule";
+      assertion = notifyEvalFails {
+        uses = [ "slack" ];
+        google-chat = {
+          secret = "NOTIFY_GOOGLE_CHAT_WEBHOOK";
+        };
+        slack = {
+          secret = "https://hooks.example/secret";
+        };
+        telegram = {
+          secret = "NOTIFY_TELEGRAM_TOKEN";
+          chatId = "";
+        };
+      };
+      message = "notify-secret-rule: a secret value outside the name pattern passes evaluation";
+    }
+    {
+      name = "notify-chatid-rule";
+      assertion = notifyEvalFails {
+        uses = [ "telegram" ];
+        google-chat = {
+          secret = "NOTIFY_GOOGLE_CHAT_WEBHOOK";
+        };
+        slack = {
+          secret = "NOTIFY_SLACK_WEBHOOK";
+        };
+        telegram = {
+          secret = "NOTIFY_TELEGRAM_TOKEN";
+          chatId = "";
+        };
+      };
+      message = "notify-chatid-rule: the selected channel telegram without a chatId passes evaluation";
+    }
+    {
+      name = "notify-off";
+      assertion = notifyOffOut.extraFiles == [ ] && notifyOffOut.renderedSources == [ ];
+      message = "notify-off: the uses = [ ] fixture holds a notifier file";
+    }
+    {
+      name = "notify-file";
+      assertion =
+        builtins.map (e: e.rel) notifyOnOut.extraFiles == [ "scripts/notify.py" ]
+        && builtins.all (e: e.copyMode == "managed") notifyOnOut.extraFiles
+        && builtins.all (
+          e: builtins.elem (toString e.source) (builtins.map toString notifyOnOut.renderedSources)
+        ) notifyOnOut.extraFiles;
+      message = "notify-file: the uses = [ \"slack\" ] fixture misses scripts/notify.py with a rendered managed source";
+    }
+    {
+      name = "notify-no-direct";
+      assertion =
+        (builtins.tryEval (
+          filePlan.checkSourceAllowed {
+            inherit arch;
+            baseDir = factoryDir + "/assets/base";
+            overlayDir = factoryDir + "/assets/overlays/${arch}";
+            renderedSources = notifyOnOut.renderedSources;
+            rel = "scripts/notify.py";
+            source = factoryDir + "/assets/delivery/notify.py";
+          }
+        )).success == false;
+      message = "notify-no-direct: the file-plan check accepts a direct source under `assets/delivery/`";
+    }
+    {
+      name = "notify-step";
+      assertion =
+        contains notifyGhText "python3 scripts/notify.py"
+        && contains notifyAzText "python3 scripts/notify.py"
+        && contains notifyGhText "NOTIFY_SLACK_WEBHOOK"
+        && contains notifyAzText "NOTIFY_SLACK_WEBHOOK"
+        && builtins.replaceStrings [ "NOTIFY_GOOGLE_CHAT_WEBHOOK" ] [ "" ] notifyGhText == notifyGhText
+        && builtins.replaceStrings [ "NOTIFY_TELEGRAM_TOKEN" ] [ "" ] notifyGhText == notifyGhText
+        &&
+          builtins.replaceStrings [ "python3 scripts/notify.py" ] [ "" ] notifyOffGhText == notifyOffGhText;
+      message = "notify-step: the notification step misses the script run, adds an unselected channel, or appears with uses = [ ]";
+    }
+  ];
+  notifyFailing = builtins.filter (a: !a.assertion) notifyAssertions;
+  notifyMatch =
+    if notifyFailing == [ ] then
+      true
+    else
+      throw "seed check: the notifier fixture of `${arch}` fails ${(builtins.head notifyFailing).message}";
+
+  # Publish fixtures (spec-publish): one fixture for each provider and
+  # each target, one fixture for each deploy tool, and one fixture for
+  # the default values. The check proves the target matrix, the deploy
+  # tool, the pinned CLI, the single occurrence of each fixed constant in
+  # lib/ci.nix, and the step order.
+  publishSettingsOf = use: target: tool: uses: {
+    ci = {
+      inherit use;
+      folder = "azure-pipelines";
+      watchPaths = [ ];
+      build = {
+        beforeNodeSetup = [ ];
+        beforeSiteBuild = [ ];
+        afterSiteBuild = [ ];
+      };
+    };
+    site = {
+      enable = true;
+      title = "Documentation";
+      url = "https://owner.github.io";
+      baseUrl = "/";
+      staticDirectories = [ ];
+    };
+    publish = {
+      inherit target;
+      deployTool = tool;
+    };
+    notify = {
+      inherit uses;
+      google-chat = {
+        secret = "NOTIFY_GOOGLE_CHAT_WEBHOOK";
+      };
+      slack = {
+        secret = "NOTIFY_SLACK_WEBHOOK";
+      };
+      telegram = {
+        secret = "NOTIFY_TELEGRAM_TOKEN";
+        chatId = "";
+      };
+    };
+  };
+  publishDefault = delivery.evalPublish null;
+  publishGhPagesGh = ciLib.githubWorkflow (
+    publishSettingsOf "github-actions" "github-pages" "official-task" [ "slack" ]
+  );
+  publishGhPagesAz = ciLib.azurePipeline "azure-pipelines" (
+    publishSettingsOf "azure-pipelines" "github-pages" "official-task" [ ]
+  );
+  publishSwaGh = ciLib.githubWorkflow (
+    publishSettingsOf "github-actions" "azure-static-web-app" "official-task" [ ]
+  );
+  publishSwaAz = ciLib.azurePipeline "azure-pipelines" (
+    publishSettingsOf "azure-pipelines" "azure-static-web-app" "official-task" [ ]
+  );
+  publishCliGh = ciLib.githubWorkflow (
+    publishSettingsOf "github-actions" "azure-static-web-app" "swa-cli" [ ]
+  );
+  publishCliAz = ciLib.azurePipeline "azure-pipelines" (
+    publishSettingsOf "azure-pipelines" "azure-static-web-app" "swa-cli" [ ]
+  );
+  publishOptionsJson = builtins.toJSON delivery.deliveryOptions;
+  publishAssertions = [
+    {
+      name = "publish-default";
+      assertion = publishDefault.target == "github-pages" && publishDefault.deployTool == "official-task";
+      message = "publish-default: the default target is not github-pages or the default deploy tool is not official-task";
+    }
+    {
+      name = "publish-pages-gh";
+      assertion = builtins.all (m: contains publishGhPagesGh m) [
+        "actions/upload-pages-artifact@v3"
+        "actions/deploy-pages@v4"
+        "github-pages"
+        "pages"
+        "id-token"
+      ];
+      message = "publish-pages-gh: the github-pages fixture on github-actions misses the upload step, the deploy job, the environment, or the permissions";
+    }
+    {
+      name = "publish-pages-az";
+      assertion =
+        contains publishGhPagesAz "gh-pages"
+        && contains publishGhPagesAz "SITE_PAGES_TOKEN"
+        && builtins.replaceStrings [ "Static Web App" ] [ "" ] publishGhPagesAz == publishGhPagesAz
+        && builtins.replaceStrings [ "static-web-apps" ] [ "" ] publishGhPagesAz == publishGhPagesAz;
+      message = "publish-pages-az: the github-pages fixture on azure-pipelines misses the gh-pages publish or holds Static Web App content";
+    }
+    {
+      name = "publish-swa";
+      assertion =
+        builtins.all (m: contains publishSwaGh m) [
+          "app_location"
+          "apps/documentation/build"
+          "output_location"
+          "skip_app_build"
+          "SITE_SWA_DEPLOYMENT_TOKEN"
+        ]
+        && builtins.all (m: contains publishSwaAz m) [
+          "app_location"
+          "skip_app_build"
+          "SITE_SWA_DEPLOYMENT_TOKEN"
+        ]
+        && builtins.replaceStrings [ "deploy-pages" ] [ "" ] publishSwaGh == publishSwaGh
+        && builtins.replaceStrings [ "pages: write" ] [ "" ] publishSwaGh == publishSwaGh
+        && builtins.replaceStrings [ "deploy-pages" ] [ "" ] publishSwaAz == publishSwaAz;
+      message = "publish-swa: the azure-static-web-app fixture misses the deploy inputs or holds Pages content";
+    }
+    {
+      name = "publish-official";
+      assertion =
+        contains publishSwaGh "Azure/static-web-apps-deploy@v1"
+        && contains publishSwaAz "AzureStaticWebApp@0"
+        && builtins.replaceStrings [ "static-web-apps-cli" ] [ "" ] publishSwaGh == publishSwaGh
+        && builtins.replaceStrings [ "static-web-apps-cli" ] [ "" ] publishSwaAz == publishSwaAz;
+      message = "publish-official: the official-task fixture misses the official action or task or holds a CLI step";
+    }
+    {
+      name = "publish-cli";
+      assertion =
+        contains publishCliGh "npm install --global @azure/static-web-apps-cli@2.0.10"
+        && contains publishCliAz "npm install --global @azure/static-web-apps-cli@2.0.10"
+        && contains publishCliGh "swa deploy ./build"
+        && contains publishCliAz "swa deploy ./build"
+        && builtins.replaceStrings [ "static-web-apps-deploy" ] [ "" ] publishCliGh == publishCliGh
+        && builtins.replaceStrings [ "AzureStaticWebApp@0" ] [ "" ] publishCliAz == publishCliAz;
+      message = "publish-cli: the swa-cli fixture misses the pinned install or deploy command or holds the official action or task";
+    }
+    {
+      name = "publish-constants-once";
+      assertion =
+        countOcc "SITE_PAGES_TOKEN" ciLibText == 1
+        && countOcc "SITE_SWA_DEPLOYMENT_TOKEN" ciLibText == 1
+        && countOcc "@azure/static-web-apps-cli" ciLibText == 1
+        && countOcc "2.0.10" ciLibText == 1;
+      message = "publish-constants-once: a fixed constant occurs never or more than one time in lib/ci.nix";
+    }
+    {
+      name = "publish-no-option";
+      assertion =
+        builtins.all (m: builtins.replaceStrings [ m ] [ "" ] publishOptionsJson == publishOptionsJson)
+          [
+            "SITE_PAGES_TOKEN"
+            "SITE_SWA_DEPLOYMENT_TOKEN"
+            "static-web-apps-cli"
+            "2.0.10"
+          ];
+      message = "publish-no-option: the option table deliveryOptions holds a token name or a CLI version";
+    }
+    {
+      name = "publish-order";
+      assertion = pairsOk publishGhPagesGh [
+        "npm run build"
+        "actions/upload-pages-artifact@v3"
+        "actions/deploy-pages@v4"
+        "python3 scripts/notify.py"
+      ];
+      message = "publish-order: the deploy step misses its place after the build steps and before the notification step";
+    }
+  ];
+  publishFailing = builtins.filter (a: !a.assertion) publishAssertions;
+  publishMatch =
+    if publishFailing == [ ] then
+      true
+    else
+      throw "seed check: the publish fixture of `${arch}` fails ${(builtins.head publishFailing).message}";
+
+  # Preset fixtures (spec-presets): one fixture for each preset, one
+  # fixture without a bundle, one fixture with an author value other
+  # than the table value, and one fixture with a bundle value on a table
+  # value. The check proves the file set of each preset, the author win,
+  # the bundle fill, the table-driven comparison, the dead-key rule, and
+  # the starter values.
+  presetsLib = import ../lib/presets.nix;
+  presetTables = {
+    agents = orchestration.agentsOptions;
+    design = design.designOptions;
+    ux = design.uxOptions;
+    delivery = delivery.deliveryOptions;
+  };
+  presetLeaves = presetsLib.leafTable presetTables;
+  presetBase = {
+    arch = "single";
+    advanced = { };
+    secrets = [ ];
+  };
+  presetMinimalEff = facade.evalFactory {
+    factory.project = presetBase // {
+      preset = "minimal";
+    };
+  };
+  presetDocsEff = facade.evalFactory {
+    factory.project = presetBase // {
+      preset = "docs-only";
+    };
+  };
+  presetFullEff = facade.evalFactory {
+    factory.project = presetBase // {
+      preset = "full";
+    };
+  };
+  presetNoneEff = facade.evalFactory { factory.project = presetBase; };
+  presetAuthorEff = facade.evalFactory {
+    factory.project = presetBase // {
+      preset = "docs-only";
+      site = {
+        title = "Custom";
+      };
+    };
+  };
+  presetFillEff = facade.evalFactory {
+    factory.project = presetBase // {
+      preset = "docs-only";
+      ci = {
+        use = "unset";
+      };
+    };
+  };
+  presetDeliveryOf =
+    eff:
+    delivery.deliveryFiles {
+      ci = eff.ci;
+      site = eff.site;
+      publish = eff.publish;
+      notify = eff.notify;
+    } siteIndexRoot;
+  presetMinimalFiles = presetDeliveryOf presetMinimalEff;
+  presetDocsFiles = presetDeliveryOf presetDocsEff;
+  presetFullFiles = presetDeliveryOf presetFullEff;
+  presetMinimalDesign = design.designFiles presetMinimalEff;
+  presetDocsDesign = design.designFiles presetDocsEff;
+  presetFullDesign = design.designFiles presetFullEff;
+  presetFullSkill = design.skillFiles presetFullEff;
+  presetFullMerged = harnessLib.mergeAgents {
+    project = orchestration.evalAgents presetFullEff.agents;
+    roleNames = [ "designer-expert" ];
+    tool = design.toolFeed presetFullEff;
+    ux = presetFullEff.ux;
+  };
+  presetFullChapters = design.chapterMap presetFullEff;
+  presetCustomTables = presetTables // {
+    delivery = presetTables.delivery // {
+      ci = presetTables.delivery.ci // {
+        use = presetTables.delivery.ci.use // {
+          default = "azure-pipelines";
+        };
+      };
+    };
+  };
+  presetCustomApplied = presetsLib.applyPreset {
+    preset = "docs-only";
+    project = {
+      ci = {
+        use = "unset";
+      };
+    };
+    tables = presetCustomTables;
+  };
+  presetCustomAbsent = presetsLib.applyPreset {
+    preset = "docs-only";
+    project = { };
+    tables = presetCustomTables;
+  };
+  presetF4Keys = builtins.filter (k: builtins.match "(ci|site|publish|notify)[.]?.*" k != null) (
+    builtins.attrNames presetLeaves
+  );
+  presetF4LeafCount = builtins.length presetF4Keys;
+  presetDocsKeys = builtins.attrNames presetsLib.bundles.docs-only;
+  presetFullKeys = builtins.attrNames presetsLib.bundles.full;
+  presetAssertions = [
+    {
+      name = "preset-minimal-files";
+      assertion = presetMinimalFiles.extraFiles == [ ] && presetMinimalDesign.extraFiles == [ ];
+      message = "preset-minimal-files: the minimal fixture holds a delivery file or a design file";
+    }
+    {
+      name = "preset-docs-files";
+      assertion =
+        builtins.any (e: e.rel == "apps/documentation/site.json") presetDocsFiles.extraFiles
+        && builtins.any (e: e.rel == ".github/workflows/docs-site.yml") presetDocsFiles.extraFiles
+        && presetDocsDesign.extraFiles == [ ];
+      message = "preset-docs-files: the docs-only fixture misses the site project or the CI file or holds a design file";
+    }
+    {
+      name = "preset-full-files";
+      assertion =
+        presetFullDesign.extraFiles != [ ]
+        && presetFullSkill.extraFiles != [ ]
+        && builtins.any (e: e.rel == "apps/documentation/site.json") presetFullFiles.extraFiles
+        && builtins.any (e: e.rel == ".github/workflows/docs-site.yml") presetFullFiles.extraFiles
+        && builtins.hasAttr "designer-expert" presetFullMerged.roles
+        && (presetFullChapters.artifact-master or [ ]) != [ ];
+      message = "preset-full-files: the full fixture misses the design files, the designer role, the UX chapter, the site project, or the CI file";
+    }
+    {
+      name = "preset-no-bundle";
+      assertion =
+        presetNoneEff.ci.use == "unset"
+        && presetNoneEff.site.enable == false
+        && presetNoneEff.preset == null;
+      message = "preset-no-bundle: the fixture without a bundle misses the table values";
+    }
+    {
+      name = "preset-author-wins";
+      assertion = presetAuthorEff.site.title == "Custom";
+      message = "preset-author-wins: an author value other than the table value loses over the bundle value";
+    }
+    {
+      name = "preset-fill";
+      assertion = presetFillEff.ci.use == "github-actions";
+      message = "preset-fill: a key with the table value misses the bundle value";
+    }
+    {
+      name = "preset-table-driven";
+      assertion = presetCustomApplied.ci.use == "unset" && presetCustomAbsent.ci.use == "github-actions";
+      message = "preset-table-driven: the comparison misses the table value of the passed tables";
+    }
+    {
+      name = "preset-dead-key";
+      assertion =
+        presetsLib.checkBundles presetTables
+        && builtins.all (k: builtins.hasAttr k presetLeaves) presetDocsKeys
+        && builtins.all (k: builtins.hasAttr k presetLeaves) presetFullKeys
+        && builtins.sort builtins.lessThan presetDocsKeys == builtins.sort builtins.lessThan presetF4Keys
+        && builtins.length presetFullKeys == builtins.length (builtins.attrNames presetLeaves)
+        && presetsLib.bundles.minimal == { };
+      message = "preset-dead-key: a bundle key path misses the modeled key set or a bundle misses its leaf keys";
+    }
+    {
+      name = "preset-starter";
+      assertion =
+        settings.preset == "minimal"
+        && (settings.ci.use or "other") == "unset"
+        && (settings.site.enable or null) == false
+        && (settings.notify.uses or null) == [ ];
+      message = "preset-starter: the starter declaration misses preset = \"minimal\" or the off values";
+    }
+  ];
+  presetFailing = builtins.filter (a: !a.assertion) presetAssertions;
+  presetMatch =
+    if presetFailing == [ ] then
+      true
+    else
+      throw "seed check: the preset fixture of `${arch}` fails ${(builtins.head presetFailing).message}";
 
   configYaml = builtins.toFile "factory.config.yaml" (
     yamlRenderer.renderYaml {
@@ -885,10 +2044,18 @@ let
   manifest = pkgs.writeText "plan-manifest" (copyModes.manifestText files);
 
   lintBin = pkgs.nodePackages.markdownlint-cli + "/bin/markdownlint";
+
+  notifyTest = "${pkgs.python3}/bin/python3 ${factoryDir}/assets/delivery/tests/test_notify.py ${factoryDir}/assets/delivery/notify.py";
 in
 assert archMatch;
 assert agentsMatch;
 assert designMatch;
+assert deliveryMatch;
+assert siteMatch;
+assert ciMatch;
+assert notifyMatch;
+assert publishMatch;
+assert presetMatch;
 assert chapterMatch;
 assert toolMatch;
 assert assetMatch;
@@ -903,6 +2070,7 @@ pkgs.stdenv.mkDerivation {
     export LINT_BIN=${lintBin} LINT_CONFIG=${factoryDir}/assets/base/.markdownlint.yaml
     export PROOF=${proof} FACTORY_SRC=${facadeSrc}
     sh ${factoryDir}/scripts/seed-check.sh
+    ${notifyTest}
     mkdir -p $out
     cp $TMPDIR/output $out/output
   '';

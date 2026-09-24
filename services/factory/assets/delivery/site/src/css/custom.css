@@ -1,0 +1,9 @@
+/* Site style (spec-site-render). The author owns this file with the copy mode seed. */
+:root {
+  --ifm-color-primary: #2e5fa3;
+  --ifm-code-font-size: 95%;
+}
+
+.hero--primary {
+  --ifm-hero-background-color: #2e5fa3;
+}
