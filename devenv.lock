@@ -1,5 +1,17 @@
 {
   "nodes": {
+    "better-factory": {
+      "flake": false,
+      "locked": {
+        "path": ".",
+        "type": "path"
+      },
+      "original": {
+        "path": ".",
+        "type": "path"
+      },
+      "parent": []
+    },
     "devenv": {
       "locked": {
         "dir": "src/modules",
@@ -90,29 +102,12 @@
         "type": "github"
       }
     },
-    "repofactory": {
-      "flake": false,
-      "locked": {
-        "lastModified": 1790139096,
-        "narHash": "sha256-MdyJ1EO0jqvoQhM6jKgOKhX0aEb9mmFc4kVIlaAvTOM=",
-        "owner": "hieutran21198",
-        "repo": "repofactory",
-        "rev": "718e63e2342dddaf96524426bf57fcdc40733042",
-        "type": "github"
-      },
-      "original": {
-        "owner": "hieutran21198",
-        "ref": "main",
-        "repo": "repofactory",
-        "type": "github"
-      }
-    },
     "root": {
       "inputs": {
+        "better-factory": "better-factory",
         "devenv": "devenv",
         "git-hooks": "git-hooks",
-        "nixpkgs": "nixpkgs",
-        "repofactory": "repofactory"
+        "nixpkgs": "nixpkgs"
       }
     }
   },

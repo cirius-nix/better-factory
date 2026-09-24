@@ -1,29 +1,29 @@
 # Role Declaration
 
 A role is one body and one declaration. The body is the file `utils/agent/role/<name>/ROLE.md`.
-The declaration is one entry of the group `factory.project.agents.roles` in the repository
-factory declaration. The factory render reads the declaration and renders one role file for
+The declaration is one entry of the option `factory.domain.agent.role.builder.<name>` in
+`devenv.local.nix`. The shell reads the declaration when it starts. It renders one role file for
 each harness in use.
 
 ### Fields
 
-The fields of `factory.project.agents.roles.<name>`:
+The fields of `factory.domain.agent.role.builder.<name>`:
 
 | Field | Type | Default | Meaning |
 | --- | --- | --- | --- |
 | `enable` | bool | `true` | Whether to generate this role. |
 | `name` | str | The attribute name | The file name of the role in each harness. |
 | `description` | str | Required | Tells the harness when to use the role. |
-| `source` | path | Required | The body file; the convention is `utils/agent/role/<name>/ROLE.md`. |
+| `instruction` | str | Required | The markdown body of the role file. |
 | `harness.claude` | attrs | `{ }` | Extra frontmatter fields of `.claude/agents/<name>.md`. |
 | `harness.codex` | attrs | `{ }` | Extra keys of `.codex/agents/<name>.toml`. |
 | `harness.opencode` | attrs | `{ }` | Extra frontmatter fields of `.opencode/agents/<name>.md`. |
 
 ### Rendered files
 
-The harness list is `factory.project.agents.uses`. It is a list with values from
+The harness list is `factory.domain.agent.harness.uses`. It is a list with values from
 `claude`, `codex`, and `opencode`. A harness that is not in the list renders no file. Each
-rendered file has the copy mode `managed`: the factory render overwrites it on each run.
+rendered file has the copy mode `copy`: the shell overwrites it on each entry.
 
 | Harness | Rendered file | Content |
 | --- | --- | --- |
@@ -34,13 +34,13 @@ rendered file has the copy mode `managed`: the factory render overwrites it on e
 
 ### Declaration
 
-One complete declaration for the repository factory declaration:
+One complete declaration for `devenv.local.nix`:
 
 ```nix
 {
-  factory.project.agents.roles.<name> = {
+  factory.domain.agent.role.builder.<name> = {
     description = "<What the expert does. Use for ...>";
-    source = ./utils/agent/role/<name>/ROLE.md;
+    instruction = builtins.readFile ./utils/agent/role/<name>/ROLE.md;
     harness.opencode.mode = "subagent";
   };
 }
@@ -48,4 +48,4 @@ One complete declaration for the repository factory declaration:
 
 - `harness.opencode.mode = "subagent"` is the convention of each shipped role.
 - Copy the declaration. Change only `<name>`, the description, and the body. After the next
-  factory render, each harness in use has a rendered role file.
+  shell entry, each harness in use has a rendered role file.

@@ -7,8 +7,3 @@ inputs:
         follows: nixpkgs
   nixpkgs:
     url: github:cachix/devenv-nixpkgs/rolling
-  repofactory:
-    url: github:hieutran21198/repofactory/main
-    flake: false
-imports:
-- repofactory
