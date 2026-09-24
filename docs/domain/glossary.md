@@ -29,6 +29,10 @@ write two rows.
 | capability | context-factory | The tools, the skills, and the MCP servers that a role uses to do its job. | - |
 | write scope | context-factory | The hard, per-role boundary of the files that a role may write. | - |
 | default permission set | context-factory | The permission rules that the factory renders for a role from its ownership and its capability. | - |
+| permission rule | context-factory | One entry of the ordered permission array: the action, the resource, and the effect allow, deny, or ask. | - |
+| role-contract table | context-factory | The factory-owned data table that holds the two axes of each role name. | - |
+| rendered role name | context-factory | The name of a role in the rendered files: the `name` field of the declaration, or the attribute name when absent. | - |
+| role-contract surface | context-factory | The factory component, the mixture-of-experts page, the `expert-role` skill, and the `factory-expert` role body. | - |
 | role contract | context-factory | The two-axis statement of one role: its ownership and its capability. | - |
 | external curated knowledge | context-factory | The documentation that an MCP server supplies to a role on request. | - |
 | governance rule | context-factory | A rule that fixes who starts a subagent, who asks the user, and who pushes. | - |

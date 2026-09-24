@@ -18,7 +18,9 @@ One transaction computes the plan from the author declaration and writes the fil
 The rules are simple, so the implementation uses a transaction script.
 One aggregate instance covers one emitted repository.
 The blueprint also renders the role files that carry the phase protocol, the release gate, and
-the design work (spec-protocol, spec-release-gate, spec-designer-role).
+the design work (spec-protocol, spec-release-gate, spec-designer-role). It also renders the
+default permission set of each rendered role and the canonical `context7` MCP entry
+(spec-role-permissions, spec-mcp-knowledge).
 
 ## State transitions
 
@@ -30,7 +32,9 @@ the design work (spec-protocol, spec-release-gate, spec-designer-role).
 | declared | Declare project | declared |
 | declared | Select harnesses | declared |
 | declared | Declare MCP entry | declared |
+| declared | Declare knowledge access | declared |
 | declared | Declare role | declared |
+| declared | State role contract | declared |
 | declared | Select design option | declared |
 | declared | Select design tool | declared |
 | declared | Select CI | declared |
@@ -57,7 +61,7 @@ the design work (spec-protocol, spec-release-gate, spec-designer-role).
   file. The blueprint holds no claude file and no codex file.
 - The merged value of each managed key is the canonical value. Each ignored project or local
   value has one log line. The managed key set uses the opencode version 2 shape: the per-role
-  `permissions` rules and the canonical MCP fields. The blueprint holds no `subagent_depth`.
+  `permissions` sets and the canonical MCP fields. The blueprint holds no `subagent_depth`.
 - One MCP source renders each enabled entry into the opencode version 2 dialect under
   `mcp.servers`.
 - One role source renders each enabled role for opencode. The body is the role source plus the
@@ -65,6 +69,26 @@ the design work (spec-protocol, spec-release-gate, spec-designer-role).
 - The effective role set is the merge of the project layer roles and the local layer roles.
   When the declaration holds no role, the blueprint holds the shipped role set: one declaration
   for each role source below `assets/roles/`, except the reserved `designer-expert`.
+- Each canonical role body holds the two axes in one shape: the section `## Ownership` and the
+  section `## Capability`. The two axes stay separate, and a capability grants no write outside
+  the ownership scope.
+- Each rendered role holds a default permission set derived from its ownership axis and its
+  capability axis (spec-role-permissions). The write scope of the role is a fixed set of path
+  patterns, and a write outside the scope is denied.
+- The permission key `agents.<role>` uses the rendered role name of the declaration (the `name`
+  field, or the attribute name when absent). The permission key and the rendered role file name
+  are the same value.
+- The role `factory-expert` owns the role-contract surface: the factory component, the
+  mixture-of-experts page, the `expert-role` skill, and its own role body. Its ownership section
+  carries the same literal path patterns.
+- The permission array holds the broad `edit` deny rule before each ownership allow, and the
+  broad `shell` rule before each specific shell rule. The last matching rule wins.
+- Only `artifact-master` holds the `subagent` allow and the `question` allow. Each other role
+  holds the deny. The `artifact-master` shell rules deny `git push`.
+- The one MCP source holds the canonical entries `figma`, `pencil`, and `context7`. The preset
+  `full` declares the entry `context7`; the entry holds `disabled = true` by default.
+- The one MCP source holds no remote entry: no `type` value `remote`, no `url`, and no
+  `headers`.
 - The design method is one of `unset` and `ddd`. The ux flag is a bool. The design tool is one
   of `unset`, `figma`, and `pencil`.
 - The emitted file set holds the design files only when their design option is active: the DDD
@@ -113,7 +137,9 @@ the release) belong to the coordinator workflow, not to the blueprint transactio
 | Declare project | The blueprint records every setting under `factory.project`. | Project declared |
 | Select harnesses | The blueprint records the selected harness `opencode`. A value other than `opencode` is an error. | Harness merged |
 | Declare MCP entry | The blueprint records one MCP source entry. | MCP entry translated |
-| Declare role | The blueprint records one role source and its declaration. | Role rendered |
+| Declare knowledge access | The blueprint records the canonical `context7` entry in the one MCP source. | Knowledge access declared |
+| Declare role | The blueprint records one role source, its declaration, and its two-axis contract. | Role rendered, Permission set rendered |
+| State role contract | The blueprint records the ownership axis and the capability axis of the role. | Role contract stated |
 | Select design option | The blueprint records the design method and the ux flag, and computes the design files and chapters. An unknown value is an error. | Design option selected |
 | Select design tool | The blueprint records the design tool and activates the canonical MCP entry of the tool. An unknown value is an error. | Design tool selected |
 | Select CI | The blueprint records the CI choice and the folder, and computes the CI file. An unknown value is an error. | CI selected |
@@ -134,7 +160,10 @@ the release) belong to the coordinator workflow, not to the blueprint transactio
 | Project declared | The facade root and the setting groups. |
 | Harness merged | The selected harness and the merged key groups. |
 | MCP entry translated | The entry name and the rendered path in the opencode file. |
+| Knowledge access declared | The `context7` entry name, the canonical command, and the rendered path in the opencode file. |
 | Role rendered | The role name and the rendered path in the opencode file. |
+| Role contract stated | The role name, the ownership axis, and the capability axis. |
+| Permission set rendered | The role name and the ordered permission array. |
 | Design option selected | The design method, the ux flag, the design files, and the chapters. |
 | Design tool selected | The design tool and the enabled canonical entry. |
 | CI selected | The CI choice and the folder. |

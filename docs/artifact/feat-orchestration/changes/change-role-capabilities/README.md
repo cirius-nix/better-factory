@@ -40,12 +40,26 @@ No code changes in this phase. Later phases will likely touch these paths:
 - `services/factory/assets/roles/designer-expert/ROLE.md`
 - `services/factory/lib/harness.nix`
 - `services/factory/lib/roles.nix`
+- `services/factory/lib/presets.nix`
 - `services/factory/modules/orchestration.nix`
 - `services/factory/modules/seed-check.nix`
 - `factory.nix`
 - `.opencode/opencode.jsonc`
 - `docs/wiki/documentation/mixture-of-experts/README.md`
+- `.agents/skills/expert-role/`
+- `utils/agent/role/factory-expert/ROLE.md`
 
 ## Artifacts
 
 - [Requirements](requirements/README.md)
+- [Specifications](specifications/README.md)
+- [Decisions](decisions/)
+
+## Follow-ups
+
+- The delivery feature spec-presets 1.1.0 line 112 names the old bundle value
+  `agents.mcp = { }`. The bundle `full` now holds `agents.mcp = { context7 = { }; }`. The
+  delivery owner updates the delivery specification (spec-mcp-knowledge, RC02-C4).
+- After phase 5, the user enables the `context7` entry in `factory.nix` and regenerates
+  `.opencode/opencode.jsonc`. The paths sit outside `services/factory/*`, so the follow-up is
+  out of scope of the phase 4 of this change (RC02-C5).

@@ -100,7 +100,12 @@ notifier, one publish target, and named presets.
 - Only the artifact master starts a subagent and asks the user.
 - A content role does not ask the user directly.
 - The artifact master denies a push.
+- The write scope of each role is a fixed set of path patterns.
+- A permission rule holds the action, the resource, and the effect allow, deny, or ask.
+- The last matching permission rule wins, so the broad rule comes before the specific rule.
 - The repository declares external curated knowledge in the one MCP source under `agents.mcp`.
+- The factory declares the Context7 MCP server once in the one MCP source, and the preset full declares the entry for a generated project.
+- The factory expert owns the role-contract surface: the factory component, the mixture-of-experts page, the expert-role skill, and its own role body.
 - Each version is a copy that passes a readiness gate before release.
 - The project uses one design method selected with design.use.
 - Each context holds a context canvas, an aggregate canvas, and a glossary.
@@ -132,7 +137,9 @@ notifier, one publish target, and named presets.
 | Declare project | command | repository author |
 | Select harnesses | command | repository author |
 | Declare MCP entry | command | repository author |
+| Declare knowledge access | command | repository author |
 | Declare role | command | repository author |
+| State role contract | command | role author |
 | Declare local settings | command | repository author |
 | Select design option | command | repository author |
 | Select design tool | command | repository author |
@@ -161,7 +168,10 @@ notifier, one publish target, and named presets.
 | Project declared | event | repository author |
 | Harness merged | event | repository author |
 | MCP entry translated | event | repository author |
+| Knowledge access declared | event | repository author |
 | Role rendered | event | repository author |
+| Role contract stated | event | role author |
+| Permission set rendered | event | repository author |
 | File copied | event | repository author |
 | Seed checked | event | repository author |
 | Design option selected | event | repository author |
@@ -195,5 +205,3 @@ notifier, one publish target, and named presets.
 ## Open questions
 
 - Which later contexts will consume the factory setup downstream?
-- Does each generated project receive the Context7 MCP server, or does only this repository declare it?
-- Does the generated project enable the Context7 MCP server by default, or does the server stay declared and disabled until the author enables it?
