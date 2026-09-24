@@ -17,6 +17,5 @@ The project must render the docs tree as one browsable site.
 
 ## Notes
 
-- Source: MASTER-PLAN F4 row (browsable-docs).
 - Reference-only: `../repofactory` feat-docs-site 9.0.0 with 13 requirements;
   no content is copied and nothing is migrated.

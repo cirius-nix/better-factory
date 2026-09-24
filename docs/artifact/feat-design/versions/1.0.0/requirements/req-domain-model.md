@@ -17,5 +17,4 @@ aggregate canvas, and a glossary, seeded from templates.
 
 ## Notes
 
-- Source: MASTER-PLAN F3 row (domain-model) and the DDD chapter append.
 - The tactical content of each canvas belongs to later phases (P2+).

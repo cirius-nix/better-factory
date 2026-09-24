@@ -18,5 +18,4 @@ readiness gate before its release.
 
 ## Notes
 
-- Source: MASTER-PLAN section 4 (P5 release-expert, copy-only).
 - The gate checks that the code of the change exists before the copy.

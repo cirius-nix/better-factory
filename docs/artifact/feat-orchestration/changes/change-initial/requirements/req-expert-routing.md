@@ -19,6 +19,4 @@ expert, and no expert must delegate work to another expert.
 
 ## Notes
 
-- Source: MASTER-PLAN section 4 (P1 requirement-expert, P2-P3 solution-expert,
-  P4 implementation experts, P5 release-expert).
 - The coordinator owns coordination only and owns no content.

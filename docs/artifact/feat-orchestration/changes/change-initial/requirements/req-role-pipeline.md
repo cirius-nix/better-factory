@@ -23,6 +23,4 @@ the debt from feat-foundation.
 
 ## Notes
 
-- Source: MASTER-PLAN F2 row (`lib/roles.nix`) and the coordination decision
-  that expert roles render for all selected harnesses from a single role source.
 - The DDD and UX chapters arrive as appends; their content belongs to feat-design (F3).

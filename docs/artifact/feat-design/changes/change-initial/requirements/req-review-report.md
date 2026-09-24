@@ -16,5 +16,4 @@ with findings and makes no edits.
 
 ## Notes
 
-- Source: MASTER-PLAN F3 row (review-report) and the review skill (reference-only).
 - The report format belongs to later phases (P2+).

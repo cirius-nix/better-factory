@@ -21,6 +21,5 @@ only, and it holds secret names only with values in `.env` or CI secrets.
 
 ## Notes
 
-- Source: MASTER-PLAN F4 row (one-notifier).
 - Decision: the notifier serves deploy messages only; no other message uses it.
 - This requirement replaces the duplicated notifier options with one path.

@@ -16,5 +16,4 @@ the designer only and never gates code.
 
 ## Notes
 
-- Source: MASTER-PLAN F3 row (tool-non-gate).
 - The tool aids the designer only; it is not a precondition for code.

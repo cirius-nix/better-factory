@@ -21,6 +21,4 @@ feat-foundation.
 
 ## Notes
 
-- Source: MASTER-PLAN section 3 (`libs/factory-options` presets
-  minimal/docs-only/full) and F1 non-goal that defers presets here.
 - Decision: presets live in feat-delivery per the feature-merge decision.

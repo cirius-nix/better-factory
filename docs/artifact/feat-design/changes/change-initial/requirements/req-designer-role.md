@@ -16,5 +16,4 @@ chapter hook of feat-orchestration.
 
 ## Notes
 
-- Source: MASTER-PLAN F3 row and the F2 role pipeline (chapter appends).
 - The harness rendering stays in F2; this requirement covers the designer role only.

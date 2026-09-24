@@ -18,5 +18,4 @@ with one phase in one commit.
 
 ## Notes
 
-- Source: MASTER-PLAN section 4 (five phase commits per feature, Plan-Pn then Build-Pn).
 - The protocol covers all five phases of each change.

@@ -21,6 +21,5 @@ azure-static-web-app value uses one SWA deploy tool option.
 
 ## Notes
 
-- Source: MASTER-PLAN F4 row (one-target).
 - Decision: publish targets are github-pages and azure-static-web-app, with
   github-pages as the default.

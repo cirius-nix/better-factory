@@ -24,6 +24,4 @@ lives under `factory.project.agents` and the local layer lives under
 
 ## Notes
 
-- Source: MASTER-PLAN sections 1 and 3 (three layers managed, project, local;
-  facade `factory.project.agents`; typed keys with extra passthrough; local gitignored).
 - This requirement builds upon the facade root of feat-foundation 1.0.0.

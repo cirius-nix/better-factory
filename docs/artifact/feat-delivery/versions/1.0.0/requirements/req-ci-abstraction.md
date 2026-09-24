@@ -21,5 +21,4 @@ fixes where the CI files live. No feature holds its own CI tree.
 
 ## Notes
 
-- Source: MASTER-PLAN F4 row (one-ci-abstraction).
 - This requirement replaces the duplicated per-feature CI options with one path.

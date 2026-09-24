@@ -17,5 +17,4 @@ unset and ddd, where unset is the default.
 
 ## Notes
 
-- Source: MASTER-PLAN F3 row (`design.use`).
 - Decision: the value set stays `{unset, ddd}`; no other method has evidence.

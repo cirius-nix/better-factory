@@ -13,7 +13,3 @@ and interaction, and the designer must never own business rules or aggregates.
 
 - Given a designer task, when the designer delivers the work, then the work sits in the Design artifact and covers flow, layout, or interaction.
 - Given a business rule or an aggregate, when the reviewer checks the owner, then the owner is never the designer.
-
-## Notes
-
-- Source: MASTER-PLAN F3 row (designer-boundary) and the UX chapter append.

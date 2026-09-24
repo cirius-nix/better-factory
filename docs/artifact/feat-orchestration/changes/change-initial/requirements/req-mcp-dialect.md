@@ -20,5 +20,4 @@ each selected harness.
 
 ## Notes
 
-- Source: MASTER-PLAN F2 row (merged opencode, claude, and codex adapters).
 - The author declares each MCP entry once in the single source.
