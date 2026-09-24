@@ -1,1 +1,1 @@
-{"agent":{"factory-expert":{"permission":{"task":"deny"}}},"subagent_depth":1}
+{"agents":{"artifact-master":{"permissions":[{"action":"subagent","effect":"allow","resource":"*"}]},"artifact-release-expert":{"permissions":[{"action":"subagent","effect":"deny","resource":"*"}]},"factory-expert":{"permissions":[{"action":"subagent","effect":"deny","resource":"*"}]},"requirement-expert":{"permissions":[{"action":"subagent","effect":"deny","resource":"*"}]},"solution-expert":{"permissions":[{"action":"subagent","effect":"deny","resource":"*"}]}}}
