@@ -8,9 +8,10 @@ before you add or change a feature.
 
 | Feature | Version | Summary |
 | --- | --- | --- |
-| [feat-foundation](feat-foundation/README.md) | 2.0.0 | One layout, one architecture choice, one seed check, one facade, and three copy modes for new repositories. |
-| [feat-orchestration](feat-orchestration/README.md) | 1.0.0 | One phase protocol, one expert routing rule, three harness layers, one MCP source, one role source, and one copy-only release. |
-| [feat-design](feat-design/README.md) | 1.0.0 | One design method, one domain model per context, one design review, and one designer role with clear boundaries. |
-| [feat-delivery](feat-delivery/README.md) | 1.0.0 | One browsable docs site, one CI choice, one notifier for deploy messages, one publish target, and named presets. |
+| [feat-foundation](feat-foundation/README.md) | 1.0.0 | One layout, one architecture choice, one seed check, one facade, and three copy modes for new repositories. |
+| [feat-orchestration](feat-orchestration/README.md) | 2.0.0 | One phase protocol, one expert routing rule, three harness layers, one MCP source, one role source, and one copy-only release. |
+| [feat-design](feat-design/README.md) | 1.1.0 | One design method, one domain model per context, one design review, and one designer role with clear boundaries. |
+| [feat-delivery](feat-delivery/README.md) | 1.1.0 | One browsable docs site, one CI choice, one notifier for deploy messages, one publish target, and named presets. |
+| [feat-example](feat-example/README.md) | 1.0.0 | The starter feature. |
 
 Read `versions/<current>/` of a feature for its state. Read `changes/` of a feature for its history.
