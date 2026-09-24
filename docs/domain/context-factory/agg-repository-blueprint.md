@@ -12,6 +12,8 @@ tool, the design files and chapters, the CI choice and its folder, the site sett
 derived feature order, the publish target and its deploy tool, the notifier channels, the
 selected preset, the site files, the CI file, the notifier file, the publish flow, the file
 plan with one copy mode per file, and the result of the seed check.
+The composed entrypoint reads the consumer declaration and the repository root, computes the
+plan of the consumer repository, and emits the tree below the scratch directory.
 One transaction computes the plan from the author declaration and writes the files.
 The rules are simple, so the implementation uses a transaction script.
 One aggregate instance covers one emitted repository.
@@ -23,6 +25,7 @@ the design work (spec-protocol, spec-release-gate, spec-designer-role).
 | From | Command | To |
 | --- | --- | --- |
 | empty | Adopt layout | declared |
+| empty | Import factory | declared |
 | declared | Select architecture | declared |
 | declared | Declare project | declared |
 | declared | Select harnesses | declared |
@@ -35,6 +38,7 @@ the design work (spec-protocol, spec-release-gate, spec-designer-role).
 | declared | Apply preset | declared |
 | declared | Declare local settings | declared |
 | declared | Copy file | emitted |
+| declared | Emit repository | emitted |
 | emitted | Check seed | verified |
 
 ## Enforced invariants
@@ -55,6 +59,9 @@ the design work (spec-protocol, spec-release-gate, spec-designer-role).
 - One MCP source renders each enabled entry into the dialect of each selected harness.
 - One role source renders each enabled role for each selected harness. The body is the role
   source plus the ordered chapter appends.
+- The effective role set is the merge of the project layer roles and the local layer roles.
+  When the declaration holds no role, the blueprint holds the shipped role set: one declaration
+  for each role source below `assets/roles/`, except the reserved `designer-expert`.
 - The design method is one of `unset` and `ddd`. The ux flag is a bool. The design tool is one
   of `unset`, `figma`, and `pencil`.
 - The emitted file set holds the design files only when their design option is active: the DDD
@@ -81,6 +88,12 @@ the design work (spec-protocol, spec-release-gate, spec-designer-role).
 - The release copy holds the change artifacts and no new content.
 - The seed check is green only when every layer passes. The check covers the generated setup
   only.
+- The composed entrypoint validates the consumer declaration with the facade rules, applies the
+  preset, and composes the plan of the feature modules. The plan applies the foundation mode
+  map.
+- The emitted tree holds the owned declaration and the composed plan. The entrypoint writes
+  below the scratch directory only, and the factory source and the consumer repository stay
+  unchanged.
 
 ## Corrective policies
 
@@ -106,6 +119,8 @@ the release) belong to the coordinator workflow, not to the blueprint transactio
 | Declare local settings | The blueprint merges the local layer last. A managed key keeps its canonical value with a log line. | Harness merged |
 | Copy file | The blueprint writes one planned file as its copy mode says. | File copied |
 | Check seed | The blueprint materializes the tree and runs the seed check. | Seed checked |
+| Import factory | The blueprint records the pinned factory source and validates the consumer declaration. An invalid declaration is an error. | Factory imported |
+| Emit repository | The blueprint composes the plan from the consumer declaration and the repository root, and emits the tree below the scratch directory. | Repository emitted |
 
 ## Created events
 
@@ -124,6 +139,8 @@ the release) belong to the coordinator workflow, not to the blueprint transactio
 | Preset applied | The preset name and the effective key set. |
 | File copied | The path and the copy mode. |
 | Seed checked | The result and the layers. |
+| Factory imported | The pinned factory source and the input declaration. |
+| Repository emitted | The consumer settings, the repository root, and the emitted tree. |
 
 ## References by identity
 
@@ -133,6 +150,8 @@ None. The blueprint holds every fact of one repository and references no other a
 
 - One blueprint covers one emitted repository.
 - The factory computes the file plan in one pass and writes the files in one transaction.
+- The composed entrypoint computes the plan from the consumer declaration and the repository
+  root. The seed check and the entrypoint read the same foundation mode map.
 - The phase protocol messages (Phase planned, Phase built, Expert assigned, Version released)
   belong to the coordinator workflow. The blueprint renders the role files that carry the
   protocol; it emits no protocol event.

@@ -55,3 +55,7 @@ write two rows.
 | static directory | context-factory | A directory of static files that the site build copies to the site root. | - |
 | consumer | context-factory | A downstream author who imports the factory and emits an owned repository. | - |
 | entrypoint | context-factory | The composed input that takes downstream settings and emits the downstream tree. | - |
+| documented path | context-factory | The import path of the factory modules that the consumer uses. | - |
+| scratch directory | context-factory | The directory outside the factory source that holds the emitted tree until the consumer adopts it. | - |
+| consumer guide | context-factory | The guide that names the starter file, the keys to change, and the checks to run. | - |
+| emitted tree | context-factory | The repository tree that the entrypoint writes below the scratch directory. | - |

@@ -69,6 +69,10 @@ notifier, one publish target, and named presets.
 | static directory | A directory of static files that the site build copies to the site root. |
 | consumer | A downstream author who imports the factory and emits an owned repository. |
 | entrypoint | The composed input that takes downstream settings and emits the downstream tree. |
+| documented path | The import path of the factory modules that the consumer uses. |
+| scratch directory | The directory outside the factory source that holds the emitted tree until the consumer adopts it. |
+| consumer guide | The guide that names the starter file, the keys to change, and the checks to run. |
+| emitted tree | The repository tree that the entrypoint writes below the scratch directory. |
 
 ## Business rules
 
@@ -100,6 +104,8 @@ notifier, one publish target, and named presets.
 - The site files are emitted only when the site is enabled, and the CI file builds the site.
 - The consumer declares the factory input and imports its modules by the documented path.
 - The entrypoint takes the downstream settings and emits the downstream tree.
+- The entrypoint validates the consumer declaration, applies the preset, and composes the plan of the feature modules.
+- The emitted tree holds the owned declaration and the composed plan, and the entrypoint writes below the scratch directory only.
 
 ## Inbound messages
 
@@ -127,6 +133,8 @@ notifier, one publish target, and named presets.
 | Apply preset | command | repository author |
 | Publish docs | command | repository author |
 | Notify deploy | command | repository author |
+| Import factory | command | consumer |
+| Emit repository | command | consumer |
 
 ## Outbound messages
 
@@ -154,6 +162,8 @@ notifier, one publish target, and named presets.
 | Preset applied | event | repository author |
 | Docs published | event | repository author |
 | Deploy notified | event | repository author |
+| Factory imported | event | consumer |
+| Repository emitted | event | consumer |
 
 ## Aggregates
 

@@ -17,9 +17,20 @@ project settings, and emits the downstream tree.
 Non-goals: later specification work beyond this entrypoint, any change to the
 existing 1.0.0 contracts, and any edit under `versions/1.0.0`.
 
+## Code paths
+
+- `services/factory/modules/entrypoint.nix`
+- `services/factory/modules/file-plan.nix`
+- `services/factory/modules/seed-check.nix`
+- `services/factory/consumer-guide.md`
+- `services/factory/examples/consumer`
+- `services/factory/README.md`
+
 ## Artifacts
 
 - [Requirements](requirements/README.md)
+- [Specifications](specifications/README.md)
+- [Decisions](decisions/)
 
 ## Removed artifacts
 
