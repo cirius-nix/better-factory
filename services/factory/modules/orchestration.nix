@@ -163,7 +163,9 @@ let
             # layer or in the local layer fails evaluation with a message
             # that names the reserved name. Both layers validate here: the
             # project declaration through evalAgents and the local
-            # declaration through readLocalAgents.
+            # declaration through readLocalAgents. Each layer holds a
+            # partial declaration: absent fields come from the shipped
+            # defaults of the entrypoint (C-41).
             roleNameOf =
               n:
               let
@@ -179,7 +181,7 @@ let
           else
             let
               checkedMcp = builtins.mapAttrs checkMcpEntry (value.mcp or { });
-              checkedRoles = builtins.mapAttrs roles.checkRole (value.roles or { });
+              checkedRoles = builtins.mapAttrs roles.checkPartialRole (value.roles or { });
               result =
                 (if value ? uses then { uses = value.uses; } else { })
                 // {

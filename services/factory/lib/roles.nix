@@ -39,13 +39,19 @@ let
   # is true: the project layer and the local layer validate with
   # `checkRole`, so a user declaration of a reserved name fails; the role
   # render validates the merged set with allowReserved, so the
-  # factory-injected built-in declaration passes. Returns the normalized
-  # declaration: `enable` defaults to true, `name` to the attribute name,
+  # factory-injected built-in declaration passes. With `partial`, the
+  # `description` and the `source` may stay absent: the layer holds only
+  # the fields that change, and the shipped defaults of the entrypoint
+  # (C-41) supply the rest before the render validates the merged set
+  # with the full checks. Returns the normalized declaration: `enable`
+  # defaults to true, `name` to the attribute name,
   # and each harness group to the empty set. The structural header keys
-  # always win over a harness extra with the same name.
+  # always win over a harness extra with the same name. A partial check
+  # returns the sparse declaration with the present keys only.
   checkRoleWith =
     {
       allowReserved ? false,
+      partial ? false,
     }:
     attrName: decl:
     if !(builtins.isAttrs decl) then
@@ -59,11 +65,17 @@ let
       else if (decl ? enable) && !(builtins.isBool decl.enable) then
         throw "role-enable: the `enable` of the declaration `roles.${attrName}` must be a bool"
       else if
-        !(decl ? description) || !(builtins.isString decl.description) || decl.description == ""
+        (decl ? description) && (!(builtins.isString decl.description) || decl.description == "")
       then
+        throw "role-description: the `description` of the declaration `roles.${attrName}` must be a non-empty string"
+      else if !(decl ? description) && !partial then
         throw "role-description: the declaration `roles.${attrName}` needs a non-empty string `description`"
-      else if !(decl ? source) || !(isPathLike decl.source) || !(builtins.pathExists decl.source) then
+      else if
+        (decl ? source) && (!(isPathLike decl.source) || !(builtins.pathExists decl.source))
+      then
         throw "role-source: the `source` of the declaration `roles.${attrName}` must exist; builtins.pathExists does not match it"
+      else if !(decl ? source) && !partial then
+        throw "role-source: the declaration `roles.${attrName}` needs an existing `source`; builtins.pathExists does not match it"
       else
         let
           name = if decl ? name then decl.name else attrName;
@@ -99,6 +111,24 @@ let
             in
             if bad != [ ] then
               throw "role-harness: the `harness.${builtins.head bad}` of the declaration `roles.${attrName}` must be an attribute set"
+            else if partial then
+              # The sparse layer keeps the present keys only; the shipped
+              # defaults supply the rest before the render validates the
+              # merged set with the full checks.
+              (if decl ? enable then { inherit (decl) enable; } else { })
+              // (if decl ? name then { inherit (decl) name; } else { })
+              // (if decl ? description then { inherit (decl) description; } else { })
+              // (if decl ? source then { inherit (decl) source; } else { })
+              // (
+                if decl ? harness then
+                  {
+                    harness = {
+                      opencode = if builtins.hasAttr "opencode" hg then hg.opencode else { };
+                    };
+                  }
+                else
+                  { }
+              )
             else
               {
                 enable = if decl ? enable then decl.enable else true;
@@ -111,6 +141,8 @@ let
               };
 
   checkRole = checkRoleWith { };
+
+  checkPartialRole = checkRoleWith { partial = true; };
 
   # Trim trailing newline characters from rendered text.
   trimRight =
@@ -203,6 +235,7 @@ in
     harnessFields
     checkRoleWith
     checkRole
+    checkPartialRole
     trimRight
     composeBody
     renderRoles
