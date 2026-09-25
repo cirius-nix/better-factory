@@ -96,3 +96,7 @@ write two rows.
 | coverage scan | context-factory | The deterministic check that reads the surface declaration of the project under scan and the rendered permission file of the project, and reports each unowned author path. | - |
 | nearest role | context-factory | The role with the write scope closest to an unowned author path. | - |
 | proposed role | context-factory | The role that the coverage scan proposes for an unowned author path: the role name and the ownership path patterns that cover the path or the class. | - |
+| surface entry | context-factory | One line of the surface declaration of a project: the class, the copy mode, and the path pattern. | - |
+| coverage report | context-factory | The deterministic output of the coverage scan: one row for each unowned author path, with the path, the copy mode, the nearest role, and the proposed role. | - |
+| scan agent | context-factory | The shipped agent that runs the coverage scan, namely `artifact-master`. | - |
+| repository role | context-factory | The shipped role `repository-expert` that owns the seven standard surface classes. | - |

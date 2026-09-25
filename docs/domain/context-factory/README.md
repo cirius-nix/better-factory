@@ -108,6 +108,10 @@ notifier, one publish target, and named presets.
 | surface declaration | The declaration of the surface of one project of the model. |
 | standard surface class | A path class that the model requires of every generated project, independent of the copy mode. |
 | agent | An entry of the agent set of a generated project: an agent that the factory ships, or an agent that the user defines. |
+| surface entry | One line of the surface declaration of a project: the class, the copy mode, and the path pattern. |
+| coverage report | The deterministic output of the coverage scan: one row for each unowned author path, with the path, the copy mode, the nearest role, and the proposed role. |
+| scan agent | The shipped agent that runs the coverage scan, namely `artifact-master`. |
+| repository role | The shipped role `repository-expert` that owns the seven standard surface classes. |
 
 ## Business rules
 
@@ -187,8 +191,15 @@ notifier, one publish target, and named presets.
 - The coverage scan proposes a role for each unowned author path: the role name and the ownership path patterns that cover the path or the class.
 - The coverage scan is deterministic.
 - The coverage scan ships with its instruction skill and its command.
-- The agent that runs the scan holds the local read tools and the shell rule that the scan script needs.
+- The coverage scan ships as a bundle: the scan script, the command, and the instruction skill.
+- The surface declaration sits at the root `surface.tsv` of the project.
+- The write scope of an agent is the set of surface entries where the last matching `edit` rule is `allow`.
+- The file form `.opencode/agents/<id>.md` is the last definition of one agent id.
+- The agent that runs the scan holds the local read tools, the `skill` allow rule of the instruction skill, and the shell rule that the scan script needs.
 - The coverage scan proves the write coverage of a project.
+- The factory ships the repository role, and the shipped role set holds seven roles.
+- The proposal never names the shipped repository role.
+- The `home` axis of the capability model stays unchanged.
 
 ## Inbound messages
 
@@ -209,6 +220,8 @@ notifier, one publish target, and named presets.
 | Declare domain model | command | solution expert |
 | Review design | query | reviewer |
 | Check seed | query | repository author |
+| Run coverage scan | command | repository author |
+| Create role | command | role author |
 | Run phase | command | change coordinator |
 | Assign expert | command | change coordinator |
 | Assign designer | command | change coordinator |
@@ -246,6 +259,12 @@ notifier, one publish target, and named presets.
 | Contract approved | event | solution expert |
 | File copied | event | repository author |
 | Seed checked | event | repository author |
+| Surface declared | event | repository author |
+| Coverage scanned | event | repository author |
+| Unowned path found | event | repository author |
+| Role proposed | event | repository author |
+| Owner assigned | event | role author |
+| Coverage proved | event | repository author |
 | Design option selected | event | repository author |
 | Design tool selected | event | repository author |
 | Domain model declared | event | solution expert |

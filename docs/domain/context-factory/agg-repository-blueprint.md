@@ -30,6 +30,21 @@ source repository. The blueprint also renders the interaction points of the requ
 and the solution expert (spec-human-interaction) and the managed artifact-driven page that
 carries the contract-first rule (spec-contract-first).
 
+The blueprint also records the surface declaration of each project of the model
+(spec-coverage-surface). The declaration lists each surface class with its copy mode and its path
+pattern. The blueprint renders the standard declaration of a generated project from the data table
+`lib/surface.nix` and the file plan. The blueprint renders the coverage scan bundle: the script,
+the command, and the instruction skill (spec-coverage-bundle). The coverage scan reads the
+declaration of the project under scan and the agent set of the project, applies the last matching
+`edit` rule of each agent, and reports each unowned author path with the nearest role and the
+proposed role (spec-agent-read, spec-coverage-scan, spec-proposed-role). The scan is read-only, so
+it changes no blueprint fact.
+
+The blueprint also ships the seventh role `repository-expert` (spec-repository-role). The role
+holds the ownership of the seven standard surface classes: the root files, the harness tree, and
+the home of the capability of the generated project. The shipped role set holds seven roles, so the
+union of the shipped agents covers the standard surface.
+
 ## State transitions
 
 | From | Command | To |
@@ -112,6 +127,40 @@ carries the contract-first rule (spec-contract-first).
   invariant. The human approves the contract before phase 3.
 - The blueprint emits the managed artifact-driven page into every generated project. The page
   carries the contract-first rule.
+- Each project of the model holds its own surface declaration. The declaration sits at the root
+  `surface.tsv` of the project and holds one line per surface class: the class, the copy mode, and
+  the path pattern (spec-coverage-surface).
+- The surface of a project does not depend on the copy mode. The scan reads each class, also when
+  the copy mode is `none`. A path class that the factory does not copy, and that the project must
+  hold, belongs to the surface.
+- The factory holds one source of the standard surface classes, the data table `lib/surface.nix`.
+  The declaration of a generated project joins the plan at `surface.tsv` with the copy mode
+  `managed`.
+- The surface declaration of the factory repository holds the factory source paths. The shipped
+  role `repository-expert` owns the factory declaration. The `factory-expert` owns the factory
+  source `lib/surface.nix`.
+- The owner of a surface path is a shipped agent or a project-local role. The union of the write
+  scope of the agents of a project covers the surface.
+- The factory ships the role `repository-expert`. The role holds the ownership of the seven
+  standard surface classes. The shipped role set holds seven roles, so the union of the shipped
+  agents covers the standard surface (spec-repository-role).
+- The scan proposes a role for a project-specific gap. The proposal never names `repository-expert`,
+  because that role ships (spec-proposed-role).
+- The write scope of an agent is the set of surface entries where the last matching `edit` rule of
+  the agent is `allow`. The scan reads the shipped agents and the agents that the user defines
+  (spec-agent-read).
+- The scan reads the configuration documents in the merge order of opencode version 2 and the
+  frontmatter `permissions` of `.opencode/agents/<id>.md`. The file form is the last definition of
+  one id (adr-agent-definition-read).
+- The scan reads the declared rules only. The base default policy of opencode is a harness policy
+  and covers no path.
+- The coverage scan is deterministic. The same surface declaration and the same agent set give the
+  same report. The scan writes no content (spec-coverage-scan).
+- The coverage scan ships with its script, its command, and its instruction skill. The agent
+  `artifact-master` runs the scan. It holds the local read tools, the `skill` allow rule of the
+  instruction skill, and the shell rule of the script (spec-coverage-bundle).
+- The `home` axis of the capability model stays unchanged. The coverage is about the write
+  permission of an agent, not about the origin of a capability.
 - Each rendered role holds a default permission set derived from its ownership axis and its
   capability axis (spec-role-permissions). The write scope of the role is a fixed set of path
   patterns, and a write outside the scope is denied.
@@ -167,6 +216,9 @@ carries the contract-first rule (spec-contract-first).
 None. The context holds one aggregate, and one transaction keeps every invariant.
 The phase protocol policies (a plan approval starts the build, a readiness confirmation starts
 the release) belong to the coordinator workflow, not to the blueprint transaction.
+The coverage workflow policies (a proposal starts the role creation, a new role starts a second
+scan) belong to the coverage workflow, not to the blueprint transaction. The scan is read-only, so
+it needs no corrective policy.
 
 ## Handled commands
 
@@ -190,7 +242,7 @@ the release) belong to the coordinator workflow, not to the blueprint transactio
 | Copy file | The blueprint writes one planned file as its copy mode says. | File copied |
 | Check seed | The blueprint materializes the tree and runs the seed check. | Seed checked |
 | Import factory | The blueprint records the pinned factory source and validates the consumer declaration. An invalid declaration is an error. | Factory imported |
-| Emit repository | The blueprint composes the plan from the consumer declaration and the repository root, and emits the tree below the scratch directory. | Repository emitted |
+| Emit repository | The blueprint composes the plan from the consumer declaration and the repository root, and emits the tree below the scratch directory. | Repository emitted, Surface declared |
 
 ## Created events
 
@@ -209,6 +261,7 @@ the release) belong to the coordinator workflow, not to the blueprint transactio
 | Capability shipped | The capability kind and the emitted path of the generated project. |
 | Capability resolved | The capability kind and the opencode target of the capability. |
 | Permission set rendered | The role name and the ordered permission array. |
+| Surface declared | The project root and the surface classes with their copy modes. |
 | Design option selected | The design method, the ux flag, the design files, and the chapters. |
 | Design tool selected | The design tool and the enabled canonical entry. |
 | CI selected | The CI choice and the folder. |
@@ -242,6 +295,11 @@ None. The blueprint holds every fact of one repository and references no other a
 - The delivery workflow messages (Docs published, Deploy notified) belong to the delivery
   workflow. The blueprint computes the site files, the CI file, the notifier file, and the
   publish flow; it emits no workflow event.
+- The coverage workflow messages (Coverage scanned, Unowned path found, Role proposed,
+  Owner assigned, Coverage proved) belong to the coverage workflow. The blueprint renders the
+  surface declaration and the scan bundle, and it holds the coverage invariants. The scan is a
+  read of the blueprint facts and of the agent set; it changes no state, so the blueprint emits no
+  coverage event itself.
 - No second aggregate exists. The coordination holds no factory data that one transaction must
   keep consistent.
 - The reference semantics in `../repofactory` stay reference-only.
