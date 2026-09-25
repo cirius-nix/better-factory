@@ -31,8 +31,12 @@ The scan must compare the surface with the union of the write scope of the agent
 report each uncovered path. The report must name the path, the nearest role of the path, and the
 proposed role. The nearest role must be the role with the write scope closest to the path. The
 proposed role must give the role name and the ownership path patterns that cover the path or the
-class. The user must create the role with the `expert-role` skill. The proposal is the deliverable,
-not only the hole list.
+class. The user must create the proposed role for a project-specific gap with the `expert-role` skill.
+The proposal is the deliverable, not only the hole list.
+
+The factory must ship the role `repository-expert`. The role must own the seven standard surface
+classes. The proposal of the scan must cover a project-specific gap. The proposal must never name
+`repository-expert`.
 
 The result must be deterministic: the same surface and the same agent set must give the same
 report.
@@ -57,14 +61,18 @@ The agent must hold the `skill` rule that allows the load of the instruction ski
 - Given an agent that the file `.opencode/agents/<id>.md` defines, when the scan runs, then the
   scan reads the frontmatter `permissions` of the agent.
 - Given the surface and the agent set, when the scan runs twice, then the two reports are equal.
+- Given the seven standard surface classes, when the author reads the shipped role set, then the
+  role `repository-expert` owns the classes.
 - Given a path of the project surface with no owner, when the scan runs, then the report names the
   path, the nearest role of the path, and the proposed role.
 - Given two paths of one class with two owners, when the scan runs, then the report names the
   nearest role of each path.
 - Given a proposed role, when the scan runs, then the proposal names the role name and the
   ownership path patterns that cover the path or the class.
-- Given a proposed role, when the user reads the report, then the user creates the role with the
-  `expert-role` skill.
+- Given a project-specific gap, when the scan runs, then the proposal names a role other than
+  `repository-expert`.
+- Given a proposed role for a project-specific gap, when the user reads the report, then the user
+  creates the role with the `expert-role` skill.
 - Given a surface that every agent covers, when the scan runs, then the report holds no unowned
   author path.
 - Given the factory repository, when the scan runs, then the scan reads the surface declaration of
@@ -80,8 +88,9 @@ The agent must hold the `skill` rule that allows the load of the instruction ski
 
 ## Notes
 
-- The exact script, the exact command name, the exact skill content, the exact proposed role, and
-  the exact render shape belong to phase 2.
+- The exact script, the exact command name, the exact skill content, the exact render shape, and
+  the exact name of the proposed role belong to phase 2. The proposal covers a project-specific gap
+  and never names `repository-expert`.
 - The scan is the proof of [req-write-coverage](req-write-coverage.md).
 - Phase 4 runs the scan on the factory repository and on an example generated project, and expects
   no unowned author path.

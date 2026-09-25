@@ -36,6 +36,11 @@ Version 4.0.0 leaves these standard surface classes uncovered by the shipped age
 | the project's own capabilities: `.agents/skills/<name>/**`, `.opencode/commands/<name>.md`, `.opencode/agents/<name>.md` | no |
 | `docs/wiki/documentation/artifact-driven/templates/**` | no |
 
+The change must ship the seventh role, `repository-expert`. The role must own the seven standard
+surface classes. At version 5.0.0 the union of the shipped write scope covers the standard surface.
+The scan proposes a role for a project-specific gap only. The proposal never names
+`repository-expert`.
+
 These surface classes are covered for comparison:
 
 | Surface class | Owner |
@@ -52,16 +57,16 @@ The scan does five steps:
 2. Build the surface of the project from the surface declaration.
 3. Compare the surface with the union of the write scope of the agents.
 4. Report every path with no owner.
-5. Propose a role for each uncovered path or class: the role name and the ownership path patterns
-   that cover the path or the class.
+5. Propose a role for each uncovered project-specific path or class: the role name and the
+   ownership path patterns that cover the path or the class.
 
-The user creates the proposed role with the `expert-role` skill. The proposal is the deliverable,
-not only the hole list.
+The user creates the proposed role for a project-specific gap with the `expert-role` skill. The
+proposal is the deliverable, not only the hole list.
 
 The scan reads both definition forms of opencode version 2: the `agents.<id>.permissions` rules of
 the configuration documents, and the frontmatter `permissions` of `.opencode/agents/<id>.md`. The
 human runs the command. The agent runs the scan, presents the holes, and presents the proposed
-role. The user creates the role through the `expert-role` skill.
+role. The user creates the proposed role for a project-specific gap through the `expert-role` skill.
 
 The change does not change the `home` axis of the capability model. The coverage is about the
 write permission of an agent, not about the origin of a capability. The `home` axis stays
@@ -79,7 +84,10 @@ the factory repository and on `services/factory/examples/consumer`, and expects 
   defines.
 - In scope: both definition forms of opencode version 2: the `agents.<id>.permissions` rules and
   the frontmatter `permissions` of `.opencode/agents/<id>.md`.
-- In scope: the owner of each surface path: a shipped agent or a project-local role.
+- In scope: the owner of each surface path: the shipped role for a standard class, or a
+  project-local role for a project-specific gap.
+- In scope: the seventh shipped role `repository-expert`, the growth of the shipped role set from
+  six to seven roles, and the ownership of the seven standard surface classes.
 - In scope: the standard surface classes of version 4.0.0 that the shipped agents do not cover.
 - In scope: the coverage scan, the report, the nearest role, and the proposed role.
 - In scope: the deterministic result of the scan.
@@ -99,6 +107,10 @@ This change depends on [change-capability-layer](../change-capability-layer/READ
 4.0.0 is the `**To:**` of that change. That change gives the bundle rule: a capability ships with
 its instruction skill. This change uses the bundle rule for the coverage scan capability.
 
+The phase-4 order is the phase 4 of `change-capability-layer` first, then the phase 4 of this
+change. This change uses the capability model and the bundle rule of that change. The seventh role
+`repository-expert` follows the role contract of that change.
+
 ## Artifacts
 
 - [Requirements](requirements/README.md)
@@ -108,8 +120,12 @@ its instruction skill. This change uses the bundle rule for the coverage scan ca
 No code changes in this phase. The later phases will likely touch these paths:
 
 - `services/factory/lib/harness.nix` (the role-contract table and the ownership rows)
+- `services/factory/assets/roles/repository-expert/ROLE.md` (the seventh shipped role, new)
+- `services/factory/lib/surface.nix` (the surface declaration, new)
 - `services/factory/lib/` (the surface declaration, candidate)
+- `services/factory/modules/coverage.nix` (the render of the scan capability, new)
 - `services/factory/scripts/` (the deterministic coverage scan, candidate)
+- `services/factory/assets/scripts/` (the scan script asset, new)
 - `services/factory/assets/skills/` (the instruction skill asset, candidate)
 - `services/factory/assets/commands/` (the command asset, candidate)
 - `services/factory/modules/` (the render of the scan capability)

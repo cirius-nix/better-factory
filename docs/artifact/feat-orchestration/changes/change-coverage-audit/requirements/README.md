@@ -15,11 +15,13 @@ or a project-local role.
 Each project of the model holds its own surface declaration. The factory repository is a project of
 the same model, and its surface holds the factory source paths.
 
-At version 4.0.0 seven standard surface classes are uncovered by the shipped agents. A scan must
-find each unowned author path, name the nearest role of the path, and propose a role with the role
-name and the ownership path patterns that cover the path or the class. The user creates the
-proposed role with the `expert-role` skill. The scan must prove the coverage. The `home` axis of
-the capability model stays unchanged.
+At version 4.0.0 seven standard surface classes are uncovered by the shipped agents. The change
+must ship the seventh role, `repository-expert`. The role must own the seven standard surface
+classes. At version 5.0.0 the union of the shipped write scope covers the standard surface. A scan
+must find each unowned author path, name the nearest role of the path, and propose a role with the
+role name and the ownership path patterns that cover the path or the class. The scan proposes a
+role for a project-specific gap only. The user creates each proposed role for a project-specific gap
+with the `expert-role` skill. The scan must prove the coverage. The `home` axis of the capability model stays unchanged.
 
 ## Scope
 
@@ -31,6 +33,8 @@ the capability model stays unchanged.
 - In scope: both definition forms of opencode version 2: the `agents.<id>.permissions` rules of
   the configuration documents, and the frontmatter `permissions` of `.opencode/agents/<id>.md`.
 - In scope: the owner of each surface path: a shipped agent or a project-local role.
+- In scope: the seventh shipped role `repository-expert` and its ownership of the seven standard
+  surface classes.
 - In scope: the standard surface classes of version 4.0.0 that the shipped agents do not cover.
 - In scope: the coverage scan, the report, the nearest role, and the proposed role.
 - In scope: the deterministic result of the scan.
@@ -68,15 +72,17 @@ the capability model stays unchanged.
 | [req-capability-bundle](req-capability-bundle.md) | The project must ship each tool capability with its instruction skill, and each using role must grant that skill. | Must |
 | [req-human-interaction](req-human-interaction.md) | The project must define the interaction points of the requirement expert and the solution expert with the human. | Must |
 | [req-contract-first](req-contract-first.md) | The project must put the contract before the implementation of each specification. | Must |
-| [req-write-coverage](req-write-coverage.md) | Every path of the project surface must have an owner: a shipped agent, or a project-local role that the scan proposes. | Must |
-| [req-coverage-audit](req-coverage-audit.md) | The coverage scan must find each surface path with no owner, name the nearest role of the path, and propose a role. | Must |
+| [req-write-coverage](req-write-coverage.md) | Every path of the project surface must have an owner: the shipped role `repository-expert` for a standard class, or a project-local role that the scan proposes for a project-specific gap. | Must |
+| [req-coverage-audit](req-coverage-audit.md) | The coverage scan must find each surface path with no owner, name the nearest role of the path, and propose a role for a project-specific gap. | Must |
 
 ## Acceptance
 
-Every path of the project surface has an owner: a shipped agent or a project-local role. A class is
-covered when every path of the class is covered. Each project of the model holds its own surface
-declaration, including the factory repository. The union of the write scope of the shipped agents
-covers the standard surface. The `home` axis of the capability model stays unchanged.
+Every path of the project surface has an owner: the shipped role `repository-expert` for a standard
+class, or a project-local role for a project-specific gap. A class is covered when every path of
+the class is covered. Each project of the model holds its own surface declaration, including the
+factory repository. The factory ships the seventh role, `repository-expert`. The role owns the
+seven standard surface classes. The union of the write scope of the shipped agents covers the
+standard surface at version 5.0.0. The `home` axis of the capability model stays unchanged.
 
 The coverage scan reads the surface declaration of the project under scan and the rendered
 permission file of the project. The scan reads the shipped agents and the agents the user defined.
@@ -84,8 +90,8 @@ The scan reads both definition forms of opencode version 2: the `agents.<id>.per
 the configuration documents and the frontmatter `permissions` of `.opencode/agents/<id>.md`. The
 scan reports each unowned author path and names the path, the nearest role of the path, and the
 proposed role. The scan returns the same result for the same surface and the same agent set. The
-scan ships with its instruction skill and its command. The user creates each proposed role with the
-`expert-role` skill.
+scan ships with its instruction skill and its command. The user creates each proposed role for a
+project-specific gap with the `expert-role` skill.
 
 The phase 4 scan of the factory repository and of the consumer example reports no unowned author
 path.
