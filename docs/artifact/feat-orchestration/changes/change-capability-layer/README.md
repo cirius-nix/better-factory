@@ -96,3 +96,10 @@ No code changes in this phase. Later phases will likely touch these paths:
    references the template paths. A later change must ship the template tree. The later change
    must also set the section order of `templates/change/specifications/spec-name.md` to the
    contract first. Record this item for the later change.
+3. **The `expert-role` skill references (open).** This change ships the skill `expert-role` with its
+   `SKILL.md` only. The body of the skill refers to `references/*.md`, but the factory ships no
+   such reference file. The reference `references/role-template.md` holds the old shape of the
+   `## Capability` section. The old shape is prose and does not match the kind-line shape
+   `- <kind>: <name> (<home>)` of the six role bodies. A later change must ship the reference
+   files of the skill. The later change must also align the role template with the kind-line shape.
+   Until then a role that a generated project creates through the skill receives the old shape.
