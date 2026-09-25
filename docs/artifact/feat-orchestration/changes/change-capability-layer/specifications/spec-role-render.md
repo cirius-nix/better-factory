@@ -188,13 +188,14 @@ The rendered file:
    tool it uses. The body names no tool that the capability set of the role does not use. The
    capability set of the role-contract table is the authority. The body of `artifact-master`
    names no MCP server, because the table removes the MCP capability of that role (FCL-04-06).
-5. The body/table check reads the body of each built-in role and the body of `factory-expert`.
-   The check reads the repo-local source `utils/agent/role/factory-expert/ROLE.md` for the
-   `factory-expert` body. The check parses each `## Capability` line and compares the parsed set
-   with the role-contract table of the role (FCL-04-05). The check proves that the body names the
-   instruction skill of each tool it uses, and that the body names no tool outside the capability
-   set (req-capability-bundle). The check reads the `factory-expert` body through its own source
-   path only; the path is not a hand list.
+5. The body/table check reads the body of each shipped built-in role. The check receives the
+   `factory-expert` body through the optional argument `factoryExpertBody` of `mkSeedCheck`
+   (spec-role-permissions check 10, C-CL36). A null value asserts the five shipped bodies only.
+   A path value asserts the `factory-expert` body. The check parses each `## Capability` line and
+   compares the parsed set with the role-contract table of the role (FCL-04-05). The check proves
+   that the body names the instruction skill of each tool it uses, and that the body names no tool
+   outside the capability set (req-capability-bundle). The check holds no hand list of the
+   `factory-expert` body path (adr-seed-check-body-input).
 
 ### The wiki page
 
@@ -242,7 +243,8 @@ and the check of the `expert-role` skill.
 - A capability named by the body and absent from the role-contract table fails the check.
 - A capability line without the kind, the name, or the home fails the check.
 - A capability line with a field outside the kind, the name, and the home fails the check.
-- The body of `factory-expert` without the capability axis fails the check.
+- A `factory-expert` body passed to the check without the `## Ownership` section or the
+  `## Capability` section fails the check.
 - A body that names a tool and no instruction skill of the tool fails the check.
 - A body that names a tool outside the capability set fails the check.
 
@@ -260,7 +262,7 @@ and the check of the `expert-role` skill.
 | RC03-C3 | The body of `factory-expert` holds the two sections. Its ownership section carries the literal path patterns of the role-contract surface (adr-role-contract-surface). | services/factory |
 | C-CL17 | The section `## Capability` of a body names the capability set of the role over the seven option kinds (spec-capability-kinds). The body and the role-contract table carry the same capability set. The check proves the agreement. | services/factory |
 | C-CL22 | The capability line syntax is `- <kind>: <name> (<home>)`. The line holds the kind, the name, and the home only. The body/table check parses each line and compares the set with the table (FCL-04-04). | services/factory |
-| C-CL23 | The body/table check reads the body of each built-in role and the body of `factory-expert`. The check reads the repo-local source `utils/agent/role/factory-expert/ROLE.md` for the `factory-expert` body (FCL-04-05). The check parses each `## Capability` line and compares the parsed set with the role-contract table of the role. The check reads the `factory-expert` body through its own source path, and the path is not a hand list. | services/factory |
+| C-CL23 | The body/table check reads the body of each shipped built-in role. The check receives the `factory-expert` body through the optional argument `factoryExpertBody` of `mkSeedCheck` (FCL-04-05, C-CL36). The check parses each `## Capability` line and compares the parsed set with the role-contract table of the role. The check holds no hand list of the `factory-expert` body path. When the argument is null, the check asserts the five shipped bodies only (adr-seed-check-body-input). | services/factory |
 | C-CL24 | The body of `artifact-master` names no MCP server, because the capability table removes the MCP capability of that role. Each body names the capability kind of each line (FCL-04-06). | services/factory |
 | C-CL35 | The body of a role names the instruction skill of each tool it uses. A tool capability holds two body lines: the `mcp` line and the `skill` line. The body/table check proves the instruction skill line and rejects a tool outside the capability set (req-capability-bundle). | services/factory |
 

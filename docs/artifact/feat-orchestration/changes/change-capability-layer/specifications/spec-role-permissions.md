@@ -210,9 +210,20 @@ spec-capability-kinds. A capability never grants a write outside the ownership s
    `checkRoleWith` fills `enable = true` (RC01-C4).
 9. The check proves that the render holds no rule order from an attribute-set iteration
    (RC01-C2).
-10. The check proves that the `## Ownership` section of the `factory-expert` body carries the
-    four literal path patterns of the ownership table, including `docs/wiki/documentation/*`
-    (FCL-05-02).
+10. The check proves the `factory-expert` body only when the caller passes the body path. The
+    function `mkSeedCheck` holds the optional argument `factoryExpertBody`. The value is a path,
+    or null.
+    - When the value is null, the check asserts the five shipped role bodies only. The check
+      holds no `factory-expert` body assertion.
+    - When the value is a path, the check proves that the `## Ownership` section of the
+      `factory-expert` body carries the four literal path patterns of the ownership table,
+      including `docs/wiki/documentation/*` (FCL-05-02), and that the `## Capability` lines
+      agree with the role-contract table of `factory-expert` (C-CL23, C-CL35, C-CL36).
+
+    The factory repository runs its own check with the value set to the local path
+    `utils/agent/role/factory-expert/ROLE.md`. The runner is the flake check
+    `nix flake check ./services/factory/examples/self`. The three arch examples pass no value
+    (adr-seed-check-body-input).
 11. The check proves the instruction skill grant of each tool bundle (req-capability-bundle). The
     check runs with the design tool `figma`. Each role below gains exactly one rule, after the
     version 3.0.0 skill chain, which keeps its bytes. The other rules of the array equal the
@@ -254,8 +265,10 @@ spec-capability-kinds. A capability never grants a write outside the ownership s
   `ddd-review` rule under the design method `unset` fails the check.
 - A project or local value of `agents.<role>.permissions` does not fail evaluation. The managed
   value wins, and the factory writes one log line.
-- The `factory-expert` body whose ownership section differs from the four path patterns of the
-  table fails the check.
+- A `factory-expert` body passed to the check whose `## Ownership` section differs from the four
+  path patterns of the ownership table fails the check.
+- A `factory-expert` body passed to the check whose `## Capability` axis differs from the
+  role-contract table fails the check.
 
 ## Resolved constraints
 
@@ -274,6 +287,7 @@ spec-capability-kinds. A capability never grants a write outside the ownership s
 | C-CL34 | The permission derive reads the activation of a bundle instruction skill only. A `design-tool` instruction skill is active only when `design.tool` equals the field `name`. The `designer-expert` array holds one design-tool instruction skill rule, or none when the tool is `unset` (adr-capability-bundle, C-FCL-06-05). | services/factory |
 | C-FCL-06-03 | Each using role array gains exactly one `skill` allow rule after the byte-stable version 3.0.0 chain. The `designer-expert` expected array holds three variants: `figma`, `unset`, and `pencil`. The `uxAssertions.designer-permission` assertion compares the `uxMergedTrue` document at `tool = "unset"`, so it expects no design-tool rule; the main fixture uses `figma`. The permission set stays one managed leaf `agents.<role>.permissions`. | services/factory |
 | C-FCL-06-05 | The `when` activation applies only to a bundle instruction skill. The legacy skill chain `asd-ste-100`, `ddd-review`, `artifact-master`, and `expert-role` maps unconditionally to the `skill` allow rules in the version 3.0.0 order. The `ddd-review` rule stays under the design method `unset`, so the fixture stays byte-stable apart from the one added rule per role. | services/factory |
+| C-CL36 | The check receives the `factory-expert` body through the optional argument `factoryExpertBody` of `mkSeedCheck`. The value null asserts the five shipped role bodies only. A path value asserts the four literal ownership patterns and the `## Capability` lines of `factory-expert` against the role-contract table. The factory repository runner passes the local path `utils/agent/role/factory-expert/ROLE.md`. The check keeps the pure-Nix rule and the five-line result rule (adr-seed-check-body-input). | services/factory |
 
 ## Notes
 
@@ -293,6 +307,11 @@ spec-capability-kinds. A capability never grants a write outside the ownership s
 - The section `## Ownership` of a canonical role body carries the literal path patterns of the
   ownership table (RC03-C2). The body/table agreement check uses literal matching, not a parsed
   path comparison.
+- The `factory-expert` body sits at `utils/agent/role/factory-expert/ROLE.md`, outside the factory
+  flake input. A flake cannot read a path outside its own input. The check receives the body
+  through the optional argument `factoryExpertBody`, so the assertion is real under
+  `nix flake check`. The factory repository runs the runner
+  `nix flake check ./services/factory/examples/self` (adr-seed-check-body-input, C-CL36).
 - The wiki page `docs/wiki/documentation/mixture-of-experts/README.md` states the derived
   permission model. Phase 4 writes the page. The page is not shipped (adr-contract-first).
 - The capability set of a role and the render of each kind are in spec-capability-kinds. The

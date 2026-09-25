@@ -236,6 +236,13 @@ Each path below is a path in the rendered file or a path in the MCP source, as t
     `uxAssertions.designer-permission` assertion reads the `uxMergedTrue` document at
     `tool = "unset"` and expects no design-tool rule; the main fixture uses `figma`
     (req-capability-bundle, C-FCL-06-03, C-FCL-06-04).
+13. The seed-check fixture proves the `factory-expert` body only when the caller passes the body
+    path. The function `mkSeedCheck` holds the optional argument `factoryExpertBody`. A null value
+    asserts the five shipped role bodies only. A path value asserts the four literal ownership
+    patterns and the `## Capability` lines of `factory-expert` (spec-role-permissions check 10,
+    spec-role-render C-CL23, C-CL36). The factory repository runs its own check with the local
+    path `utils/agent/role/factory-expert/ROLE.md`; the flake runner is
+    `nix flake check ./services/factory/examples/self` (adr-seed-check-body-input).
 
 ## Description
 
@@ -284,6 +291,9 @@ modeled-key list gain the group `agents` (spec-facade-root of feat-foundation 1.
 - A managed-wins line in the result file of the seed check fails the output contract.
 - A seed-check fixture or an expectation that does not advance with the new base files fails the
   seed check.
+- A `factory-expert` body passed to the seed check whose ownership section or capability axis
+  disagrees fails the seed check.
+- A seed-check runner that omits the `factory-expert` body path proves no `factory-expert` body.
 - A rendered role whose permission set differs from spec-role-permissions fails the check.
 - A capability key of a shipped config kind that the rendered file misses fails the check.
 - A repo-local capability key in the rendered file of a generated project fails the check.
@@ -315,6 +325,7 @@ modeled-key list gain the group `agents` (spec-facade-root of feat-foundation 1.
 | C-CL20 | The managed layer holds no value for a repo-local capability. The merge writes no log line for a path that the managed layer does not hold. The author declaration path `factory.project.agents.opencode.extraAgents.<role>.model` is user-wins (FCL-01-05). | services/factory |
 | C-CL21 | The field `skills` of the version 3.0.0 role-contract table folds into the `capabilities` list in the same order and with the same set. The version 3.0.0 skill chain keeps its bytes. The fixture gains the instruction skill rules of the bundle (FCL-04-03, req-capability-bundle). The legacy chain maps unconditionally, so the `ddd-review` rule stays under the design method `unset` (C-FCL-06-05). | services/factory |
 | C-FCL-06-04 | The seed-check grant assertion is an eval-time `assert`. The result file stays exactly five lines. The assertion reads the `agents.<role>.permissions` value of the `uxMergedTrue` document at `tool = "unset"` and of the main fixture at `figma`; the two expected arrays agree (C-FCL-06-03). The permission set stays one managed leaf. | services/factory |
+| C-CL36 | The seed check receives the `factory-expert` body through the optional argument `factoryExpertBody` of `mkSeedCheck`. The value null asserts the five shipped role bodies only. A path value asserts the four literal ownership patterns and the `## Capability` lines of `factory-expert` against the role-contract table. The factory repository runner passes the local path `utils/agent/role/factory-expert/ROLE.md` through the flake `nix flake check ./services/factory/examples/self`. The check keeps the pure-Nix rule and the five-line result rule (adr-seed-check-body-input). | services/factory |
 
 The constraint C-F04 keeps its identifier. It extends the version 2.0.0 rule. The version 2.0.0
 one-rule array is superseded.

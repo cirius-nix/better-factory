@@ -36,6 +36,15 @@ contract. The contract gives the interface, the events, the data model, and the 
 human approves the contract before phase 3. The factory documents the rule in a managed wiki
 page, and every generated project receives that page.
 
+The seed check proves the body of each built-in role against the role-contract table. The five
+shipped bodies sit inside the factory input. The `factory-expert` body is repo-local and sits
+outside the factory input, at `utils/agent/role/factory-expert/ROLE.md`. A flake cannot read a
+path outside its own input, so the check receives that body through the optional argument
+`factoryExpertBody` of `mkSeedCheck`. A null value asserts the five shipped bodies only. A path
+value asserts the `factory-expert` body. The factory repository runs its own check with the local
+path through the flake runner `nix flake check ./services/factory/examples/self`
+(adr-seed-check-body-input).
+
 The component `services/factory` changes. The context `context-factory` changes its aggregate
 `agg-repository-blueprint`. No other component changes.
 
@@ -113,10 +122,10 @@ The sources of the study:
 | [spec-capability-ship](spec-capability-ship.md) | The one home of each capability, the asset path of each kind, the bundle ship rule, and the plan emit of a shipped capability. | req-capability-ship, req-capability-bundle |
 | [spec-human-interaction](spec-human-interaction.md) | The interaction points of the requirement expert and the solution expert, and the shape of the option interview. | req-human-interaction |
 | [spec-contract-first](spec-contract-first.md) | The contract-first rule, the contract content, the human approval, and the managed wiki page. | req-contract-first |
-| [spec-role-render](spec-role-render.md) | One role source, the two-axis role body shape, the rendered opencode role file, the capability axis over the kinds, and the bundle line check. | req-role-pipeline, req-role-spec, req-capability-options, req-capability-bundle |
-| [spec-harness-merge](spec-harness-merge.md) | The three layers, the managed keys, the version 2 shape, the capability keys of the role-contract table, and the seed-check permission fixture of a tool bundle. | req-harness-facade, req-capability-options, req-capability-ship, req-capability-bundle |
+| [spec-role-render](spec-role-render.md) | One role source, the two-axis role body shape, the rendered opencode role file, the capability axis over the kinds, the bundle line check, and the passed `factory-expert` body. | req-role-pipeline, req-role-spec, req-capability-options, req-capability-bundle |
+| [spec-harness-merge](spec-harness-merge.md) | The three layers, the managed keys, the version 2 shape, the capability keys of the role-contract table, the seed-check permission fixture of a tool bundle, and the seed-check body input. | req-harness-facade, req-capability-options, req-capability-ship, req-capability-bundle |
 | [spec-protocol](spec-protocol.md) | The phase protocol, the expert routing, the handoff fields, and the phase interaction points. | req-phase-protocol, req-expert-routing, req-human-interaction |
-| [spec-role-permissions](spec-role-permissions.md) | The default permission set of each rendered role from the two axes, the governance, the shell rules, the capability kinds, the bundle grant, and the legacy-chain activation split. | req-role-permissions, req-capability-options, req-capability-bundle |
+| [spec-role-permissions](spec-role-permissions.md) | The default permission set of each rendered role from the two axes, the governance, the shell rules, the capability kinds, the bundle grant, the legacy-chain activation split, the passed `factory-expert` body, and the repository runner. | req-role-permissions, req-capability-options, req-capability-bundle |
 
 The specifications below stay at their current version. Link them from the current version:
 
@@ -152,6 +161,8 @@ The decisions of version 3.0.0 stay in force. The change adds these decisions:
   approval gate of the contract.
 - [adr-role-contract-surface](../decisions/adr-role-contract-surface.md) extends the ownership of
   `factory-expert` to `docs/wiki/documentation/*` and the source asset tree.
+- [adr-seed-check-body-input](../decisions/adr-seed-check-body-input.md) selects the passed
+  `factory-expert` body and the repository runner.
 - [adr-aggregate-pattern](../decisions/adr-aggregate-pattern.md) keeps the transaction script for
   the aggregate `agg-repository-blueprint`.
 
