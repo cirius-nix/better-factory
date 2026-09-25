@@ -30,7 +30,9 @@ The order holds this reason:
 4. `task-interface-docs` edits the same role body files as `task-role-bodies`, so it follows that
    task.
 5. `task-role-permissions` reads the capability set and changes the permission derive.
-6. `task-seed-advance` proves the whole change with the new assertions.
+6. `task-seed-advance` proves the whole change with the new assertions. It receives the
+   `factory-expert` body through the check argument and adds the factory repository runner
+   `nix flake check ./services/factory/examples/self` (C-CL36).
 
 ## Dependency graph
 
@@ -79,14 +81,14 @@ task carries.
 | req-capability-ship | spec-harness-merge | task-capability-model (the `capabilityValues` entries and the config keys, C-CL18); task-seed-advance (the key assertions) |
 | req-capability-bundle | spec-capability-kinds | task-capability-model (the bundle, the `instruction` link, the `when` split, C-CL29, C-CL30, C-FCL-06-01, C-FCL-06-02, C-FCL-06-05) |
 | req-capability-bundle | spec-capability-ship | task-capability-assets (the instruction skill assets, C-CL31, C-CL32) |
-| req-capability-bundle | spec-role-render | task-role-bodies (the body lines, C-CL35); task-seed-advance (the body/table check, C-CL23) |
+| req-capability-bundle | spec-role-render | task-role-bodies (the body lines, C-CL35); task-seed-advance (the body/table check, C-CL23, and the passed `factory-expert` body, C-CL36) |
 | req-capability-bundle | spec-role-permissions | task-role-permissions (the grant, C-CL33, C-CL34, C-FCL-06-03) |
 | req-capability-bundle | spec-harness-merge | task-seed-advance (the grant assertion, C-FCL-06-04) |
 | req-human-interaction | spec-human-interaction, spec-protocol | task-interface-docs (the interaction points, the interview shape, C-CL11 to C-CL13, C-CL20, C-CL21) |
 | req-contract-first | spec-contract-first | task-interface-docs (the managed page asset, the emitted output, C-CL14 to C-CL16, C-CL25, C-CL26); task-seed-advance (the plan-entry assertion, FCL-07-04-C1, FCL-07-04-C2) |
-| req-role-permissions | spec-role-permissions | task-role-permissions (the derive, C-14, RC01-C1 to RC01-C5); task-seed-advance (RC01-C6) |
+| req-role-permissions | spec-role-permissions | task-role-permissions (the derive, C-14, RC01-C1 to RC01-C5); task-seed-advance (RC01-C6, the passed `factory-expert` body, C-CL36, and the repository runner) |
 | req-role-pipeline, req-role-spec | spec-role-render | task-role-bodies (the source and the two-axis body); task-seed-advance (the body/table check) |
-| req-harness-facade | spec-harness-merge | task-capability-model (the managed keys); task-role-permissions (the managed array); task-seed-advance (C-F03, C-F04) |
+| req-harness-facade | spec-harness-merge | task-capability-model (the managed keys); task-role-permissions (the managed array); task-seed-advance (C-F03, C-F04, the seed-check body input, C-CL36) |
 | req-mcp-dialect, req-knowledge-access | spec-mcp-dialect, spec-mcp-knowledge (3.0.0) | task-capability-model (the `mcp` kind keeps the existing render); task-seed-advance (the `context7` fixture) |
 | req-phase-protocol, req-expert-routing | spec-protocol | task-interface-docs (the interaction points in the rendered role bodies) |
 | req-release-role | spec-release-gate (3.0.0) | No task. The release is a file operation of phase 5, not factory code. |
@@ -109,6 +111,7 @@ of its own:
 | adr-interaction-points | task-interface-docs |
 | adr-contract-first | task-interface-docs |
 | adr-role-contract-surface | task-role-permissions (the ownership extension), task-interface-docs (the two pages) |
+| adr-seed-check-body-input | task-seed-advance (the passed `factory-expert` body and the repository runner) |
 | adr-aggregate-pattern | task-capability-model (the transaction script stays; no second aggregate) |
 
 ## Constraints
@@ -116,6 +119,8 @@ of its own:
 - The check `nix flake check ./services/factory/examples/single` stays green after each task.
 - The check `nix flake check ./services/factory/examples/multiple` stays green after each task.
 - The check `nix flake check ./services/factory/examples/consumer` stays green after each task.
+- The factory repository runner `nix flake check ./services/factory/examples/self` stays green
+  after `task-seed-advance` and passes the `factory-expert` body (C-CL36).
 - The result file of each seed check holds exactly five lines: `layout: green`, `arch: green`,
   `facade: green`, `copy-mode: green`, and `emit: green`.
 - The library `lib/harness.nix` holds no nixpkgs dependency. The render is pure Nix.
@@ -176,6 +181,8 @@ This change holds no task for these items. Each item has an owner pointer:
 
 - The check of each task passes.
 - `nix flake check` passes for `examples/single`, `examples/multiple`, and `examples/consumer`.
+- The factory repository runner `nix flake check ./services/factory/examples/self` passes, and the
+  check proves the `factory-expert` body through the passed path (C-CL36).
 - The result file of each seed check holds exactly five lines.
 - Each rendered role holds the capability set of spec-capability-kinds and the permission set of
   spec-role-permissions.

@@ -44,8 +44,11 @@ phase 5:
 
 - `docs/wiki/documentation/artifact-driven/README.md` (copy mode `managed`, source is the asset).
 
-The runtime ownership of `factory-expert` denies the path `docs/wiki/documentation/artifact-driven/*`.
-No role hand-writes a `managed` render output.
+The ownership row of `factory-expert` holds `docs/wiki/documentation/*`, so the path
+`docs/wiki/documentation/artifact-driven/README.md` is inside the write area. The page is a
+`managed` emitted output. No role hand-writes a `managed` render output. The `factory-expert`
+writes the asset `services/factory/assets/documentation/artifact-driven/README.md` and never the
+emitted page.
 
 The artifact-driven template tree `docs/wiki/documentation/artifact-driven/templates/**` is not
 shipped by this change. The template order and the ship of the template tree stay open items of a
