@@ -70,3 +70,5 @@ No code changes in this phase. Later phases will likely touch these paths:
 ## Artifacts
 
 - [Requirements](requirements/README.md)
+- [Specifications](specifications/README.md)
+- [Decisions](decisions/)

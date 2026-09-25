@@ -165,6 +165,7 @@ notifier, one publish target, and named presets.
 | Declare MCP entry | command | repository author |
 | Declare knowledge access | command | repository author |
 | Declare role | command | repository author |
+| Declare capability | command | role author |
 | State role contract | command | role author |
 | Declare local settings | command | repository author |
 | Select design option | command | repository author |
@@ -176,6 +177,8 @@ notifier, one publish target, and named presets.
 | Assign expert | command | change coordinator |
 | Assign designer | command | change coordinator |
 | Confirm readiness | query | solution expert |
+| Select option | command | user |
+| Approve contract | command | user |
 | Release version | command | change coordinator |
 | Select CI | command | repository author |
 | Select publish target | command | repository author |
@@ -197,7 +200,13 @@ notifier, one publish target, and named presets.
 | Knowledge access declared | event | repository author |
 | Role rendered | event | repository author |
 | Role contract stated | event | role author |
+| Capability declared | event | role author |
+| Capability shipped | event | repository author |
+| Capability resolved | event | repository author |
 | Permission set rendered | event | repository author |
+| Option interview presented | event | user |
+| Choice approved | event | change coordinator |
+| Contract approved | event | solution expert |
 | File copied | event | repository author |
 | Seed checked | event | repository author |
 | Design option selected | event | repository author |
@@ -235,7 +244,9 @@ notifier, one publish target, and named presets.
 ## Open questions
 
 - Which later contexts will consume the factory setup downstream?
-- How many interaction points does each phase hold, and at which step does each point occur?
-- Does the factory ship the `asd-ste-100` skill to every generated project, or only to a project that selects the design method `ddd`?
-- Does the factory model a capability kind that no built-in role uses?
-- Which wiki page holds the contract-first rule?
+
+The phase 2 of change-capability-layer resolves these questions: the interaction points are one
+in phase 1 and two in phase 2 (adr-interaction-points); the factory ships the `asd-ste-100` skill
+to every generated project (adr-asd-ste-100-scope); the factory models the live option kinds only
+(adr-capability-kind-model); the contract-first rule lives in the managed artifact-driven guide
+(adr-contract-first).

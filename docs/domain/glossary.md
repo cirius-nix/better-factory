@@ -71,6 +71,10 @@ write two rows.
 | consumer guide | context-factory | The guide that names the starter file, the keys to change, and the checks to run. | - |
 | emitted tree | context-factory | The repository tree that the entrypoint writes below the scratch directory. | - |
 | option kind | context-factory | One of the seven kinds of a capability: skill, command, MCP server, reference, plugin, model, or worktree. | - |
+| live kind | context-factory | An option kind that a built-in role uses and that the factory models. | - |
+| kind root | context-factory | The asset root of one option kind under `services/factory/assets/`. | - |
+| capability value table | context-factory | The factory data table `capabilityValues` that holds the value of a config-kind capability. | - |
+| capability render | context-factory | The opencode target of one capability: a file or a config key. | - |
 | capability set | context-factory | The set of capabilities of one role over the option kinds. | - |
 | capability home | context-factory | The one place of a capability: shipped to every generated project, or repo-local to the factory source repository. | - |
 | shipped capability | context-factory | A capability that every generated project receives. | - |
