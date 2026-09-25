@@ -15,7 +15,8 @@ permission set of each shipped expert role. It decides the capability set of eac
 role over seven option kinds, and the home of each capability: shipped to every generated project,
 or repo-local to the factory source repository. It decides the interaction points of the
 requirement expert and the solution expert with the human. It decides the contract-first rule for
-each specification.
+each specification. It decides the surface declaration of a project, the write coverage, the owner
+of each surface path, and the coverage scan.
 
 It also fixes the delivery path with one docs site, one CI choice, one
 notifier, one publish target, and named presets.
@@ -98,6 +99,15 @@ notifier, one publish target, and named presets.
 | interaction point | A defined point of a phase at which an expert talks to the human through the artifact master. |
 | contract | The interface, the events, the data model, and the invariant of one specification. |
 | contract-first rule | The rule that a specification leads with its contract, and the human approves the contract before phase 3. |
+| write coverage | The property of a project that every path of the project surface has at least one owner. A class is covered when every path of the class is covered. |
+| unowned author path | A path of the project surface that no agent may write. |
+| coverage scan | The deterministic check that reads the surface declaration of the project under scan and the rendered permission file of the project, and reports each unowned author path. |
+| nearest role | The role with the write scope closest to an unowned author path. |
+| proposed role | The role that the coverage scan proposes for an unowned author path: the role name and the ownership path patterns that cover the path or the class. |
+| project surface | The set of every path that a project of the model must manage. |
+| surface declaration | The declaration of the surface of one project of the model. |
+| standard surface class | A path class that the model requires of every generated project, independent of the copy mode. |
+| agent | An entry of the agent set of a generated project: an agent that the factory ships, or an agent that the user defines. |
 
 ## Business rules
 
@@ -162,6 +172,23 @@ notifier, one publish target, and named presets.
 - Each specification leads with its contract: the interface, the events, the data model, and the invariant.
 - The human approves the contract before phase 3.
 - The factory documents the contract-first rule in a managed wiki page that every generated project receives.
+- Every path of the project surface of a project has at least one owner.
+- The owner of a surface path is a shipped agent or a project-local role.
+- A class of the project surface is covered when every path of the class is covered.
+- Two paths of one class may have two owners.
+- The surface of a project does not depend on the copy mode or on whether the factory copies the file.
+- Each project of the model holds its own surface declaration.
+- The coverage scan reads the surface declaration of the project under scan and the rendered permission file of the project.
+- The coverage scan reads the shipped agents and the agents that the user defines.
+- The coverage scan reads the `agents.<id>.permissions` rules and the frontmatter `permissions` of `.opencode/agents/<id>.md`.
+- The coverage scan compares the surface with the union of the write scope of the agents.
+- The coverage scan reports each unowned author path.
+- The coverage scan names the path and the nearest role of the path.
+- The coverage scan proposes a role for each unowned author path: the role name and the ownership path patterns that cover the path or the class.
+- The coverage scan is deterministic.
+- The coverage scan ships with its instruction skill and its command.
+- The agent that runs the scan holds the local read tools and the shell rule that the scan script needs.
+- The coverage scan proves the write coverage of a project.
 
 ## Inbound messages
 
@@ -251,6 +278,10 @@ notifier, one publish target, and named presets.
 - An expert uses a shipped tool only when an instruction skill states when to use the tool and how to call the tool.
 - A human chooses better when the option interview gives the situation, the impact, and one reasoned recommendation.
 - A contract that the human approves before the implementation prevents a late change of the interface.
+- A repository author wants to know which agent may write each path of the project surface.
+- A path of the surface with no owner blocks the repository author.
+- A scan gives the same result for the same surface and the same agent set.
+- A role assignment needs a named role and its ownership path patterns, so the scan proposes a role.
 
 ## Open questions
 

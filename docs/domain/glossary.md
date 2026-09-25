@@ -87,3 +87,12 @@ write two rows.
 | interaction point | context-factory | A defined point of a phase at which an expert talks to the human through the artifact master. | - |
 | contract | context-factory | The interface, the events, the data model, and the invariant of one specification. | - |
 | contract-first rule | context-factory | The rule that a specification leads with its contract, and the human approves the contract before phase 3. | - |
+| project surface | context-factory | The set of every path that a project of the model must manage. | - |
+| surface declaration | context-factory | The declaration of the surface of one project of the model. | - |
+| standard surface class | context-factory | A path class that the model requires of every generated project, independent of the copy mode. | - |
+| agent | context-factory | An entry of the agent set of a generated project: an agent that the factory ships, or an agent that the user defines. | - |
+| write coverage | context-factory | The property of a project that every path of the project surface has at least one owner. A class is covered when every path of the class is covered. | - |
+| unowned author path | context-factory | A path of the project surface that no agent may write. | - |
+| coverage scan | context-factory | The deterministic check that reads the surface declaration of the project under scan and the rendered permission file of the project, and reports each unowned author path. | - |
+| nearest role | context-factory | The role with the write scope closest to an unowned author path. | - |
+| proposed role | context-factory | The role that the coverage scan proposes for an unowned author path: the role name and the ownership path patterns that cover the path or the class. | - |
