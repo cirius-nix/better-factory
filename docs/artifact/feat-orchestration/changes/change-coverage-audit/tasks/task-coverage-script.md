@@ -23,17 +23,17 @@ a `builtins.toFile` source in `renderedSources`.
 - `specifications/spec-agent-read.md`: interface 1 to 10; the ordered document list; the two
   definition forms; "The parse" 1 to 6; invariant 1 to 12; "The phase-4 precondition" 1 to 3; the
   resolved constraints C-CA06 to C-CA10, C-FCA-02-01 to C-FCA-02-06, and C-FCA-07-09.
-- `specifications/spec-coverage-scan.md`: interface 1 to 9; the coverage relation; the
-  classification; the nearest role; the report; the exit-code table; "The determinism" 1 to 7;
-  invariant 1 to 12; the resolved constraints C-CA11 to C-CA15, C-FCA-03-01 to C-FCA-03-06,
-  C-FCA-07-05, and C-FCA-07-07.
+- `specifications/spec-coverage-scan.md`: interface 1 to 12; the coverage relation; the
+  classification; the author-path rule; the nearest role; the report; the exit-code table; "The
+  determinism" 1 to 7; invariant 1 to 16; the resolved constraints C-CA11 to C-CA15,
+  C-FCA-03-01 to C-FCA-03-06, C-FCA-07-05, C-FCA-07-07, and C-FCA-08-01.
 - `specifications/spec-proposed-role.md`: the proposed role name rule; the proposal; C-CA16 to
   C-CA19.
-- `specifications/spec-coverage-surface.md`: the declaration line; the standard surface table;
-  interface 1 to 4; C-CA01.
+- `specifications/spec-coverage-surface.md`: the declaration line; the standard surface table; the
+  scope; interface 1 to 4 and 13; C-CA01, C-CA29, and C-CA31.
+- `decisions/adr-author-path-rule.md`, `adr-agent-definition-read.md`.
 - `specifications/spec-coverage-bundle.md`: "The render" 1 to 6; C-CA20, C-FCA-05-02, and
   C-FCA-05-05.
-- `decisions/adr-agent-definition-read.md`.
 - `services/factory/modules/file-plan.nix` (the `extraFiles` entry, the `renderedSources` list, and
   `checkSourceAllowed`); `services/factory/scripts/*.sh` (the house style).
 
@@ -69,36 +69,41 @@ a `builtins.toFile` source in `renderedSources`.
    (C-CA09).
 8. Read the declared rules only. Read no base default policy. An absent `permissions` field gives
    the empty list (C-CA10, C-FCA-02-06).
-9. Classify each surface entry. Find the last `edit` rule whose resource pattern covers the entry
-   pattern. The agent covers the entry when that rule has the effect `allow`. The scan computes the
-   relation with the POSIX construct `case "$S" in $R) ... ;; esac`, with the pattern `$R`
-   unquoted (C-CA12, C-FCA-03-02).
-10. Compute the nearest role from the `edit` allow resource patterns of the write scope of each
+9. Classify each surface entry. Read the entry scope and the entry copy mode. A class with the copy
+   mode `managed` is factory-owned. It needs no owner and gets no row. A class with the scope
+   `conditional` and no matching path in the project path list is not an author path. It gets no row
+   and no proposal. A class with the scope `model` is an author path of the project. Otherwise the
+   match of the pattern decides the author path (C-CA29, C-CA31, C-FCA-08-01).
+10. For each author path, find the last `edit` rule whose resource pattern covers the entry pattern.
+    The agent covers the entry when that rule has the effect `allow`. The scan computes the relation
+    with the POSIX construct `case "$S" in $R) ... ;; esac`, with the pattern `$R` unquoted
+    (C-CA12, C-FCA-03-02).
+11. Compute the nearest role from the `edit` allow resource patterns of the write scope of each
     agent. Compute the greatest shared-prefix length. Break a tie by the shorter resource pattern,
     then by the smaller agent name. A missing shared prefix gives the empty value `-`
     (C-CA13, C-FCA-03-06).
-11. Compute the proposed role name. A path under a component directory gives `<segment>-expert`.
+12. Compute the proposed role name. A path under a component directory gives `<segment>-expert`.
     Another path gives `<segment>-expert` of the first path segment. A name that equals a shipped
     role name takes the suffix `-local`. The proposal never names `repository-expert`
     (C-CA16, C-CA18).
-12. Write the report to the standard output. The report holds the count line, one tab-separated row
+13. Write the report to the standard output. The report holds the count line, one tab-separated row
     per unowned author path (the path, the copy mode, the nearest role, and the proposed role), and
     the proposal. Sort the rows by path and the proposals by role name
     (C-CA14, C-FCA-03-03).
-13. Set the exit code. Exit `0` when the report holds no unowned author path, `1` when the report
+14. Set the exit code. Exit `0` when the report holds no unowned author path, `1` when the report
     holds at least one, and `2` on an input error. Handle each command failure explicitly and exit
     `2` on a failure (C-CA15, C-FCA-03-04).
-14. Write no file. The scan is read-only. The scan agent holds no write scope (C-FCA-03-05).
-15. Compose the script into the plan. In `modules/coverage.nix`, make the script source with
+15. Write no file. The scan is read-only. The scan agent holds no write scope (C-FCA-03-05).
+16. Compose the script into the plan. In `modules/coverage.nix`, make the script source with
     `builtins.toFile "coverage-audit.sh" <bytes>` from the asset, and return the `extraFiles` entry
     `rel = ".opencode/scripts/coverage-audit.sh"` with the copy mode `managed`. Add the source to
     the `renderedSources` list in `modules/entrypoint.nix`. The directory `assets/scripts/` is a
     raw asset root, and `checkSourceAllowed` rejects a raw path under it
     (C-CA20, C-FCA-05-02, C-FCA-05-05).
-16. Make the fixture `services/factory/examples/coverage-fixture/`. The fixture holds a `surface.tsv`
+17. Make the fixture `services/factory/examples/coverage-fixture/`. The fixture holds a `surface.tsv`
     with the standard classes and a `.opencode/opencode.jsonc` with a shipped-like agent set. The
     fixture holds one project-specific hole, so the expected exit code is `1`.
-17. Run the seed check for the two archs and for the consumer example.
+18. Run the seed check for the two archs and for the consumer example.
 
 ## Acceptance criteria
 
@@ -113,6 +118,9 @@ a `builtins.toFile` source in `renderedSources`.
   gives the empty list (C-CA09, C-FCA-02-06).
 - The script reads the declared rules only. The base default policy covers no path
   (C-CA10).
+- The script classifies each entry with the author-path rule: a class with the copy mode `managed`
+  gets no row, a class with the scope `conditional` and no matching path gets no row and no
+  proposal, and a class with the scope `model` is an author path (C-CA29, C-CA31, C-FCA-08-01).
 - The coverage relation uses the POSIX `case` construct (C-CA12, C-FCA-03-02).
 - The nearest role reads the `edit` allow resource patterns of the write scope of each agent
   (C-CA13, C-FCA-03-06).

@@ -19,13 +19,16 @@ materialized consumer tree. State the global-config precondition. Give each targ
 
 ## Input
 
-- `specifications/spec-coverage-scan.md`: interface 1 to 9; the exit-code table; invariant 1 to 12;
-  the resolved constraints C-FCA-07-05, C-FCA-07-07, and C-FCA-07-09.
+- `specifications/spec-coverage-scan.md`: interface 1 to 12; the author-path rule; the exit-code
+  table; invariant 1 to 16; the resolved constraints C-FCA-07-05, C-FCA-07-07, C-FCA-07-09, and
+  C-FCA-08-01.
+- `specifications/spec-coverage-surface.md`: the factory surface table; the scope; the class
+  `factory-config`; C-CA04, C-CA29, C-CA30, C-CA31, and C-FCA-01-05.
+- `decisions/adr-author-path-rule.md`.
 - `specifications/spec-coverage-bundle.md`: "The seed check and the proof" 4 to 7; the resolved
   constraints C-CA25, C-FCA-07-04, C-FCA-07-06, C-FCA-07-08, and C-FCA-07-09.
 - `specifications/spec-agent-read.md`: "The phase-4 precondition" 1 to 3; C-FCA-02-04 and
   C-FCA-07-09.
-- `specifications/spec-coverage-surface.md`: the factory surface table; C-CA04 and C-FCA-01-05.
 - `specifications/spec-proposed-role.md`: the proposal for a project-specific gap; C-CA16 to
   C-CA19.
 - `decisions/adr-coverage-bundle-shape.md`.
@@ -59,13 +62,16 @@ materialized consumer tree. State the global-config precondition. Give each targ
    materialized tree below the `emit` output (C-FCA-07-08).
 6. Prove the absent-declaration rule. Run the scan on a directory without `surface.tsv` and check
    the exit code `2` (C-FCA-07-05).
-7. Prove the scan reads only the declaration of the target. The script holds no hard-coded standard
-   class list (C-FCA-07-07).
+7. Prove the author-path rule and the declaration read. A class with no matching path in the target,
+   and that is not a model class, produces no report row. The generated consumer tree holds no
+   `component-*` row. The script holds no hard-coded standard class list
+   (C-CA29, C-CA31, C-FCA-07-07, C-FCA-08-01).
 8. Prove the proposal for a project-specific gap. A project without the covering role reports the
    holes and a proposal. The proposal never names `repository-expert` (C-CA16, C-CA18).
 9. Read the factory repository declaration and the regenerated `.opencode/` tree. The owner of the
-   root `surface.tsv` is the shipped role `repository-expert`. The adoption step writes the file
-   (C-CA04, C-FCA-01-05).
+   root `surface.tsv` is the shipped role `repository-expert`. The declaration holds the class
+   `factory-config` for `factory.config.yaml` with the owner `repository-expert`. The adoption step
+   writes the file (C-CA04, C-CA30, C-FCA-01-05).
 10. Run the seed check for the two archs and for the consumer example.
 
 ## Acceptance criteria
@@ -82,6 +88,10 @@ materialized consumer tree. State the global-config precondition. Give each targ
   (C-FCA-02-04, C-FCA-07-09).
 - The scan reads only the declaration of the target and holds no hard-coded class list
   (C-FCA-07-07).
+- A class with no matching path in the target, and that is not a model class, produces no report
+  row. The consumer scan exits `0` (C-CA29, C-CA31, C-FCA-08-01).
+- The factory repository declaration holds the class `factory-config` with the owner
+  `repository-expert` (C-CA30).
 - The consumer source tree is not a scan target (C-FCA-07-08).
 - The proposal never names `repository-expert` (C-CA16, C-CA18).
 - The owner of the factory repository declaration is the shipped role `repository-expert`

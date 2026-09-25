@@ -69,9 +69,9 @@ carries.
 
 | Requirement | Specification | Task |
 | --- | --- | --- |
-| req-write-coverage | spec-repository-role | task-repository-role (the seventh role, the ownership of the seven classes, C-CA26 to C-CA28, C-FCA-04-01) |
-| req-write-coverage | spec-coverage-surface | task-surface (the standard table, the generated declaration, the owner column, C-CA01 to C-CA05, C-FCA-01-01 to C-FCA-01-06) |
-| req-write-coverage | spec-coverage-scan | task-coverage-script (the classification and the report, C-CA11 to C-CA15, C-FCA-03-01 to C-FCA-03-06) |
+| req-write-coverage | spec-repository-role | task-repository-role (the seventh role, the ownership of the seven classes and the class `factory-config`, C-CA26 to C-CA28, C-CA30, C-FCA-04-01) |
+| req-write-coverage | spec-coverage-surface | task-surface (the standard table, the scope, the class `factory-config`, the conditional classes, the generated declaration, the owner column, C-CA01 to C-CA05, C-CA29 to C-CA31, C-FCA-01-01 to C-FCA-01-06, C-FCA-08-01) |
+| req-write-coverage | spec-coverage-scan | task-coverage-script (the author-path rule, the classification, and the report, C-CA11 to C-CA15, C-CA29, C-CA31, C-FCA-03-01 to C-FCA-03-06, C-FCA-08-01) |
 | req-write-coverage | spec-proposed-role | task-coverage-script (the proposal computation, C-CA16 to C-CA19) |
 | req-coverage-audit | spec-agent-read | task-coverage-script (the merge order, the frontmatter, the last-match rule, the parse, C-CA06 to C-CA10, C-FCA-02-01 to C-FCA-02-06, C-FCA-07-09) |
 | req-coverage-audit | spec-coverage-scan | task-coverage-script (the inputs, the determinism, the exit codes, C-FCA-07-05, C-FCA-07-07) |
@@ -89,6 +89,7 @@ of its own:
 | adr-repository-role | task-repository-role |
 | adr-surface-declaration-home | task-surface |
 | adr-agent-definition-read | task-coverage-script |
+| adr-author-path-rule | task-surface (the scope, the class `factory-config`, and the conditional classes), task-repository-role (the owner of `factory.config.yaml`), task-coverage-script (the classification) |
 | adr-coverage-bundle-shape | task-coverage-script (the script asset), task-coverage-bundle (the command, the skill, the grants) |
 
 ## Constraints
@@ -108,6 +109,10 @@ of its own:
 - The shell grant `sh .opencode/scripts/coverage-audit.sh *` sits after the broad `ask` rule of the
   role. The command body invokes the exact string `sh .opencode/scripts/coverage-audit.sh`
   (C-FCA-06-04).
+- A class is an author path of a project only when the class pattern matches a path of the project,
+  or when the class is a model class that every generated project must hold. A class with no matching
+  path that is not a model class gets no report row and no proposal (C-CA29, C-CA31,
+  C-FCA-08-01).
 - The scan cannot run inside `nix flake check`. The scan is a separate shell run. Each target holds
   its own `surface.tsv` (C-FCA-07-04, C-FCA-07-05).
 - The new seed-check proofs are eval-time `assert`s. The result file stays exactly five lines
@@ -141,6 +146,10 @@ so the owner of the root `surface.tsv` is the shipped role `repository-expert` (
 - The result file of each seed check holds exactly five lines.
 - The shipped role set holds seven roles, and the union of the shipped agents covers the standard
   surface.
+- The standard table holds the scope of each class, the class `factory-config` with the owner
+  `repository-expert`, and the conditional classes `design` and `component-*` (C-CA29 to C-CA31).
+- A class with no matching path that is not a model class produces no report row and no proposal
+  (C-CA29, C-CA31).
 - The generated declaration `surface.tsv` joins the plan with the copy mode `managed` and a
   rendered source of the run.
 - The scan writes the report to the standard output and exits `0`, `1`, or `2`.

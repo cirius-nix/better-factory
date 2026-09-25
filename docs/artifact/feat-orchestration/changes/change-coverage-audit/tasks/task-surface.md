@@ -13,18 +13,21 @@ context, or an aggregate run in sequence.
 
 ## Goal
 
-Add the `standardSurface` table of the seven standard classes, the render of the generated
-declaration `surface.tsv`, the composition of the declaration into the plan, the new module
-`modules/coverage.nix`, and the factory repository declaration. Keep the declaration as a
+Add the `standardSurface` table of the standard classes with their scope, the render of the
+generated declaration `surface.tsv`, the composition of the declaration into the plan, the new
+module `modules/coverage.nix`, and the factory repository declaration. The table holds the class
+`factory-config` for `factory.config.yaml` and the conditional classes. Keep the declaration as a
 `managed` file with a `builtins.toFile` source in `renderedSources`.
 
 ## Input
 
-- `specifications/spec-coverage-surface.md`: interface 1 to 11; the declaration line; the standard
-  surface table; the factory surface table; invariant 1 to 14; "The module and the library" 1 to 5;
-  the resolved constraints C-CA01 to C-CA05 and C-FCA-01-01 to C-FCA-01-06.
-- `specifications/spec-repository-role.md`: the owner of the seven classes; C-CA26 to C-CA28.
-- `decisions/adr-surface-declaration-home.md`.
+- `specifications/spec-coverage-surface.md`: interface 1 to 13; the declaration line; the standard
+  surface table; the author-path rule; the factory surface table; invariant 1 to 14; "The module and
+  the library" 1 to 5; the resolved constraints C-CA01 to C-CA05, C-CA29 to C-CA31, and
+  C-FCA-01-01 to C-FCA-01-06.
+- `specifications/spec-repository-role.md`: the owner of the seven classes and of the class
+  `factory-config`; C-CA26 to C-CA28 and C-CA30.
+- `decisions/adr-surface-declaration-home.md`, `adr-author-path-rule.md`.
 - `specifications/spec-coverage-bundle.md`: "The render" 1, 2, and 6; C-FCA-05-05.
 - `docs/domain/context-factory/agg-repository-blueprint.md`, the surface declaration invariants.
 - `services/factory/modules/file-plan.nix` (the `extraFiles` entry, the `renderedSources` list, and
@@ -41,20 +44,21 @@ declaration `surface.tsv`, the composition of the declaration into the plan, the
 ## Steps
 
 1. Make `services/factory/lib/surface.nix` with the table `standardSurface`. One entry holds the
-   field `class`, the field `copyMode`, and the field `pattern`. The table holds the seven standard
-   classes: `repository-readme` (`README.md`), `factory-declaration` (`factory.nix`),
-   `repository-ignore` (`.gitignore`), `agent-guide` (`AGENTS.md`), `dev-shell` (`devenv.nix`),
-   `dev-flake` (`flake.nix`), and `project-capability` (`.agents/skills/*`,
-   `.opencode/commands/*`, `.opencode/agents/*`). The table also holds `artifact-template`,
-   `surface-declaration`, `harness-config`, and `scan-script`
-   (spec-coverage-surface data model; C-CA02, C-CA03).
+   field `class`, the field `copyMode`, the field `scope`, and the field `pattern`. The scope is
+   `model` or `conditional`. The table holds the classes of the standard surface table of
+   spec-coverage-surface. The table holds the class `factory-config` for the planned file
+   `factory.config.yaml`: the pattern `factory.config.yaml`, the copy mode `template`, and the scope
+   `model`. The class table names the owner `repository-expert`. The table also holds the
+   conditional classes `design` and the five `component-*` classes with the scope `conditional`
+   (spec-coverage-surface data model; C-CA02, C-CA03, C-CA29, C-CA30, C-CA31).
 2. Keep the library `lib/surface.nix` pure Nix with no nixpkgs dependency, and keep it out of the
    `default.nix` import list. The module `modules/coverage.nix` imports the library
    (C-FCA-01-06).
 3. Add the render `surfaceDeclaration` to `modules/coverage.nix`. The render takes the effective
    file plan and returns the declaration text and the rendered source. One line holds the class,
-   the copy mode, and the pattern, separated by a tab. A line that starts with `#` is a comment
-   (spec-coverage-surface interface 3 and 6; C-CA02).
+   the effective copy mode, the scope, and the pattern, separated by a tab. A class whose pattern
+   matches no planned file keeps the table copy mode. A line that starts with `#` is a comment
+   (spec-coverage-surface interface 3, 6, 9, and 13; C-CA02, C-CA29).
 4. Compute the order: the plan first, the declaration second, the entry third. The function
    `planForArch` reads no output of the declaration. The module takes the plan file list as an
    input and returns the `extraFiles` entry and its rendered source (C-FCA-01-03).
@@ -79,8 +83,13 @@ declaration `surface.tsv`, the composition of the declaration into the plan, the
 
 ## Acceptance criteria
 
-- The table `standardSurface` holds the seven standard classes and the repository classes. Each
-  entry holds the class, the copy mode, and the pattern (C-CA01, C-CA03).
+- The table `standardSurface` holds the standard classes of the class table. Each entry holds the
+  class, the copy mode, the scope, and the pattern (C-CA01, C-CA03, C-CA29).
+- The table holds the class `factory-config` for `factory.config.yaml` with the copy mode `template`
+  and the scope `model`. The class table names the owner `repository-expert` (C-CA30).
+- The `design` class and the five `component-*` classes hold the scope `conditional` (C-CA31).
+- The declaration line holds four fields: the class, the copy mode, the scope, and the pattern
+  (spec-coverage-surface interface 3).
 - The generated declaration joins the plan as an `extraFiles` entry with the copy mode `managed`
   and a `builtins.toFile` source in `renderedSources` (C-FCA-01-02).
 - A raw path under `assets/` is not a plan source. `checkSourceAllowed` rejects it
@@ -104,7 +113,8 @@ Read the standard table:
 nix eval --impure --expr 'import ./services/factory/lib/surface.nix'
 ```
 
-Read the output. The table holds the seven standard classes and the repository classes.
+Read the output. The table holds the standard classes with their scope. The class `factory-config`
+and the conditional classes `design` and `component-*` are present.
 
 Build the consumer example and read the generated declaration:
 
@@ -113,8 +123,10 @@ nix build ./services/factory/examples/consumer#emit
 cat result/surface.tsv
 ```
 
-The output holds one line per class: the class, the copy mode, and the pattern, separated by a tab.
-The line for the class `surface-declaration` holds the copy mode `managed`.
+The output holds one line per class: the class, the copy mode, the scope, and the pattern, separated
+by a tab. The line for the class `surface-declaration` holds the copy mode `managed`. The line for
+the class `factory-config` holds the pattern `factory.config.yaml` and the scope `model`. The lines
+of the five `component-*` classes hold the scope `conditional`.
 
 Run the check for the single arch:
 

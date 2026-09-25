@@ -15,17 +15,18 @@ context, or an aggregate run in sequence.
 ## Goal
 
 Ship the seventh role `repository-expert`. Add its role source, its `roleContracts` row, its
-capability axis, its ownership of the seven standard surface classes, its permission array, and its
-body/table agreement. Make the union of the shipped agents cover the standard surface, so the
-criterion of req-write-coverage is true at version 5.0.0.
+capability axis, its ownership of the seven standard surface classes and the class `factory-config`,
+its permission array, and its body/table agreement. Make the union of the shipped agents cover the
+standard surface, so the criterion of req-write-coverage is true at version 5.0.0.
 
 ## Input
 
 - `specifications/spec-repository-role.md`: interface 1 to 11; the ownership table; the capability
   axis; the ordered permission array; invariant 1 to 10; the resolved constraints C-CA26, C-CA27,
-  C-CA28, C-FCA-01-05, C-FCA-01-06, C-FCA-04-01, and C-FCA-04-05.
+  C-CA28, C-CA30, C-FCA-01-05, C-FCA-01-06, C-FCA-04-01, and C-FCA-04-05.
 - `specifications/spec-coverage-surface.md`: the owner column of the standard surface table; the
-  owner of the factory repository declaration; C-CA03, C-CA04, C-FCA-01-05, C-FCA-01-06.
+  class `factory-config`; the owner of the factory repository declaration; C-CA03, C-CA04, C-CA30,
+  C-FCA-01-05, C-FCA-01-06.
 - `specifications/spec-proposed-role.md`: the proposal never names `repository-expert`; C-CA18,
   C-FCA-04-01, C-FCA-04-05.
 - `decisions/adr-repository-role.md`.
@@ -50,11 +51,12 @@ criterion of req-write-coverage is true at version 5.0.0.
 1. Make the role source `services/factory/assets/roles/repository-expert/ROLE.md`. The body holds
    the title line, the section `## Ownership`, and the section `## Capability`
    (spec-repository-role interface 2 and 7, spec-role-render of change-capability-layer).
-2. Write the section `## Ownership` with the seven standard surface classes and the repository
-   files: `README.md`, `factory.nix`, `.gitignore`, `AGENTS.md`, `devenv.nix`, `flake.nix`,
-   `.agents/skills/*`, `.opencode/commands/*`, `.opencode/agents/*`,
-   `docs/wiki/documentation/artifact-driven/templates/*`, `surface.tsv`,
-   `.opencode/opencode.jsonc`, and `.opencode/scripts/*` (C-CA27, C-FCA-01-05, C-FCA-01-06).
+2. Write the section `## Ownership` with the seven standard surface classes, the class
+   `factory-config`, and the repository files: `README.md`, `factory.nix`, `.gitignore`, `AGENTS.md`,
+   `devenv.nix`, `flake.nix`, `.agents/skills/*`, `.opencode/commands/*`, `.opencode/agents/*`,
+   `docs/wiki/documentation/artifact-driven/templates/*`, `surface.tsv`, `factory.config.yaml`,
+   `.opencode/opencode.jsonc`, and `.opencode/scripts/*` (C-CA27, C-CA30, C-FCA-01-05,
+   C-FCA-01-06).
 3. Write the section `## Capability` with the line `- skill: asd-ste-100 (shipped)`
    (spec-repository-role data model; C-CA28).
 4. Add the `repository-expert` row to `roleContracts` in `lib/harness.nix`. The row holds the
@@ -84,8 +86,10 @@ criterion of req-write-coverage is true at version 5.0.0.
   (C-CA26).
 - The role source exists at `services/factory/assets/roles/repository-expert/ROLE.md` and holds
   the section `## Ownership` and the section `## Capability` (C-CA28).
-- The `roleContracts` row holds the seven standard surface classes and the repository files
-  (C-CA27).
+- The `roleContracts` row holds the seven standard surface classes, the class `factory-config`, and
+  the repository files (C-CA27, C-CA30).
+- The role owns `factory.config.yaml`, so the scan reports no unowned author path for the class
+  `factory-config` (C-CA30).
 - The capability axis holds the `skill` capability `asd-ste-100` with the home `shipped`
   (C-CA28).
 - The permission array of the role follows the order of spec-repository-role. The fixture
