@@ -26,6 +26,14 @@ The change gives each capability one explicit home: shipped to every generated p
 repo-local to the factory source repository. A shipped capability points only to a capability
 that the generated project receives. The `asd-ste-100` skill becomes a shipped managed asset.
 
+The change ships each tool capability with its instruction skill. At version 3.0.0 the factory
+ships the MCP servers `context7`, `figma`, and `pencil`, but no instruction skill. The committed
+role bodies name the three servers in the `## Capability` section with no usage instruction. The
+permission table grants the skills `asd-ste-100`, `ddd-review`, `artifact-master`, and
+`expert-role` only, so a tool skill falls to the rule `skill * = ask` and the expert avoids the
+tool. The rule names the current gap: `solution-expert` and `factory-expert` use `context7`;
+`designer-expert` uses `figma` and `pencil`.
+
 The change gives the requirement expert and the solution expert defined interaction points with
 the human. The expert still does not ask the user directly. The artifact master runs the
 interaction. The option interview presents the situation, the reason that a choice is necessary,
@@ -50,7 +58,8 @@ No code changes in this phase. Later phases will likely touch these paths:
 - `services/factory/assets/roles/solution-expert/ROLE.md`
 - `services/factory/assets/roles/artifact-release-expert/ROLE.md`
 - `services/factory/assets/roles/designer-expert/ROLE.md`
-- `services/factory/assets/skills/` (the shipped skill assets, candidate)
+- `services/factory/assets/skills/` (the shipped skill assets and the instruction skill of each tool, candidate)
+- `services/factory/assets/skills/context7-mcp/` (the instruction skill of the `context7` tool, candidate)
 - `services/factory/lib/harness.nix`
 - `services/factory/lib/roles.nix`
 - `services/factory/lib/presets.nix`
@@ -62,6 +71,7 @@ No code changes in this phase. Later phases will likely touch these paths:
 - `.opencode/opencode.jsonc`
 - `.opencode/agents/`
 - `.agents/skills/asd-ste-100/`
+- `.agents/skills/context7-mcp/`
 - `.agents/skills/expert-role/`
 - `docs/wiki/documentation/artifact-driven/README.md`
 - `docs/wiki/documentation/mixture-of-experts/README.md`

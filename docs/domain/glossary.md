@@ -76,6 +76,9 @@ write two rows.
 | capability value table | context-factory | The factory data table `capabilityValues` that holds the value of a config-kind capability. | - |
 | capability render | context-factory | The opencode target of one capability: a file or a config key. | - |
 | capability set | context-factory | The set of capabilities of one role over the option kinds. | - |
+| tool capability | context-factory | A shipped capability of the kind MCP server that a role calls as a tool. | - |
+| instruction skill | context-factory | The skill that states when to use a tool, when not to use the tool, and how to call the tool. | - |
+| capability bundle | context-factory | A tool capability and its instruction skill, shipped and granted together. | - |
 | capability home | context-factory | The one place of a capability: shipped to every generated project, or repo-local to the factory source repository. | - |
 | shipped capability | context-factory | A capability that every generated project receives. | - |
 | repo-local capability | context-factory | A capability that stays in the factory source repository. | - |

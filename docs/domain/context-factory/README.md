@@ -87,6 +87,9 @@ notifier, one publish target, and named presets.
 | emitted tree | The repository tree that the entrypoint writes below the scratch directory. |
 | option kind | One of the seven kinds of a capability: skill, command, MCP server, reference, plugin, model, or worktree. |
 | capability set | The set of capabilities of one role over the option kinds. |
+| tool capability | A shipped capability of the kind MCP server that a role calls as a tool. |
+| instruction skill | The skill that states when to use a tool, when not to use the tool, and how to call the tool. |
+| capability bundle | A tool capability and its instruction skill, shipped and granted together. |
 | capability home | The one place of a capability: shipped to every generated project, or repo-local to the factory source repository. |
 | shipped capability | A capability that every generated project receives. |
 | repo-local capability | A capability that stays in the factory source repository. |
@@ -146,6 +149,7 @@ notifier, one publish target, and named presets.
 - Each capability has one explicit home: shipped to every generated project, or repo-local to the factory source repository.
 - A shipped capability points only to a capability that the generated project receives.
 - The factory ships the `asd-ste-100` skill as a managed asset.
+- A tool capability ships with its instruction skill, and each role that uses the tool grants that skill.
 - The requirement expert and the solution expert interact with the human through the artifact master at defined points.
 - The artifact master runs the option interview, and an expert does not ask the user directly.
 - The option interview gives the situation, the reason that a choice is necessary, each option with its advantages, its disadvantages, and its impact, and one recommendation with its reason.
@@ -238,6 +242,7 @@ notifier, one publish target, and named presets.
 - The ownership axis and the capability axis stay separate, so a new capability grant cannot widen a write scope.
 - A repository author wants the built-in expert roles to hold the capability of the selected harness, so a generated project works without a hand edit.
 - A shipped capability is safe only when the generated project receives the asset that the capability points to.
+- An expert uses a shipped tool only when an instruction skill states when to use the tool and how to call the tool.
 - A human chooses better when the option interview gives the situation, the impact, and one reasoned recommendation.
 - A contract that the human approves before the implementation prevents a late change of the interface.
 
@@ -250,3 +255,5 @@ in phase 1 and two in phase 2 (adr-interaction-points); the factory ships the `a
 to every generated project (adr-asd-ste-100-scope); the factory models the live option kinds only
 (adr-capability-kind-model); the contract-first rule lives in the managed artifact-driven guide
 (adr-contract-first).
+
+- Which instruction skill ships with each tool, and does one instruction skill serve a group of tools?

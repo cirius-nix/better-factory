@@ -16,6 +16,11 @@ Each capability must have one explicit home. The home is shipped to every genera
 repo-local to the factory source repository. A shipped capability points only to a capability that
 the generated project receives. The `asd-ste-100` skill must become a shipped managed asset.
 
+A tool capability must ship with its instruction skill. The instruction skill must state when to
+use the tool, when not to use the tool, and how to call the tool. Each role that uses the tool must
+grant the instruction skill in its capability set. A tool without its instruction skill must fail
+the ship rule.
+
 The requirement expert and the solution expert must interact with the human at defined points.
 The expert still does not ask the user directly. The artifact master runs the interaction. The
 option interview must give the situation, the reason that a choice is necessary, each option with
@@ -33,6 +38,9 @@ receives it.
 - In scope: one explicit home for each capability: shipped to every generated project, or repo-local to the factory source repository.
 - In scope: the rule that a shipped capability points only to a capability that the generated project receives.
 - In scope: the `asd-ste-100` skill as a shipped managed asset.
+- In scope: the instruction skill of each shipped tool capability.
+- In scope: the grant of the instruction skill in the capability set of each role that uses the tool.
+- In scope: the rule that a shipped tool capability without its instruction skill fails the ship rule.
 - In scope: defined interaction points for the requirement expert and the solution expert with the human.
 - In scope: the option interview with the situation, the reason that a choice is necessary, each option with its advantages, its disadvantages, and its impact, and one recommendation with its reason.
 - In scope: the number of interaction points per phase.
@@ -47,7 +55,7 @@ receives it.
 
 | Subdomain | Type | Context | Actors | Events |
 | --- | --- | --- | --- | --- |
-| factory | Core | context-factory | change coordinator, content experts, repository author, user | Phase planned, Phase built, Expert assigned, Harness merged, MCP entry translated, Role contract stated, Permission set rendered, Knowledge access declared, Role rendered, Version released, Capability declared, Capability shipped, Capability resolved, Option interview presented, Choice approved, Contract approved |
+| factory | Core | context-factory | change coordinator, content experts, repository author, user | Phase planned, Phase built, Expert assigned, Harness merged, MCP entry translated, Role contract stated, Permission set rendered, Knowledge access declared, Role rendered, Version released, Capability declared, Capability shipped, Capability resolved, Capability bundled, Option interview presented, Choice approved, Contract approved |
 
 ## Teardown requirements
 
@@ -64,6 +72,7 @@ receives it.
 | [req-release-role](req-release-role.md) | The project must release each version by copy only through a readiness gate. | Must |
 | [req-capability-options](req-capability-options.md) | The project must give each built-in role a capability set over seven option kinds. | Must |
 | [req-capability-ship](req-capability-ship.md) | The project must give each capability one explicit home: shipped or repo-local. | Must |
+| [req-capability-bundle](req-capability-bundle.md) | The project must ship each tool capability with its instruction skill, and each using role must grant that skill. | Must |
 | [req-human-interaction](req-human-interaction.md) | The project must define the interaction points of the requirement expert and the solution expert with the human. | Must |
 | [req-contract-first](req-contract-first.md) | The project must put the contract before the implementation of each specification. | Must |
 
@@ -72,7 +81,9 @@ receives it.
 A repository author receives a generated project whose built-in expert roles hold a capability set
 over the seven option kinds. Each capability has one home. A shipped capability points only to a
 capability that the generated project receives, and the project receives the `asd-ste-100` skill
-as a managed asset. The requirement expert and the solution expert interact with the human at the
+as a managed asset. Each shipped tool capability holds an instruction skill, and each role that
+uses the tool grants the skill. A tool without its instruction skill fails the ship rule. The
+requirement expert and the solution expert interact with the human at the
 defined points through the artifact master. Each option interview gives the situation, the reason
 that a choice is necessary, each option with its advantages, its disadvantages, and its impact,
 and one recommendation with its reason. Each specification leads with its contract, and the human
