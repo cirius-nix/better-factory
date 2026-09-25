@@ -11,7 +11,11 @@ It decides the layout of changes and versions, the architecture choice, the seed
 the facade root for settings, the harness delivery, the phase protocol, and the copy mode
 of each generated file. It decides the design method with its domain model, its review,
 and its designer role. It also decides the two-axis role contract and the default
-permission set of each shipped expert role.
+permission set of each shipped expert role. It decides the capability set of each built-in expert
+role over seven option kinds, and the home of each capability: shipped to every generated project,
+or repo-local to the factory source repository. It decides the interaction points of the
+requirement expert and the solution expert with the human. It decides the contract-first rule for
+each specification.
 
 It also fixes the delivery path with one docs site, one CI choice, one
 notifier, one publish target, and named presets.
@@ -41,7 +45,7 @@ notifier, one publish target, and named presets.
 | MCP source | The one declaration of the MCP entries that the factory renders into the opencode dialect. |
 | role source | The one body file of a role that the factory renders for opencode. |
 | ownership | The content and the write area that a role owns. |
-| capability | The tools, the skills, and the MCP servers that a role uses to do its job. |
+| capability | The items that a role uses to do its job: a skill, a command, an MCP server, a reference, a plugin, a model, or a worktree. |
 | write scope | The hard, per-role boundary of the files that a role may write. |
 | default permission set | The permission rules that the factory renders for a role from its ownership and its capability. |
 | role contract | The two-axis statement of one role: its ownership and its capability. |
@@ -81,6 +85,16 @@ notifier, one publish target, and named presets.
 | scratch directory | The directory outside the factory source that holds the emitted tree until the consumer adopts it. |
 | consumer guide | The guide that names the starter file, the keys to change, and the checks to run. |
 | emitted tree | The repository tree that the entrypoint writes below the scratch directory. |
+| option kind | One of the seven kinds of a capability: skill, command, MCP server, reference, plugin, model, or worktree. |
+| capability set | The set of capabilities of one role over the option kinds. |
+| capability home | The one place of a capability: shipped to every generated project, or repo-local to the factory source repository. |
+| shipped capability | A capability that every generated project receives. |
+| repo-local capability | A capability that stays in the factory source repository. |
+| managed asset | A shipped file that the factory owns and renders into a generated project. |
+| option interview | The message that gives the human the situation, the reason that a choice is necessary, the options with their advantages, their disadvantages, and their impact, and one recommendation. |
+| interaction point | A defined point of a phase at which an expert talks to the human through the artifact master. |
+| contract | The interface, the events, the data model, and the invariant of one specification. |
+| contract-first rule | The rule that a specification leads with its contract, and the human approves the contract before phase 3. |
 
 ## Business rules
 
@@ -127,6 +141,18 @@ notifier, one publish target, and named presets.
 - The entrypoint takes the downstream settings and emits the downstream tree.
 - The entrypoint validates the consumer declaration, applies the preset, and composes the plan of the feature modules.
 - The emitted tree holds the owned declaration and the composed plan, and the entrypoint writes below the scratch directory only.
+- Each built-in expert role holds a capability set over seven option kinds: skill, command, MCP server, reference, plugin, model, and worktree.
+- Each capability belongs to the capability axis of its role and renders through the role-contract table.
+- Each capability has one explicit home: shipped to every generated project, or repo-local to the factory source repository.
+- A shipped capability points only to a capability that the generated project receives.
+- The factory ships the `asd-ste-100` skill as a managed asset.
+- The requirement expert and the solution expert interact with the human through the artifact master at defined points.
+- The artifact master runs the option interview, and an expert does not ask the user directly.
+- The option interview gives the situation, the reason that a choice is necessary, each option with its advantages, its disadvantages, and its impact, and one recommendation with its reason.
+- The contract comes before the implementation.
+- Each specification leads with its contract: the interface, the events, the data model, and the invariant.
+- The human approves the contract before phase 3.
+- The factory documents the contract-first rule in a managed wiki page that every generated project receives.
 
 ## Inbound messages
 
@@ -201,7 +227,15 @@ notifier, one publish target, and named presets.
 - The legacy history in ../repofactory stays reference-only and is never migrated.
 - A repository author expects a generated project to be safe by default, so no one hand-edits a managed render.
 - The ownership axis and the capability axis stay separate, so a new capability grant cannot widen a write scope.
+- A repository author wants the built-in expert roles to hold the capability of the selected harness, so a generated project works without a hand edit.
+- A shipped capability is safe only when the generated project receives the asset that the capability points to.
+- A human chooses better when the option interview gives the situation, the impact, and one reasoned recommendation.
+- A contract that the human approves before the implementation prevents a late change of the interface.
 
 ## Open questions
 
 - Which later contexts will consume the factory setup downstream?
+- How many interaction points does each phase hold, and at which step does each point occur?
+- Does the factory ship the `asd-ste-100` skill to every generated project, or only to a project that selects the design method `ddd`?
+- Does the factory model a capability kind that no built-in role uses?
+- Which wiki page holds the contract-first rule?
