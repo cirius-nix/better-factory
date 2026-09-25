@@ -64,8 +64,10 @@ The `capabilityValues` entries stay in [task-capability-model](task-capability-m
    injects no frontmatter (spec-capability-kinds C-CL03).
 4. Make the managed documentation asset `assets/documentation/artifact-driven/README.md`. The
    asset is the one source of the page. The asset holds the section
-   `## Contract-first specifications` (spec-contract-first C-CL16, C-CL25). The section body is
-   written by [task-interface-docs](task-interface-docs.md).
+   `## Contract-first specifications`. The asset emits the path
+   `docs/wiki/documentation/artifact-driven/README.md` with the copy mode `managed`
+   (spec-contract-first C-CL16, C-CL25). The section body is written by
+   [task-interface-docs](task-interface-docs.md).
 5. Add the capability entry of the `ddd-review` skill with the emitter `design` and the condition
    `when = "ddd"`. The existing `modules/design.nix` function `skillFiles` stays the emitter. The
    capability points to the existing emitted path `.agents/skills/ddd-review/SKILL.md`
@@ -99,8 +101,9 @@ The `capabilityValues` entries stay in [task-capability-model](task-capability-m
 - The four command assets exist and hold the command frontmatter and the prompt body (C-CL03).
 - The managed page asset exists at
   `services/factory/assets/documentation/artifact-driven/README.md`, holds the section
-  `## Contract-first specifications`, and routes through `renderedSources`
-  (spec-contract-first C-CL16, C-CL25, FCL-07-04-C3).
+  `## Contract-first specifications`, emits the path
+  `docs/wiki/documentation/artifact-driven/README.md` with the copy mode `managed`, and routes
+  through `renderedSources` (spec-contract-first C-CL16, C-CL25, FCL-07-04-C3).
 - The `ddd-review` capability holds the emitter `design` and the condition `ddd`, and the design
   module stays the emitter. The plan holds `.agents/skills/ddd-review/SKILL.md` once
   (C-CL14, FCL-07-02-C1).

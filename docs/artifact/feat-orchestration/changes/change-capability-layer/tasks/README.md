@@ -83,7 +83,7 @@ task carries.
 | req-capability-bundle | spec-role-permissions | task-role-permissions (the grant, C-CL33, C-CL34, C-FCL-06-03) |
 | req-capability-bundle | spec-harness-merge | task-seed-advance (the grant assertion, C-FCL-06-04) |
 | req-human-interaction | spec-human-interaction, spec-protocol | task-interface-docs (the interaction points, the interview shape, C-CL11 to C-CL13, C-CL20, C-CL21) |
-| req-contract-first | spec-contract-first | task-interface-docs (the managed page, the template, C-CL14 to C-CL16, C-CL25, C-CL26); task-seed-advance (the page plan assertion and the asset byte comparison, FCL-07-04-C1, FCL-07-04-C2) |
+| req-contract-first | spec-contract-first | task-interface-docs (the managed page asset, the emitted output, C-CL14 to C-CL16, C-CL25, C-CL26); task-seed-advance (the plan-entry assertion, FCL-07-04-C1, FCL-07-04-C2) |
 | req-role-permissions | spec-role-permissions | task-role-permissions (the derive, C-14, RC01-C1 to RC01-C5); task-seed-advance (RC01-C6) |
 | req-role-pipeline, req-role-spec | spec-role-render | task-role-bodies (the source and the two-axis body); task-seed-advance (the body/table check) |
 | req-harness-facade | spec-harness-merge | task-capability-model (the managed keys); task-role-permissions (the managed array); task-seed-advance (C-F03, C-F04) |
@@ -126,12 +126,27 @@ of its own:
   `design.skillFiles`. The file-plan `listToAttrs` collapses a cross-render duplicate in silence.
 - Every asset routes through `renderedSources`. The file-plan check rejects a direct asset path
   (FCL-07-02-C1, FCL-07-02-C2).
-- No task edits `factory.nix`. No task regenerates `.opencode/`. That work is a named
-  post-phase-5 follow-up of the change README `## Code paths`.
+- No role hand-writes a `managed` render output. The repository page
+  `docs/wiki/documentation/artifact-driven/README.md` is the only emitted output of this change.
+  It is an emitted output of the adoption step. The seed check reads no repository file.
 - No task edits a feature outside this change. The feat-design `spec-review` one-asset-root
   refactor stays a named follow-up (spec-capability-ship `C-CL14`).
 - No task edits `AGENTS.md`.
 - Phase 4 has no separate plan. This approved plan is the phase 4 gate.
+
+## Adoption follow-up
+
+The adoption step after phase 5 makes these updates. No task of this change makes them:
+
+- The factory repository emit of `docs/wiki/documentation/artifact-driven/README.md` from the
+  asset `services/factory/assets/documentation/artifact-driven/README.md`, with the copy mode
+  `managed`.
+- The copy of the factory repository skill set under `.agents/skills/`.
+- The regeneration of `.opencode/opencode.jsonc` and `.opencode/agents/`.
+- The update of `factory.nix`.
+
+The emit happens after phase 5. The `factory-expert` writes the asset, the mixture-of-experts
+page, and the role bodies in phase 4. It hand-writes no emitted output.
 
 ## Unchanged requirements and specifications
 
@@ -146,9 +161,12 @@ The change does not change these items. They need no code task:
 
 This change holds no task for these items. Each item has an owner pointer:
 
-- `factory.nix` and the regeneration of `.opencode/opencode.jsonc` and `.opencode/agents/`: a
-  post-phase-5 follow-up of the change (change README `## Code paths`).
-- The factory repository skill set under `.agents/skills/`: a post-phase-5 follow-up.
+- `factory.nix`, the regeneration of `.opencode/` and `.opencode/agents/`, the `.agents/skills/`
+  copy, and the repository page emit: the adoption follow-up (see "Adoption follow-up").
+- The artifact-driven template tree `docs/wiki/documentation/artifact-driven/templates/**`: this
+  change does not ship it. The template order and the ship of the template tree stay open for a
+  later change. The shipped page references the template paths, so the later change must resolve
+  the reference.
 - The feat-design `spec-review` one-asset-root refactor of the `ddd-review` asset: the feat-design
   owner, after this phase 2 (spec-capability-ship `C-CL14`).
 - `AGENTS.md`: an explicit non-goal of the change.

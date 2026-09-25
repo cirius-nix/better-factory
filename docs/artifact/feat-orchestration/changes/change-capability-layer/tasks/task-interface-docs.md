@@ -14,8 +14,8 @@ context, or an aggregate run in sequence.
 ## Goal
 
 Document the defined interaction points and the contract-first rule. Add the contract-first
-section to the managed artifact-driven page. Align the mixture-of-experts page and the rendered
-role bodies. Move the contract before the description in the specification template.
+section to the asset. Align the mixture-of-experts page and the rendered role bodies. Name the
+repository page as the emitted output of the factory emit.
 
 ## Input
 
@@ -32,12 +32,24 @@ role bodies. Move the contract before the description in the specification templ
 ## Files to change
 
 - `services/factory/assets/documentation/artifact-driven/README.md`
-- `docs/wiki/documentation/artifact-driven/README.md`
-- `docs/wiki/documentation/artifact-driven/templates/change/specifications/spec-name.md`
 - `docs/wiki/documentation/mixture-of-experts/README.md`
 - `services/factory/assets/roles/artifact-master/ROLE.md`
 - `services/factory/assets/roles/requirement-expert/ROLE.md`
 - `services/factory/assets/roles/solution-expert/ROLE.md`
+
+## Emitted outputs
+
+The task does not hand-write this file. The factory emit at the adoption step produces it after
+phase 5:
+
+- `docs/wiki/documentation/artifact-driven/README.md` (copy mode `managed`, source is the asset).
+
+The runtime ownership of `factory-expert` denies the path `docs/wiki/documentation/artifact-driven/*`.
+No role hand-writes a `managed` render output.
+
+The artifact-driven template tree `docs/wiki/documentation/artifact-driven/templates/**` is not
+shipped by this change. The template order and the ship of the template tree stay open items of a
+later change.
 
 ## Steps
 
@@ -49,40 +61,36 @@ role bodies. Move the contract before the description in the specification templ
    description and the notes. The human approves the contract before phase 3 through the artifact
    master. The contract approval is the second point of phase 2
    (spec-contract-first interface 1 to 5, C-CL14, C-CL15).
-3. Update the factory repository page `docs/wiki/documentation/artifact-driven/README.md` as the
-   managed emit of the asset. The two files hold the same bytes
-   (spec-contract-first interface 7, invariant 7, C-CL25).
-4. Move the contract before the description in the template
-   `docs/wiki/documentation/artifact-driven/templates/change/specifications/spec-name.md`. The
-   template holds the section `## Contract` before the section `## Description`
-   (spec-contract-first Notes).
-5. Align the mixture-of-experts page. The section `## Contract-driven specifications` states the
+3. Name the emitted output. The repository page
+   `docs/wiki/documentation/artifact-driven/README.md` is the only emitted output of this change.
+   Its copy mode is `managed`. The factory emit at the adoption step produces it. No role
+   hand-writes it (spec-contract-first interface 7, invariant 7, C-CL25).
+4. Align the mixture-of-experts page. The section `## Contract-driven specifications` states the
    contract-first rule, the four contract parts, the context and the aggregate lines, and the
    feasibility review (spec-contract-first, C-CL26).
-6. Add the interaction point table to the mixture-of-experts page. Phase 1 holds one point. Phase
+5. Add the interaction point table to the mixture-of-experts page. Phase 1 holds one point. Phase
    2 holds two points: the option interview before the final write and the contract approval
    before phase 3 (spec-human-interaction data model, C-CL11).
-7. State the option interview shape in the mixture-of-experts page: the situation, the reason,
+6. State the option interview shape in the mixture-of-experts page: the situation, the reason,
    each option with its advantages, its disadvantages, and its impact, one recommendation, and
    the recommendation reason (spec-human-interaction interface 4 and 5, C-CL12).
-8. Add the interaction points and the option interview shape to the rendered coordinator body
+7. Add the interaction points and the option interview shape to the rendered coordinator body
    `artifact-master` and to the rendered phase 1 body `requirement-expert` and the rendered phase
    2 body `solution-expert` (spec-protocol rendered role content 1 to 4, C-CL20, C-CL21).
-9. Keep the interview in the chat. Write no interview artifact. The expert does not ask the user
+8. Keep the interview in the chat. Write no interview artifact. The expert does not ask the user
    directly (spec-human-interaction invariant 8, C-CL13).
-10. Keep the page copy mode `managed` and the emitted path
-    `docs/wiki/documentation/artifact-driven/README.md`. Every generated project receives the page
-    (spec-contract-first invariant 6).
+9. Keep the page copy mode `managed` and the emitted path
+   `docs/wiki/documentation/artifact-driven/README.md`. Every generated project receives the page
+   (spec-contract-first invariant 6).
 
 ## Acceptance criteria
 
-- The managed page holds the section `## Contract-first specifications`
+- The managed page asset holds the section `## Contract-first specifications`
   (spec-contract-first interface 6).
-- The managed page states the four contract parts, the contract before the description, and the
-  human approval before phase 3 (C-CL14, C-CL15).
-- The factory repository page equals the managed asset (C-CL25).
-- The template holds the section `## Contract` before the section `## Description`
-  (spec-contract-first interface 1).
+- The managed page asset states the four contract parts, the contract before the description, and
+  the human approval before phase 3 (C-CL14, C-CL15).
+- The repository page is the only emitted output of this change. No role hand-writes it
+  (spec-contract-first interface 7, invariant 7, C-CL25).
 - The mixture-of-experts page states the contract-first rule and the option interview shape
   (C-CL12, C-CL26).
 - The rendered `artifact-master`, `requirement-expert`, and `solution-expert` bodies state the
@@ -98,10 +106,10 @@ role bodies. Move the contract before the description in the specification templ
 
 ## Verification
 
-Run the markdown lint on the changed pages:
+Run the markdown lint on the authored pages:
 
 ```sh
-markdownlint --config .markdownlint.yaml docs/wiki/documentation/artifact-driven/README.md docs/wiki/documentation/mixture-of-experts/README.md
+markdownlint --config .markdownlint.yaml services/factory/assets/documentation/artifact-driven/README.md docs/wiki/documentation/mixture-of-experts/README.md
 ```
 
 Then run the regression check:
@@ -110,16 +118,19 @@ Then run the regression check:
 nix flake check ./services/factory/examples/single
 ```
 
-The check passes. The page is emitted with the copy mode `managed`.
+The check passes. The plan holds the page entry with the copy mode `managed`.
 
 ## Out of scope
 
 - The capability kind model and the render function:
   [task-capability-model](task-capability-model.md).
-- The asset files: [task-capability-assets](task-capability-assets.md).
+- The asset bytes: [task-capability-assets](task-capability-assets.md).
 - The `## Capability` lines of the role bodies: [task-role-bodies](task-role-bodies.md).
 - The permission grant and the expected permission fixture:
   [task-role-permissions](task-role-permissions.md).
 - The seed-check fixtures and assertions:
   [task-seed-advance](task-seed-advance.md).
+- The repository page: the emitted output of the adoption step (see "Emitted outputs").
+- The artifact-driven template tree `docs/wiki/documentation/artifact-driven/templates/**`: the
+  template order and the ship of the template tree stay open items of a later change.
 - The feat-design chapter content and the design templates: the feat-design owner.

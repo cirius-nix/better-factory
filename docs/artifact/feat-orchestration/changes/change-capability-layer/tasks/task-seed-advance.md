@@ -33,7 +33,9 @@ assertion. Keep the result file exactly five lines.
   C-FCL-06-03.
 - `specifications/spec-capability-kinds.md`: the resolved constraints C-FCL-06-01 and
   C-FCL-06-05.
-- `decisions/adr-capability-home.md`, `adr-capability-bundle.md`, and
+- `specifications/spec-contract-first.md`: the data model of the managed page; invariant 6 and 7;
+  the resolved constraints C-CL16 and C-CL25.
+- `decisions/adr-capability-home.md`, `adr-capability-bundle.md`, `adr-contract-first.md`, and
   `adr-aggregate-pattern.md`.
 
 ## Files to change
@@ -49,10 +51,13 @@ assertion. Keep the result file exactly five lines.
 1. Advance the seed-check plan and the rendered-source list to the capability files. The plan
    holds each shipped capability file of the kind `skill` and the kind `command`. The rendered
    source joins the rendered-source list of the run (spec-capability-ship C-CL19).
-2. Add the managed page to the seed-check plan. The seed check composes its own plan and does not
-   cover the page that `modules/entrypoint.nix` adds. Prove the path
-   `docs/wiki/documentation/artifact-driven/README.md` and its rendered source in the plan
-   (spec-contract-first interface 7, FCL-07-04-C1).
+2. Add the plan-entry assertion for the managed page. The seed check composes its own plan. Prove
+   that the plan holds the entry `docs/wiki/documentation/artifact-driven/README.md`, the copy
+   mode is `managed`, the source is the asset
+   `services/factory/assets/documentation/artifact-driven/README.md`, and the emitted bytes equal
+   the asset bytes through `renderedSources`. The seed check reads no file under the repository
+   path `docs/wiki/documentation/artifact-driven/` (spec-contract-first interface 7, C-CL25,
+   FCL-07-04-C1, FCL-07-04-C2).
 3. Prove each shipped capability key in the rendered opencode document. Read
    `agents.<role>.model`, `worktree.directory`, and `references.<name>` (C-CL18).
 4. Prove that a repo-local capability adds no key to the rendered document of a generated project
@@ -66,10 +71,9 @@ assertion. Keep the result file exactly five lines.
    role-contract table of the role. Ignore the field `when`. Prove that the body names the
    instruction skill of each tool it uses, and that the body names no tool outside the capability
    set (spec-role-render C-CL22, C-CL23, C-CL35, FCL-07-03-C2, FCL-07-05-C3).
-7. Compare the repository page `docs/wiki/documentation/artifact-driven/README.md` with the asset
-   `services/factory/assets/documentation/artifact-driven/README.md` byte for byte. Write the
-   comparison as an eval-time `assert` with the two explicit source paths
-   (spec-contract-first interface 7, FCL-07-04-C2).
+7. Keep the seed check away from the repository page. The check reads no file under
+   `docs/wiki/documentation/artifact-driven/`. The repository page is a `managed` emit of the
+   adoption step (spec-contract-first C-CL25, FCL-07-04-C2).
 8. Add the instruction skill grant assertion. The fixture runs with the design tool `figma`. The
    fixture asserts the `context7-mcp` grant of `solution-expert` and `factory-expert`, and the
    `figma` grant of `designer-expert`. The assertion is an eval-time `assert`
@@ -100,14 +104,15 @@ assertion. Keep the result file exactly five lines.
 
 - The plan and the rendered-source list hold each shipped capability file of the kind `skill` and
   the kind `command` (C-CL19).
-- The seed-check plan holds the path `docs/wiki/documentation/artifact-driven/README.md` and its
-  rendered source (FCL-07-04-C1).
 - The rendered document holds each shipped config key. A repo-local capability adds no key
   (C-CL18, C-CL20).
 - The body/table assertion passes for the six bodies. The check reads
   `utils/agent/role/factory-expert/ROLE.md` and compares kind, name, and home
   (C-CL22, C-CL23, C-CL35, FCL-07-03-C2, FCL-07-05-C3).
-- The repository page equals the asset byte for byte (spec-contract-first interface 7,
+- The plan holds the entry `docs/wiki/documentation/artifact-driven/README.md` with the copy mode
+  `managed`, the source is the asset, and the emitted bytes equal the asset bytes through
+  `renderedSources`. The seed check reads no repository file under
+  `docs/wiki/documentation/artifact-driven/` (spec-contract-first interface 7, C-CL25,
   FCL-07-04-C2).
 - The grant assertion passes for `context7-mcp`, `figma`, and the `unset` case (C-FCL-06-04).
 - The version 3.0.0 skill chain keeps its bytes, apart from the instruction skill rules of the

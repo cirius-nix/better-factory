@@ -77,7 +77,8 @@ repository. The change ships the artifact-driven page only.
 
 At version 3.0.0 the specification template holds the description first and the contract second.
 The model states no rule that the contract precedes the implementation. The model states no
-approval of the contract.
+approval of the contract. The change states no template rule. The template order and the ship of
+the template tree stay open items of a later change.
 
 The change states the contract-first rule. The contract comes before the explanatory content of
 the specification. The contract gives the interface, the events, the data model, and the
@@ -107,7 +108,7 @@ is not gated by the design method or another option.
 - A generated project without `docs/wiki/documentation/artifact-driven/README.md` fails the
   check.
 - A generated project with a second copy of the contract-first rule fails the check.
-- A factory repository page that differs from the asset fails the check.
+- A planned page whose emitted bytes differ from the asset bytes fails the check.
 - A contract-first page with a copy mode other than `managed` fails the check.
 
 ## Resolved constraints
@@ -126,7 +127,12 @@ is not gated by the design method or another option.
   artifact-driven guide at `docs/wiki/documentation/artifact-driven/README.md`.
 - The factory manages the rule in one place. The emitted page holds one copy. The factory adds no
   second copy to a generated project.
-- Phase 4 writes the section `## Contract-first specifications` of the page. Phase 4 also updates
-  the template `templates/change/specifications/spec-name.md` of the wiki.
+- Phase 4 writes the section `## Contract-first specifications` of the asset. The repository page
+  `docs/wiki/documentation/artifact-driven/README.md` is the only `managed` emitted output of this
+  change. The factory emit at the adoption step produces it after phase 5. No role hand-writes it.
+- The specification template `templates/change/specifications/spec-name.md` holds the description
+  first and the contract second at version 3.0.0. This change ships the page only. The template
+  order and the ship of the template tree stay open items of a later change
+  (`docs/wiki/documentation/artifact-driven/templates/**`).
 - The mixture-of-experts page holds the section `## Contract-driven specifications`. Phase 4
   aligns that page with this specification.

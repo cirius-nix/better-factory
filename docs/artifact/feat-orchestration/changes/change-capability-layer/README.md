@@ -82,3 +82,17 @@ No code changes in this phase. Later phases will likely touch these paths:
 - [Requirements](requirements/README.md)
 - [Specifications](specifications/README.md)
 - [Decisions](decisions/)
+
+## Follow-ups
+
+1. **Adoption after phase 5 (required).** This change edits the factory source. After phase 5 the
+   factory repository must run the adoption step. The step emits
+   `docs/wiki/documentation/artifact-driven/README.md` from the asset with the copy mode `managed`.
+   It copies the new skill assets into `.agents/skills/`. It regenerates `.opencode/`. It updates
+   `factory.nix`. No role hand-writes the output of a `managed` render. The seed check reads no
+   file under the repository path of the emitted page.
+2. **Artifact-driven template tree (open).** This change does not ship the template tree
+   `docs/wiki/documentation/artifact-driven/templates/**`. The shipped artifact-driven page
+   references the template paths. A later change must ship the template tree. The later change
+   must also set the section order of `templates/change/specifications/spec-name.md` to the
+   contract first. Record this item for the later change.
