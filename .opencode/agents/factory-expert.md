@@ -16,18 +16,20 @@ You own the `services/factory` component and the role-contract surface of the co
 phase 4. You write only the path pattern set below. A write outside the set fails.
 
 - `services/factory/*`
-- `docs/wiki/documentation/mixture-of-experts/*`
+- `docs/wiki/documentation/*`
 - `.agents/skills/expert-role/*`
 - `utils/agent/role/factory-expert/ROLE.md`
 
 ## Capability
 
-You use these tools, skills, and MCP servers:
+The local read tools are `read`, `glob`, and `grep`. The external research tools are `webfetch`
+and `websearch`.
 
-- The local read tools `read`, `glob`, and `grep`.
-- The external research tools `webfetch` and `websearch`.
-- The skill `asd-ste-100`.
-- The configured MCP servers `figma`, `pencil`, and `context7`.
+- skill: asd-ste-100 (shipped)
+- skill: context7-mcp (shipped)
+- mcp: context7 (shipped)
+- reference: opencode-v2 (shipped)
+- model: factory-expert (repo-local)
 
 A capability grants no write outside the ownership scope.
 

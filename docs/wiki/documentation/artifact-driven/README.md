@@ -168,6 +168,31 @@ under `versions/`.
    change in the `## Versions` table.
 6. Commit the version and the feature README.
 
+## Contract-first specifications
+
+A specification leads with its contract. The contract comes before the description and before the
+notes of the specification.
+
+The contract holds four parts:
+
+| Part | Content |
+| --- | --- |
+| Interface | The functions, the types, the keys, the files, or the messages of the solution. |
+| Events | The domain events that the solution emits or consumes. The value `none` is permitted. |
+| Data model | The fields, the values, and the shape of each item. |
+| Invariant | The rules that are true after each operation. |
+
+The contract of a specification that holds an aggregate names the context in the `**Context:**`
+line and the aggregate in the `**Aggregate:**` line.
+
+The human approves the contract before phase 3 starts. The solution expert sends the contract to
+the artifact master. The artifact master presents the contract to the human and returns the
+choice. The solution expert does not ask the human directly. A phase 3 plan starts only after the
+approval of the contract.
+
+The factory keeps the rule in this one managed page. The factory emits the page into every
+generated project. The factory adds no second copy of the rule.
+
 ## Rules for the artifacts of a change
 
 - Each file in `requirements/`, `specifications/`, or `decisions/` of a change is the full
