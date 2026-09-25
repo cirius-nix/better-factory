@@ -157,6 +157,24 @@ let
   # tree gives the empty order (C-42).
   deliveryOut = delivery.deliveryFiles settings repoRootChecked;
 
+  # Capability file set (spec-capability-ship C-CL05, C-CL09). The render
+  # reads the shipped file kinds of the enabled rendered-role set and takes
+  # the design tool as an input (C-FCL-06-02). The emitter `design` is
+  # skipped, so the design module stays the one emitter of
+  # `.agents/skills/ddd-review/SKILL.md` (C-CL14).
+  capabilityOut = harnessLib.capabilitySources {
+    inherit roleNames;
+    tool = design.toolFeed settings;
+  };
+
+  # Managed documentation page (spec-contract-first C-CL16, C-CL25). One
+  # source asset emits `docs/wiki/documentation/artifact-driven/README.md`
+  # with the copy mode `managed`. The source routes through the
+  # rendered-source list of the run.
+  documentationSource = builtins.toFile "artifact-driven-README.md" (
+    builtins.readFile (factoryDir + "/assets/documentation/artifact-driven/README.md")
+  );
+
   # Configuration file set (C-44): the entry factory.config.yaml with the
   # copy mode template. The source is the rendered YAML of advanced, arch,
   # and secrets of the effective settings. The source joins the
@@ -176,12 +194,14 @@ let
     renderedSources = [
       declarationSrc
       configYaml
+      documentationSource
     ]
     ++ harnessRender.renderedSources
     ++ roleRender.renderedSources
     ++ designOut.renderedSources
     ++ skillOut.renderedSources
-    ++ deliveryOut.renderedSources;
+    ++ deliveryOut.renderedSources
+    ++ capabilityOut.renderedSources;
     extraFiles = [
       {
         rel = "factory.nix";
@@ -193,12 +213,18 @@ let
         source = configYaml;
         copyMode = "template";
       }
+      {
+        rel = "docs/wiki/documentation/artifact-driven/README.md";
+        source = documentationSource;
+        copyMode = "managed";
+      }
     ]
     ++ harnessRender.fileDecls
     ++ roleRender.fileDecls
     ++ designOut.extraFiles
     ++ skillOut.extraFiles
-    ++ deliveryOut.extraFiles;
+    ++ deliveryOut.extraFiles
+    ++ capabilityOut.fileDecls;
   };
 
   files = plan.files;

@@ -11,6 +11,7 @@
   pkgs,
   factoryDir,
   arch,
+  factoryExpertBody ? null,
 }:
 let
   facade = import ./facade.nix;
@@ -390,6 +391,36 @@ let
     builtins.filter (i: pred (builtins.elemAt xs i)) (
       builtins.genList (i: i) (builtins.length xs)
     );
+  # The three expected arrays of the designer-expert permission set
+  # (spec-role-permissions check 12, C-FCL-06-03). The main fixture runs the
+  # design tool `figma`. The `unset` array holds no design-tool rule. The
+  # `pencil` array holds the `pencil` rule and no `figma` rule. The arrays are
+  # literal and independent of the role-contract table (FCL-07-05-C4).
+  permDesignerHead = [
+    { action = "edit"; resource = "*"; effect = "deny"; }
+    { action = "edit"; resource = "docs/artifact/*/changes/*/design/*"; effect = "allow"; }
+    { action = "read"; resource = "*"; effect = "allow"; }
+    { action = "glob"; resource = "*"; effect = "allow"; }
+    { action = "grep"; resource = "*"; effect = "allow"; }
+    { action = "webfetch"; resource = "*"; effect = "allow"; }
+    { action = "websearch"; resource = "*"; effect = "allow"; }
+    { action = "skill"; resource = "*"; effect = "ask"; }
+    { action = "skill"; resource = "asd-ste-100"; effect = "allow"; }
+  ];
+  permDesignerTail = [
+    { action = "subagent"; resource = "*"; effect = "deny"; }
+    { action = "question"; resource = "*"; effect = "deny"; }
+    { action = "shell"; resource = "*"; effect = "deny"; }
+  ];
+  permDesignerFig =
+    permDesignerHead
+    ++ [ { action = "skill"; resource = "figma"; effect = "allow"; } ]
+    ++ permDesignerTail;
+  permDesignerUnset = permDesignerHead ++ permDesignerTail;
+  permDesignerPencil =
+    permDesignerHead
+    ++ [ { action = "skill"; resource = "pencil"; effect = "allow"; } ]
+    ++ permDesignerTail;
   permExpected = {
     artifact-master = [
       { action = "edit"; resource = "*"; effect = "deny"; }
@@ -447,6 +478,7 @@ let
       { action = "skill"; resource = "*"; effect = "ask"; }
       { action = "skill"; resource = "asd-ste-100"; effect = "allow"; }
       { action = "skill"; resource = "ddd-review"; effect = "allow"; }
+      { action = "skill"; resource = "context7-mcp"; effect = "allow"; }
       { action = "subagent"; resource = "*"; effect = "deny"; }
       { action = "question"; resource = "*"; effect = "deny"; }
       { action = "shell"; resource = "*"; effect = "deny"; }
@@ -473,7 +505,7 @@ let
     factory-expert = [
       { action = "edit"; resource = "*"; effect = "deny"; }
       { action = "edit"; resource = "services/factory/*"; effect = "allow"; }
-      { action = "edit"; resource = "docs/wiki/documentation/mixture-of-experts/*"; effect = "allow"; }
+      { action = "edit"; resource = "docs/wiki/documentation/*"; effect = "allow"; }
       { action = "edit"; resource = ".agents/skills/expert-role/*"; effect = "allow"; }
       { action = "edit"; resource = "utils/agent/role/factory-expert/ROLE.md"; effect = "allow"; }
       { action = "read"; resource = "*"; effect = "allow"; }
@@ -483,6 +515,7 @@ let
       { action = "websearch"; resource = "*"; effect = "allow"; }
       { action = "skill"; resource = "*"; effect = "ask"; }
       { action = "skill"; resource = "asd-ste-100"; effect = "allow"; }
+      { action = "skill"; resource = "context7-mcp"; effect = "allow"; }
       { action = "subagent"; resource = "*"; effect = "deny"; }
       { action = "question"; resource = "*"; effect = "deny"; }
       { action = "shell"; resource = "*"; effect = "ask"; }
@@ -494,20 +527,7 @@ let
       { action = "shell"; resource = "git log *"; effect = "allow"; }
       { action = "shell"; resource = "git show *"; effect = "allow"; }
     ];
-    designer-expert = [
-      { action = "edit"; resource = "*"; effect = "deny"; }
-      { action = "edit"; resource = "docs/artifact/*/changes/*/design/*"; effect = "allow"; }
-      { action = "read"; resource = "*"; effect = "allow"; }
-      { action = "glob"; resource = "*"; effect = "allow"; }
-      { action = "grep"; resource = "*"; effect = "allow"; }
-      { action = "webfetch"; resource = "*"; effect = "allow"; }
-      { action = "websearch"; resource = "*"; effect = "allow"; }
-      { action = "skill"; resource = "*"; effect = "ask"; }
-      { action = "skill"; resource = "asd-ste-100"; effect = "allow"; }
-      { action = "subagent"; resource = "*"; effect = "deny"; }
-      { action = "question"; resource = "*"; effect = "deny"; }
-      { action = "shell"; resource = "*"; effect = "deny"; }
-    ];
+    designer-expert = permDesignerFig;
     unknown-role = [
       { action = "edit"; resource = "*"; effect = "deny"; }
       { action = "read"; resource = "*"; effect = "allow"; }
@@ -548,7 +568,7 @@ let
   permMerged = harnessLib.mergeAgents {
     project = permProject;
     roleNames = permRoleNames;
-    tool = "unset";
+    tool = "figma";
     ux = true;
   };
   permSelected = harnessLib.renderSelected {
@@ -557,6 +577,35 @@ let
   };
   permDoc = builtins.fromJSON (
     builtins.readFile (fileByRel permSelected.fileDecls ".opencode/opencode.jsonc").source
+  );
+  # The `unset` and `pencil` designer-expert variants (spec-role-permissions
+  # check 12). The `unset` document holds no design-tool instruction skill
+  # rule. The `pencil` document holds the `pencil` rule and no `figma` rule.
+  permMergedUnset = harnessLib.mergeAgents {
+    project = permProject;
+    roleNames = permRoleNames;
+    tool = "unset";
+    ux = true;
+  };
+  permSelectedUnset = harnessLib.renderSelected {
+    merged = permMergedUnset;
+    uses = [ "opencode" ];
+  };
+  permDocUnset = builtins.fromJSON (
+    builtins.readFile (fileByRel permSelectedUnset.fileDecls ".opencode/opencode.jsonc").source
+  );
+  permMergedPencil = harnessLib.mergeAgents {
+    project = permProject;
+    roleNames = permRoleNames;
+    tool = "pencil";
+    ux = true;
+  };
+  permSelectedPencil = harnessLib.renderSelected {
+    merged = permMergedPencil;
+    uses = [ "opencode" ];
+  };
+  permDocPencil = builtins.fromJSON (
+    builtins.readFile (fileByRel permSelectedPencil.fileDecls ".opencode/opencode.jsonc").source
   );
   permRender = rolesLib.renderRoles {
     roles = permMerged.roles;
@@ -755,6 +804,16 @@ let
         name = "permission-enabled";
         assertion = permEnabledOk;
         message = "permission-enabled: a declaration without the `enable` field is not enabled, or a disabled role holds a permission key";
+      }
+      {
+        name = "permission-designer-unset";
+        assertion = permDocUnset.agents."designer-expert".permissions == permDesignerUnset;
+        message = "permission-designer-unset: the `unset` fixture holds a design-tool instruction skill rule or a different array";
+      }
+      {
+        name = "permission-designer-pencil";
+        assertion = permDocPencil.agents."designer-expert".permissions == permDesignerPencil;
+        message = "permission-designer-pencil: the `pencil` fixture misses the `pencil` rule or holds a `figma` rule";
       }
     ]
     ++ builtins.map (n: {
@@ -1122,7 +1181,7 @@ let
     {
       name = "designer-permission";
       assertion =
-        uxOpencodeJson.agents."designer-expert".permissions == permExpected.designer-expert;
+        uxOpencodeJson.agents."designer-expert".permissions == permDesignerUnset;
       message = "designer-permission: `.opencode/opencode.jsonc` holds no `agents.\"designer-expert\".permissions` with the derived permission set";
     }
     {
@@ -1330,21 +1389,373 @@ let
     inherit arch factoryDir modes;
     renderedSources = [
       configYaml
+      documentationSource
     ]
     ++ designOut.renderedSources
     ++ skillOut.renderedSources
-    ++ deliveryOut.renderedSources;
+    ++ deliveryOut.renderedSources
+    ++ capabilityOut.renderedSources;
     extraFiles = [
       {
         rel = "factory.config.yaml";
         source = configYaml;
         copyMode = "template";
       }
+      {
+        rel = documentationRel;
+        source = documentationSource;
+        copyMode = "managed";
+      }
     ]
     ++ designOut.extraFiles
     ++ skillOut.extraFiles
-    ++ deliveryOut.extraFiles;
+    ++ deliveryOut.extraFiles
+    ++ capabilityOut.fileDecls;
   };
+
+  # Capability layer fixture (spec-capability-ship C-CL09, C-CL13, C-CL18,
+  # C-CL19, C-CL20; spec-contract-first C-CL16, C-CL25; spec-role-render
+  # C-CL22, C-CL23, C-CL35). The fixture composes each shipped capability
+  # file and the managed documentation page into the seed-check plan, proves
+  # each shipped config key and the absent repo-local model key, and parses
+  # the `## Capability` axis of each role body against the role-contract
+  # table. Each check is an eval-time `assert`, so the result file stays
+  # exactly five lines.
+  capabilityRoleDir = factoryDir + "/assets/roles";
+  capabilityRoleEntries = builtins.readDir capabilityRoleDir;
+  capabilityShippedNames = builtins.filter (
+    n: capabilityRoleEntries.${n} == "directory" && n != "designer-expert"
+  ) (builtins.attrNames capabilityRoleEntries);
+  capabilityRoleNames = capabilityShippedNames;
+  capabilityOut = harnessLib.capabilitySources {
+    roleNames = capabilityRoleNames;
+    tool = design.toolFeed settings;
+  };
+  capabilityExpectedRels = [
+    ".agents/skills/artifact-master/SKILL.md"
+    ".agents/skills/asd-ste-100/SKILL.md"
+    ".agents/skills/context7-mcp/SKILL.md"
+    ".agents/skills/expert-role/SKILL.md"
+    ".opencode/commands/contract-review.md"
+    ".opencode/commands/interview.md"
+    ".opencode/commands/plan-pn.md"
+    ".opencode/commands/release.md"
+  ];
+  documentationRel = "docs/wiki/documentation/artifact-driven/README.md";
+  documentationAsset = factoryDir + "/assets/documentation/artifact-driven/README.md";
+  documentationSource = builtins.toFile "artifact-driven-README.md" (
+    builtins.readFile documentationAsset
+  );
+
+  # Config-key fixture (C-CL18, C-CL20). The fixture selects the opencode
+  # harness and the six known role names, so the shipped `references` and
+  # `worktree` keys render. Each role model is repo-local, so the rendered
+  # document holds no `agents.<role>.model` key.
+  capabilityConfigRoleNames = [
+    "artifact-master"
+    "requirement-expert"
+    "solution-expert"
+    "artifact-release-expert"
+    "factory-expert"
+    "designer-expert"
+  ];
+  capabilityConfigMerged = harnessLib.mergeAgents {
+    project = orchestration.evalAgents { uses = [ "opencode" ]; };
+    roleNames = capabilityConfigRoleNames;
+    tool = "unset";
+    ux = true;
+  };
+  capabilityConfigSelected = harnessLib.renderSelected {
+    merged = capabilityConfigMerged;
+    uses = [ "opencode" ];
+  };
+  capabilityConfigDoc = builtins.fromJSON (
+    builtins.readFile (fileByRel capabilityConfigSelected.fileDecls ".opencode/opencode.jsonc").source
+  );
+
+  # Body/table parse (C-CL22, C-CL23, C-CL35). The five shipped bodies live
+  # under `assets/roles/`. The `factory-expert` body is repo-local and lives
+  # at `utils/agent/role/factory-expert/ROLE.md`, outside the factory flake
+  # input. The check receives it through the optional argument
+  # `factoryExpertBody` (adr-seed-check-body-input, C-CL36): a null value
+  # asserts the five shipped bodies only; a path value asserts the four
+  # literal `## Ownership` path patterns and the `## Capability` lines of
+  # the `factory-expert` body against the role-contract table. The check
+  # holds no hand list of the body path and reads no path outside its input.
+  bodyRoleNames = [
+    "artifact-master"
+    "requirement-expert"
+    "solution-expert"
+    "artifact-release-expert"
+    "designer-expert"
+  ];
+  bodyOf = role: builtins.readFile (factoryDir + "/assets/roles/${role}/ROLE.md");
+  bodyCapabilityLines =
+    text:
+    let
+      lines = builtins.filter builtins.isString (builtins.split "\n" text);
+      step =
+        acc: line:
+        if acc.done then
+          acc
+        else if acc.started then
+          (if builtins.substring 0 3 line == "## " then
+            {
+              started = true;
+              done = true;
+              out = acc.out;
+            }
+          else
+            {
+              started = true;
+              done = false;
+              out = acc.out ++ [ line ];
+            })
+        else if line == "## Capability" then
+          {
+            started = true;
+            done = false;
+            out = [ ];
+          }
+        else
+          acc;
+      r = builtins.foldl' step { started = false; done = false; out = [ ]; } lines;
+    in
+    r.out;
+  bodyParseLine =
+    line:
+    let
+      m = builtins.match "^- (skill|command|mcp|reference|plugin|model|worktree): ([^ ]+) \\(([a-z-]+)\\)$" line;
+    in
+    if m == null then
+      null
+    else
+      {
+        kind = builtins.elemAt m 0;
+        name = builtins.elemAt m 1;
+        home = builtins.elemAt m 2;
+      };
+  bodyKey = c: "${c.kind}:${c.name}:${c.home}";
+  bodySort = xs: builtins.sort builtins.lessThan xs;
+  bodyExtraBullets =
+    text:
+    builtins.filter (line: builtins.substring 0 2 line == "- " && bodyParseLine line == null) (
+      bodyCapabilityLines text
+    );
+  bodyMatches =
+    role: text:
+    let
+      parsed = builtins.filter (x: x != null) (builtins.map bodyParseLine (bodyCapabilityLines text));
+      table =
+        if builtins.hasAttr role harnessLib.roleContracts then
+          harnessLib.roleContracts.${role}.capabilities
+        else
+          [ ];
+    in
+    bodySort (builtins.map bodyKey parsed) == bodySort (builtins.map bodyKey table);
+  # The `factory-expert` ownership patterns of the role-contract table
+  # (spec-role-permissions check 10, spec-role-render RC03-C2 and RC03-C3).
+  # The check proves that the passed body carries each pattern as a literal.
+  factoryExpertOwnership =
+    if builtins.hasAttr "factory-expert" harnessLib.roleContracts then
+      builtins.map (p: p.resource) harnessLib.roleContracts."factory-expert".ownership
+    else
+      [ ];
+  # Null `factoryExpertBody`: the check asserts the five shipped bodies only
+  # and holds no `factory-expert` assertion. A path value: the check proves
+  # the `## Capability` lines and the four literal `## Ownership` patterns
+  # against the role-contract table.
+  factoryExpertBodyText =
+    if factoryExpertBody == null then null else builtins.readFile factoryExpertBody;
+  factoryExpertCapabilityOk =
+    factoryExpertBodyText == null
+    || (
+      bodyMatches "factory-expert" factoryExpertBodyText
+      && bodyExtraBullets factoryExpertBodyText == [ ]
+    );
+  factoryExpertOwnershipOk =
+    factoryExpertBodyText == null
+    || builtins.all (p: permHas factoryExpertBodyText p) factoryExpertOwnership;
+
+  # Grant fixture (spec-harness-merge check 12, C-FCL-06-04). The fixture
+  # runs with the design tool `figma`. Each using role holds one allow rule
+  # for the instruction skill of its tool; the inactive design tool holds
+  # none.
+  capabilitySkillAllows =
+    role: tool:
+    builtins.filter (r: r.action == "skill" && r.effect == "allow") (
+      harnessLib.permissionRulesFor role tool
+    );
+  capabilityHasAllow =
+    role: tool: name:
+    builtins.any (r: r.resource == name) (capabilitySkillAllows role tool);
+  capabilityGrantOk =
+    capabilityHasAllow "solution-expert" "figma" "context7-mcp"
+    && capabilityHasAllow "factory-expert" "figma" "context7-mcp"
+    && capabilityHasAllow "designer-expert" "figma" "figma"
+    && !(capabilityHasAllow "designer-expert" "figma" "pencil")
+    && !(capabilityHasAllow "designer-expert" "figma" "context7-mcp");
+  capabilityLegacyUnset =
+    capabilityHasAllow "requirement-expert" "unset" "asd-ste-100"
+    && capabilityHasAllow "requirement-expert" "unset" "ddd-review";
+
+  capabilityAssertions = [
+    {
+      name = "capability-plan-files";
+      assertion = builtins.all (rel: builtins.hasAttr rel plan.files) capabilityExpectedRels;
+      message = "capability-plan-files: the plan misses a shipped capability file of the kind skill or command";
+    }
+    {
+      name = "capability-plan-mode";
+      assertion = builtins.all (rel: plan.files.${rel}.copyMode == "managed") capabilityExpectedRels;
+      message = "capability-plan-mode: a shipped capability file holds a copy mode other than managed";
+    }
+    {
+      name = "capability-rendered-source";
+      assertion = builtins.all (
+        rel:
+        builtins.elem (toString plan.files.${rel}.source) (
+          builtins.map toString capabilityOut.renderedSources
+        )
+      ) capabilityExpectedRels;
+      message = "capability-rendered-source: a shipped capability file source is not a rendered path of the run";
+    }
+    {
+      name = "capability-plan-once";
+      assertion =
+        builtins.length capabilityExpectedRels == builtins.length (builtins.map (e: e.rel) capabilityOut.fileDecls)
+        && builtins.length (
+          builtins.attrNames (
+            builtins.listToAttrs (
+              builtins.map (e: {
+                name = e.rel;
+                value = e.source;
+              }) capabilityOut.fileDecls
+            )
+          )
+        ) == builtins.length (builtins.map (e: e.rel) capabilityOut.fileDecls);
+      message = "capability-plan-once: the capability render holds a duplicate emitted path";
+    }
+    {
+      name = "capability-ddd-review-absent";
+      assertion = !(builtins.elem ".agents/skills/ddd-review/SKILL.md" (
+        builtins.map (e: e.rel) capabilityOut.fileDecls
+      ));
+      message = "capability-ddd-review-absent: the capability render emits the design-emitter file";
+    }
+    {
+      name = "capability-documentation-entry";
+      assertion =
+        builtins.hasAttr documentationRel plan.files
+        && plan.files.${documentationRel}.copyMode == "managed";
+      message = "capability-documentation-entry: the plan misses the managed documentation page or its copy mode";
+    }
+    {
+      name = "capability-documentation-bytes";
+      assertion =
+        builtins.hasAttr documentationRel plan.files
+        && builtins.readFile plan.files.${documentationRel}.source == builtins.readFile documentationAsset;
+      message = "capability-documentation-bytes: the emitted documentation page differs from the asset bytes";
+    }
+    {
+      name = "capability-reference-key";
+      assertion = (capabilityConfigDoc.references or { }) ? "opencode-v2";
+      message = "capability-reference-key: the rendered opencode document misses the reference key";
+    }
+    {
+      name = "capability-worktree-key";
+      assertion = (capabilityConfigDoc.worktree or { }) ? "directory";
+      message = "capability-worktree-key: the rendered opencode document misses the worktree key";
+    }
+    {
+      name = "capability-no-model-key";
+      assertion = builtins.all (
+        role: !(builtins.hasAttr "model" (capabilityConfigDoc.agents.${role} or { }))
+      ) capabilityConfigRoleNames;
+      message = "capability-no-model-key: the rendered opencode document holds a repo-local model key";
+    }
+    {
+      name = "capability-duplicate-config";
+      assertion =
+        (builtins.tryEval (
+          builtins.deepSeq (
+            harnessLib.dedupeConfigEntries [
+              {
+                path = [
+                  "references"
+                  "duplicate"
+                ];
+                value = {
+                  one = 1;
+                };
+              }
+              {
+                path = [
+                  "references"
+                  "duplicate"
+                ];
+                value = {
+                  two = 2;
+                };
+              }
+            ]
+          ) true
+        )).success == false;
+      message = "capability-duplicate-config: two different values at one config-key path pass the duplicate check";
+    }
+    {
+      name = "capability-duplicate-file";
+      assertion =
+        (builtins.tryEval (
+          builtins.deepSeq (
+            harnessLib.dedupeFileEntries [
+              {
+                rel = ".agents/skills/duplicate/SKILL.md";
+                asset = documentationAsset;
+              }
+              {
+                rel = ".agents/skills/duplicate/SKILL.md";
+                asset = factoryDir + "/assets/skills/asd-ste-100/SKILL.md";
+              }
+            ]
+          ) true
+        )).success == false;
+      message = "capability-duplicate-file: two different assets at one emitted path pass the duplicate check";
+    }
+    {
+      name = "capability-grant";
+      assertion = capabilityGrantOk;
+      message = "capability-grant: a role that uses a tool holds no allow rule for the instruction skill";
+    }
+    {
+      name = "capability-legacy-unset";
+      assertion = capabilityLegacyUnset;
+      message = "capability-legacy-unset: the legacy chain loses a `skill` allow rule under the design method unset";
+    }
+  ]
+  ++ builtins.map (role: {
+    name = "capability-body-${role}";
+    assertion = bodyMatches role (bodyOf role) && bodyExtraBullets (bodyOf role) == [ ];
+    message = "capability-body: the `## Capability` axis of `${role}` differs from the role-contract table or holds an unknown line";
+  }) bodyRoleNames
+  ++ [
+    {
+      name = "capability-body-factory-expert";
+      assertion = factoryExpertCapabilityOk;
+      message = "capability-body: the `## Capability` axis of `factory-expert` differs from the role-contract table";
+    }
+    {
+      name = "capability-ownership-factory-expert";
+      assertion = factoryExpertOwnershipOk;
+      message = "capability-ownership: the `## Ownership` section of `factory-expert` misses a literal path pattern of the role-contract table";
+    }
+  ];
+  capabilityFailing = builtins.filter (a: !a.assertion) capabilityAssertions;
+  capabilityMatch =
+    if capabilityFailing == [ ] then
+      true
+    else
+      throw "seed check: the capability fixture of `${arch}` fails ${(builtins.head capabilityFailing).message}";
 
   # The design files and the skill file join the one transaction that
   # holds the base files, the overlay files, the role files, the MCP
@@ -2630,6 +3041,7 @@ assert permissionMatch;
 assert assetMatch;
 assert uxMatch;
 assert mcpV2Match;
+assert capabilityMatch;
 assert planPathMatch;
 assert logFixturePermissions;
 assert evalAssertions;

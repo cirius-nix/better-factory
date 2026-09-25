@@ -162,20 +162,254 @@ let
     opencode = { };
   };
 
+  # The seven option kinds are the closed vocabulary (spec-capability-kinds,
+  # adr-capability-kind-model). The factory models the live kinds only. The
+  # kind `plugin` is not live and holds no render branch and no asset root.
+  optionKinds = [
+    "skill"
+    "command"
+    "mcp"
+    "reference"
+    "plugin"
+    "model"
+    "worktree"
+  ];
+
+  # A file kind emits a file. A config kind writes a key into the rendered
+  # opencode file. The kind `mcp` adds no key of its own and no file of its
+  # own (spec-capability-kinds, C-CL04).
+  fileKinds = [
+    "skill"
+    "command"
+  ];
+
+  configKinds = [
+    "reference"
+    "model"
+    "worktree"
+  ];
+
+  homeValues = [
+    "shipped"
+    "repo-local"
+  ];
+
+  whenValues = [
+    "always"
+    "ddd"
+    "design-tool"
+  ];
+
+  emitterValues = [
+    "capability"
+    "design"
+  ];
+
+  # The version 3.0.0 skill chain (spec-role-permissions, C-FCL-06-05). The
+  # chain maps unconditionally to the `skill` allow rules. The `when`
+  # activation filters a bundle instruction skill only.
+  legacySkillChain = [
+    "asd-ste-100"
+    "ddd-review"
+    "artifact-master"
+    "expert-role"
+  ];
+
+  # The factory data table of the config kinds (spec-capability-kinds
+  # interface 7, adr-capability-value-source). The sub-table `mcp` is the
+  # existing table `canonicalMcp`; the kind `mcp` adds no key of its own. A
+  # file kind reads no table entry, and a repo-local model adds no value.
+  capabilityValues = {
+    reference = {
+      opencode-v2 = {
+        repository = "sst/opencode";
+        branch = "dev";
+      };
+    };
+    model = { };
+    worktree = {
+      phase4 = "../worktrees";
+    };
+    mcp = canonicalMcp;
+  };
+
+  # Whether the factory data table holds the value of a shipped config
+  # capability (spec-capability-kinds Errors).
+  hasCapabilityValue =
+    kind: name:
+    builtins.hasAttr kind capabilityValues
+    && builtins.isAttrs capabilityValues.${kind}
+    && builtins.hasAttr name capabilityValues.${kind};
+
+  # Validate one capability entry of one role (spec-capability-kinds
+  # invariant 1, 2, 6, 7, 9 and spec-capability-ship interface 1 to 5). The
+  # field set is exact. The kind `plugin` fails with a message that names
+  # the kind. A file kind holds the field `asset`; a config kind holds no
+  # asset. The value of a shipped config kind is in `capabilityValues`.
+  # Returns the entry.
+  validateCapability =
+    roleName: cap:
+    if !(builtins.isAttrs cap) then
+      throw "capability-type: a capability of the role `${roleName}` must be an attribute set, got `${builtins.typeOf cap}`"
+    else
+      let
+        knownFields = [
+          "kind"
+          "name"
+          "home"
+          "when"
+          "emitter"
+          "asset"
+          "instruction"
+        ];
+        unknown = builtins.filter (f: !(builtins.elem f knownFields)) (builtins.attrNames cap);
+      in
+      if unknown != [ ] then
+        throw "capability-field: a capability of the role `${roleName}` holds the unknown field `${builtins.head unknown}`"
+      else if
+        !(cap ? kind) || !(builtins.isString cap.kind) || !(builtins.elem cap.kind optionKinds)
+      then
+        throw "capability-kind: a capability of the role `${roleName}` holds a kind outside the seven kinds skill, command, mcp, reference, plugin, model, worktree"
+      else if cap.kind == "plugin" then
+        throw "capability-kind: the kind `plugin` of a capability of the role `${roleName}` is not live; the factory models the live kinds only"
+      else if !(cap ? name) || !(builtins.isString cap.name) || cap.name == "" then
+        throw "capability-name: a capability of the role `${roleName}` needs a non-empty string `name`"
+      else if !(cap ? home) then
+        throw "capability-home: the capability `${cap.name}` of the role `${roleName}` needs the home `shipped` or `repo-local`"
+      else if !(builtins.elem cap.home homeValues) then
+        throw "capability-home: the capability `${cap.name}` of the role `${roleName}` holds the home `${builtins.toJSON cap.home}`; want `shipped` or `repo-local`"
+      else if (cap ? when) && !(builtins.elem cap.when whenValues) then
+        throw "capability-when: the capability `${cap.name}` of the role `${roleName}` must hold `when` always, ddd, or design-tool"
+      else if (cap ? emitter) && !(builtins.elem cap.emitter emitterValues) then
+        throw "capability-emitter: the capability `${cap.name}` of the role `${roleName}` must hold `emitter` capability or design"
+      else if builtins.elem cap.kind fileKinds then
+        if !(cap ? asset) then
+          throw "capability-asset: the file kind `${cap.kind}` of the capability `${cap.name}` of the role `${roleName}` needs the field `asset`"
+        else if builtins.typeOf cap.asset != "path" then
+          throw "capability-asset: the field `asset` of the capability `${cap.name}` of the role `${roleName}` must be a path literal, got `${builtins.typeOf cap.asset}`"
+        else if cap ? instruction then
+          throw "capability-field: the file kind `${cap.kind}` of the capability `${cap.name}` of the role `${roleName}` holds the field `instruction`"
+        else
+          let
+            emitter = cap.emitter or "capability";
+            root = if cap.kind == "skill" then "skills" else "commands";
+          in
+          if
+            cap.home == "shipped"
+            && emitter == "capability"
+            && builtins.match ".*/assets/${root}/.*" (toString cap.asset) == null
+          then
+            throw "capability-asset: the shipped file capability `${cap.name}` of the role `${roleName}` points outside `assets/${root}/`"
+          else if cap.home == "repo-local" && builtins.match ".*/assets/.*" (toString cap.asset) != null then
+            throw "capability-asset: the repo-local file capability `${cap.name}` of the role `${roleName}` points inside the asset tree"
+          else
+            cap
+      else if cap.kind == "mcp" then
+        if cap ? asset then
+          throw "capability-asset: the config kind `mcp` of the capability `${cap.name}` of the role `${roleName}` holds no `asset`"
+        else if !(cap ? instruction) then
+          throw "capability-instruction: the `mcp` capability `${cap.name}` of the role `${roleName}` needs the field `instruction`"
+        else if !(builtins.isString cap.instruction) || cap.instruction == "" then
+          throw "capability-instruction: the field `instruction` of the `mcp` capability `${cap.name}` of the role `${roleName}` must name a `skill` capability"
+        else
+          cap
+      else if cap ? asset then
+        throw "capability-asset: the config kind `${cap.kind}` of the capability `${cap.name}` of the role `${roleName}` holds no `asset`"
+      else if cap ? instruction then
+        throw "capability-field: the config kind `${cap.kind}` of the capability `${cap.name}` of the role `${roleName}` holds the field `instruction`"
+      else if cap.home == "shipped" && !(hasCapabilityValue cap.kind cap.name) then
+        throw "capability-value: the shipped config capability `${cap.name}` of the role `${roleName}` has no entry `capabilityValues.${cap.kind}.${cap.name}`"
+      else
+        cap;
+
+  # Validate the capability list of one role and the bundle link of each
+  # `mcp` capability (spec-capability-kinds invariant 9). The instruction
+  # skill is a `skill` capability of the same role with the home `shipped`
+  # and the same value of `when`. Returns the validated list.
+  validateCapabilities =
+    roleName: caps:
+    if !(builtins.isList caps) then
+      throw "capability-list: the field `capabilities` of the role `${roleName}` must be a list"
+    else
+      let
+        validated = builtins.map (validateCapability roleName) caps;
+        link =
+          cap:
+          if cap.kind != "mcp" then
+            cap
+          else
+            let
+              target = builtins.filter (c: c.kind == "skill" && c.name == cap.instruction) validated;
+            in
+            if target == [ ] then
+              throw "capability-instruction: the `mcp` capability `${cap.name}` of the role `${roleName}` names no `skill` capability `${cap.instruction}` of the same role"
+            else if (builtins.head target).home != "shipped" then
+              throw "capability-instruction: the instruction skill `${cap.instruction}` of the `mcp` capability `${cap.name}` of the role `${roleName}` must hold the home `shipped`"
+            else if ((builtins.head target).when or "always") != (cap.when or "always") then
+              throw "capability-instruction: the `mcp` capability `${cap.name}` and its instruction skill `${cap.instruction}` of the role `${roleName}` must hold the same value of `when`"
+            else
+              cap;
+      in
+      builtins.map link validated;
+
   # The role-contract table (spec-role-permissions, adr-permission-source).
   # One entry for each known rendered role name. Each entry holds the two
-  # axes as data: the ownership path patterns, the capability set (the
-  # external research effect and the skill list), the governance rules, and
-  # the shell rules of the role. The table is a lookup only: the derive
+  # axes as data: the ownership path patterns, the capability set
+  # (spec-capability-kinds), the governance rules, and the shell rules of
+  # the role. The table is a lookup only: the derive
   # function writes the rule order as a list literal, because
   # `builtins.attrNames` sorts the names (RC01-C2).
   roleContracts = {
     artifact-master = {
       ownership = [ ];
       research = "deny";
-      skills = [
-        "artifact-master"
-        "expert-role"
+      capabilities = validateCapabilities "artifact-master" [
+        {
+          kind = "skill";
+          name = "artifact-master";
+          home = "shipped";
+          when = "always";
+          asset = ../assets/skills/artifact-master/SKILL.md;
+        }
+        {
+          kind = "skill";
+          name = "expert-role";
+          home = "shipped";
+          when = "always";
+          asset = ../assets/skills/expert-role/SKILL.md;
+        }
+        {
+          kind = "command";
+          name = "plan-pn";
+          home = "shipped";
+          when = "always";
+          asset = ../assets/commands/plan-pn.md;
+        }
+        {
+          kind = "command";
+          name = "interview";
+          home = "shipped";
+          when = "always";
+          asset = ../assets/commands/interview.md;
+        }
+        {
+          kind = "reference";
+          name = "opencode-v2";
+          home = "shipped";
+          when = "always";
+        }
+        {
+          kind = "model";
+          name = "artifact-master";
+          home = "repo-local";
+          when = "always";
+        }
+        {
+          kind = "worktree";
+          name = "phase4";
+          home = "shipped";
+          when = "always";
+        }
       ];
       governance = {
         subagent = "allow";
@@ -247,9 +481,35 @@ let
         }
       ];
       research = "allow";
-      skills = [
-        "asd-ste-100"
-        "ddd-review"
+      capabilities = validateCapabilities "requirement-expert" [
+        {
+          kind = "skill";
+          name = "asd-ste-100";
+          home = "shipped";
+          when = "always";
+          asset = ../assets/skills/asd-ste-100/SKILL.md;
+        }
+        {
+          kind = "skill";
+          name = "ddd-review";
+          home = "shipped";
+          when = "ddd";
+          emitter = "design";
+          asset = ../assets/design/ddd/skill/SKILL.md;
+        }
+        {
+          kind = "command";
+          name = "interview";
+          home = "shipped";
+          when = "always";
+          asset = ../assets/commands/interview.md;
+        }
+        {
+          kind = "model";
+          name = "requirement-expert";
+          home = "repo-local";
+          when = "always";
+        }
       ];
       governance = {
         subagent = "deny";
@@ -280,9 +540,62 @@ let
         }
       ];
       research = "allow";
-      skills = [
-        "asd-ste-100"
-        "ddd-review"
+      capabilities = validateCapabilities "solution-expert" [
+        {
+          kind = "skill";
+          name = "asd-ste-100";
+          home = "shipped";
+          when = "always";
+          asset = ../assets/skills/asd-ste-100/SKILL.md;
+        }
+        {
+          kind = "skill";
+          name = "ddd-review";
+          home = "shipped";
+          when = "ddd";
+          emitter = "design";
+          asset = ../assets/design/ddd/skill/SKILL.md;
+        }
+        {
+          kind = "skill";
+          name = "context7-mcp";
+          home = "shipped";
+          when = "always";
+          asset = ../assets/skills/context7-mcp/SKILL.md;
+        }
+        {
+          kind = "command";
+          name = "interview";
+          home = "shipped";
+          when = "always";
+          asset = ../assets/commands/interview.md;
+        }
+        {
+          kind = "command";
+          name = "contract-review";
+          home = "shipped";
+          when = "always";
+          asset = ../assets/commands/contract-review.md;
+        }
+        {
+          kind = "mcp";
+          name = "context7";
+          home = "shipped";
+          when = "always";
+          instruction = "context7-mcp";
+        }
+        {
+          kind = "reference";
+          name = "opencode-v2";
+          home = "shipped";
+          when = "always";
+        }
+        {
+          kind = "model";
+          name = "solution-expert";
+          home = "repo-local";
+          when = "always";
+        }
       ];
       governance = {
         subagent = "deny";
@@ -309,7 +622,28 @@ let
         }
       ];
       research = "allow";
-      skills = [ "asd-ste-100" ];
+      capabilities = validateCapabilities "artifact-release-expert" [
+        {
+          kind = "skill";
+          name = "asd-ste-100";
+          home = "shipped";
+          when = "always";
+          asset = ../assets/skills/asd-ste-100/SKILL.md;
+        }
+        {
+          kind = "command";
+          name = "release";
+          home = "shipped";
+          when = "always";
+          asset = ../assets/commands/release.md;
+        }
+        {
+          kind = "model";
+          name = "artifact-release-expert";
+          home = "repo-local";
+          when = "always";
+        }
+      ];
       governance = {
         subagent = "deny";
         question = "deny";
@@ -339,7 +673,7 @@ let
           effect = "allow";
         }
         {
-          resource = "docs/wiki/documentation/mixture-of-experts/*";
+          resource = "docs/wiki/documentation/*";
           effect = "allow";
         }
         {
@@ -352,7 +686,41 @@ let
         }
       ];
       research = "allow";
-      skills = [ "asd-ste-100" ];
+      capabilities = validateCapabilities "factory-expert" [
+        {
+          kind = "skill";
+          name = "asd-ste-100";
+          home = "shipped";
+          when = "always";
+          asset = ../assets/skills/asd-ste-100/SKILL.md;
+        }
+        {
+          kind = "skill";
+          name = "context7-mcp";
+          home = "shipped";
+          when = "always";
+          asset = ../assets/skills/context7-mcp/SKILL.md;
+        }
+        {
+          kind = "mcp";
+          name = "context7";
+          home = "shipped";
+          when = "always";
+          instruction = "context7-mcp";
+        }
+        {
+          kind = "reference";
+          name = "opencode-v2";
+          home = "shipped";
+          when = "always";
+        }
+        {
+          kind = "model";
+          name = "factory-expert";
+          home = "repo-local";
+          when = "always";
+        }
+      ];
       governance = {
         subagent = "deny";
         question = "deny";
@@ -399,7 +767,49 @@ let
         }
       ];
       research = "allow";
-      skills = [ "asd-ste-100" ];
+      capabilities = validateCapabilities "designer-expert" [
+        {
+          kind = "skill";
+          name = "asd-ste-100";
+          home = "shipped";
+          when = "always";
+          asset = ../assets/skills/asd-ste-100/SKILL.md;
+        }
+        {
+          kind = "mcp";
+          name = "figma";
+          home = "shipped";
+          when = "design-tool";
+          instruction = "figma";
+        }
+        {
+          kind = "skill";
+          name = "figma";
+          home = "shipped";
+          when = "design-tool";
+          asset = ../assets/skills/figma/SKILL.md;
+        }
+        {
+          kind = "mcp";
+          name = "pencil";
+          home = "shipped";
+          when = "design-tool";
+          instruction = "pencil";
+        }
+        {
+          kind = "skill";
+          name = "pencil";
+          home = "shipped";
+          when = "design-tool";
+          asset = ../assets/skills/pencil/SKILL.md;
+        }
+        {
+          kind = "model";
+          name = "designer-expert";
+          home = "repo-local";
+          when = "always";
+        }
+      ];
       governance = {
         subagent = "deny";
         question = "deny";
@@ -419,7 +829,7 @@ let
   defaultRoleContract = {
     ownership = [ ];
     research = "deny";
-    skills = [ ];
+    capabilities = [ ];
     governance = {
       subagent = "deny";
       question = "deny";
@@ -437,12 +847,31 @@ let
   # the governance, the broad `shell` rule, and the specific shell rules.
   # The table gives the data of each rule; it is not the source of the order
   # (RC01-C2). A rendered role name outside the table receives the
-  # restrictive default.
+  # restrictive default. The skill allow rules hold the unconditional
+  # version 3.0.0 chain and the active instruction skill of each tool bundle,
+  # in the order of the capability list (C-CL33, C-CL34). The design tool
+  # arrives as an input (C-FCL-06-02). A `design-tool` instruction skill is
+  # active only when the design tool equals its name; the chain maps
+  # unconditionally (C-FCL-06-05).
   permissionRulesFor =
-    roleName:
+    roleName: tool:
     let
       c =
         if builtins.hasAttr roleName roleContracts then roleContracts.${roleName} else defaultRoleContract;
+      bundleInstructions = builtins.map (cap: cap.instruction) (
+        builtins.filter (cap: cap.kind == "mcp") c.capabilities
+      );
+      skillActive =
+        cap:
+        let
+          when = cap.when or "always";
+        in
+        when == "always" || (when == "design-tool" && cap.name == tool);
+      skillAllowed =
+        cap:
+        builtins.elem cap.name legacySkillChain
+        || (builtins.elem cap.name bundleInstructions && skillActive cap);
+      skillAllows = builtins.filter (cap: cap.kind == "skill" && skillAllowed cap) c.capabilities;
     in
     [ { action = "edit"; resource = "*"; effect = "deny"; } ]
     ++ builtins.map (p: { action = "edit"; inherit (p) resource effect; }) c.ownership
@@ -478,11 +907,11 @@ let
         effect = "ask";
       }
     ]
-    ++ builtins.map (s: {
+    ++ builtins.map (cap: {
       action = "skill";
-      resource = s;
+      resource = cap.name;
       effect = "allow";
-    }) c.skills
+    }) skillAllows
     ++ [
       {
         action = "subagent";
@@ -504,32 +933,102 @@ let
     ]
     ++ builtins.map (s: { action = "shell"; inherit (s) resource effect; }) c.shell.specific;
 
+  # The shipped config-key entries of the rendered role set
+  # (spec-harness-merge C-CL18, spec-capability-ship C-CL07). One entry per
+  # shipped config capability: `references.<name>`, `agents.<role>.model`,
+  # and `worktree.directory`. A repo-local capability adds no entry. Two
+  # entries with the same path collapse to one when the value agrees; two
+  # different values at one path fail evaluation (C-CL13).
+  configKeyEntries =
+    roleNames:
+    let
+      capsOf =
+        r: if builtins.hasAttr r roleContracts then roleContracts.${r}.capabilities else [ ];
+      perRole = builtins.concatLists (
+        builtins.map (
+          r:
+          builtins.map (cap: {
+            path =
+              if cap.kind == "reference" then
+                [
+                  "references"
+                  cap.name
+                ]
+              else if cap.kind == "worktree" then
+                [
+                  "worktree"
+                  "directory"
+                ]
+              else
+                [
+                  "agents"
+                  r
+                  "model"
+                ];
+            value = capabilityValues.${cap.kind}.${cap.name};
+          }) (builtins.filter (cap: builtins.elem cap.kind configKinds && cap.home == "shipped") (capsOf r))
+        ) roleNames
+      );
+    in
+    dedupeConfigEntries perRole;
+
+  dedupeConfigEntries =
+    entries:
+    let
+      paths = builtins.foldl' (
+        acc: e: if builtins.elem e.path acc then acc else acc ++ [ e.path ]
+      ) [ ] entries;
+      pick =
+        path:
+        let
+          group = builtins.filter (e: e.path == path) entries;
+          first = builtins.head group;
+          conflict = builtins.filter (e: e.value != first.value) (builtins.tail group);
+        in
+        if conflict == [ ] then
+          first
+        else
+          throw "capability-duplicate: the config key path `${showPath path}` receives two capabilities with different values";
+    in
+    builtins.map pick paths;
+
   # Managed opencode settings (spec-harness-merge, the managed keys table).
   # Each rendered role name receives the derived ordered permission array of
   # spec-role-permissions in the managed key `agents.<role>.permissions`
   # (RC01-C1). The key path and the trace path use the rendered role name
-  # (RC01-C3).
-  managedOpencodeSettings = roleNames: {
-    agents = builtins.listToAttrs (
-      builtins.map (r: {
-        name = r;
-        value = {
-          permissions = permissionRulesFor r;
-        };
-      }) roleNames
+  # (RC01-C3). The shipped config keys of the capability layer join the same
+  # group (C-CL18). The design tool reaches the derive (C-FCL-06-02). The
+  # argument is the rendered-role list, or the group `{ roleNames; tool; }`.
+  managedOpencodeSettings =
+    args:
+    let
+      roleNames = if builtins.isList args then args else args.roleNames;
+      tool = if builtins.isAttrs args then args.tool or "unset" else "unset";
+      permissions = builtins.listToAttrs (
+        builtins.map (r: {
+          name = r;
+          value = {
+            permissions = permissionRulesFor r tool;
+          };
+        }) roleNames
+      );
+    in
+    builtins.foldl' (acc: e: setPath acc e.path e.value) { agents = permissions; } (
+      configKeyEntries roleNames
     );
-  };
 
   # Managed key paths of the rendered opencode file as attribute paths. Each
-  # path is a rendered path in the file `agents.<role>.permissions`
-  # (spec-harness-merge).
+  # role path is a rendered path in the file `agents.<role>.permissions`;
+  # each shipped config kind adds its rendered key path (spec-harness-merge,
+  # C-CL18).
   managedOpencodePathLists =
     roleNames:
     builtins.map (r: [
       "agents"
       r
       "permissions"
-    ]) roleNames;
+    ]) roleNames
+    ++ builtins.map (e: e.path) (configKeyEntries roleNames);
 
   showPath = path: builtins.concatStringsSep "." path;
 
@@ -757,7 +1256,7 @@ let
         if ux then mergedUserRoles // { designer-expert = designerBuiltIn; } else mergedUserRoles;
       mergedHarness = h: deepUserWins (p.${h} or { }) (l.${h} or { });
       baseOpencode = mergedHarness "opencode";
-      managed = managedOpencodeSettings roleNames;
+      managed = managedOpencodeSettings { inherit roleNames tool; };
       managedPaths = managedOpencodePathLists roleNames;
       withManaged = builtins.foldl' (
         acc: path: setPath acc path (getPath managed path)
@@ -836,6 +1335,87 @@ let
       fileDecls = decls;
       renderedSources = builtins.map (d: d.source) decls;
     };
+
+  # Render the shipped file capabilities of the enabled rendered-role set
+  # (spec-capability-kinds interface 10, spec-capability-ship interface 6 to
+  # 9, C-CL03, C-CL05, C-CL09, C-CL29). The function skips a capability with
+  # the emitter `design`, because the design module owns that emit. An
+  # inactive capability emits no file. The instruction skill of an active
+  # `mcp` bundle is a `skill` capability, so the `skill` branch emits its
+  # file once; the field `instruction` is a validation link only. Two
+  # capabilities with the same emitted path collapse to one entry when the
+  # asset agrees; two different assets at one path fail evaluation
+  # (C-CL13). Every file routes through the rendered-source list. Returns
+  # the file declarations and the rendered-source list of the run.
+  capabilitySources =
+    { roleNames, tool ? "unset" }:
+    let
+      capsOf =
+        r: if builtins.hasAttr r roleContracts then roleContracts.${r}.capabilities else [ ];
+      active =
+        cap:
+        let
+          when = cap.when or "always";
+        in
+        when == "always" || (when == "design-tool" && cap.name == tool);
+      emit =
+        cap:
+        cap.kind != "mcp"
+        && builtins.elem cap.kind fileKinds
+        && cap.home == "shipped"
+        && (cap.emitter or "capability") == "capability"
+        && active cap;
+      entries = builtins.concatLists (
+        builtins.map (
+          r:
+          builtins.map (
+            cap:
+            let
+              rel =
+                if cap.kind == "skill" then
+                  ".agents/skills/${cap.name}/SKILL.md"
+                else
+                  ".opencode/commands/${cap.name}.md";
+              source = builtins.toFile (builtins.baseNameOf (toString cap.asset)) (
+                builtins.readFile cap.asset
+              );
+            in
+            {
+              inherit rel source;
+              asset = cap.asset;
+              copyMode = "managed";
+            }
+          ) (builtins.filter emit (capsOf r))
+        ) roleNames
+      );
+      deduped = dedupeFileEntries entries;
+    in
+    {
+      fileDecls = builtins.map (e: {
+        inherit (e) rel source copyMode;
+      }) deduped;
+      renderedSources = builtins.map (e: e.source) deduped;
+    };
+
+  dedupeFileEntries =
+    entries:
+    let
+      rels = builtins.foldl' (
+        acc: e: if builtins.elem e.rel acc then acc else acc ++ [ e.rel ]
+      ) [ ] entries;
+      pick =
+        rel:
+        let
+          group = builtins.filter (e: e.rel == rel) entries;
+          first = builtins.head group;
+          conflict = builtins.filter (e: toString e.asset != toString first.asset) (builtins.tail group);
+        in
+        if conflict == [ ] then
+          first
+        else
+          throw "capability-duplicate: the emitted path `${rel}` receives two capabilities with different bytes";
+    in
+    builtins.map pick rels;
 in
 {
   inherit
@@ -855,11 +1435,18 @@ in
     mergeMcpEntry
     mergeMcp
     mcpDialectEntry
+    optionKinds
+    capabilityValues
+    legacySkillChain
     roleContracts
     defaultRoleContract
     permissionRulesFor
     managedOpencodeSettings
     managedOpencodePathLists
+    capabilitySources
+    configKeyEntries
+    dedupeConfigEntries
+    dedupeFileEntries
     hasPath
     setPath
     getPath
