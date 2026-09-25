@@ -113,7 +113,12 @@ notifier, one publish target, and named presets.
 - Each canonical role body states its ownership and its capability in one consistent shape.
 - The ownership axis is hard and per-role, and a capability never widens it.
 - The factory renders a default permission set for each rendered content role from the two axes.
-- A capability covers local read tools, external research, the skill set, and the configured MCP servers.
+- A capability holds one of the seven option kinds: skill, command, MCP server, reference, plugin, model, or worktree.
+- A tool capability is a bundle: the server entry and its instruction skill.
+- Each role that uses a tool grants the instruction skill of the tool.
+- A role body names no tool outside the capability set of the role.
+- The `when` activation of a capability applies to a bundle instruction skill only, and the legacy skill chain keeps its unconditional permission mapping.
+- The design tool arrives as an input of the capability render and the permission derive, and the factory holds no second source of the design tool.
 - Only the artifact master starts a subagent and asks the user.
 - A content role does not ask the user directly.
 - The artifact master denies a push.
@@ -205,6 +210,7 @@ notifier, one publish target, and named presets.
 | Role rendered | event | repository author |
 | Role contract stated | event | role author |
 | Capability declared | event | role author |
+| Capability bundled | event | role author |
 | Capability shipped | event | repository author |
 | Capability resolved | event | repository author |
 | Permission set rendered | event | repository author |
@@ -253,7 +259,6 @@ notifier, one publish target, and named presets.
 The phase 2 of change-capability-layer resolves these questions: the interaction points are one
 in phase 1 and two in phase 2 (adr-interaction-points); the factory ships the `asd-ste-100` skill
 to every generated project (adr-asd-ste-100-scope); the factory models the live option kinds only
-(adr-capability-kind-model); the contract-first rule lives in the managed artifact-driven guide
-(adr-contract-first).
-
-- Which instruction skill ships with each tool, and does one instruction skill serve a group of tools?
+(adr-capability-kind-model); the factory ships one instruction skill for each tool, and each role
+that uses a tool grants that skill (adr-capability-bundle); the contract-first rule lives in the
+managed artifact-driven guide (adr-contract-first).

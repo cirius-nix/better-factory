@@ -1,7 +1,7 @@
 # spec-harness-merge: The three harness layers, the managed keys, and the opencode version 2 shape
 
 **Master:** [Specifications](README.md)
-**Covers:** req-harness-facade, req-capability-options, req-capability-ship
+**Covers:** req-harness-facade, req-capability-options, req-capability-ship, req-capability-bundle
 **Context:** context-factory
 **Aggregate:** agg-repository-blueprint
 
@@ -222,12 +222,20 @@ Each path below is a path in the rendered file or a path in the MCP source, as t
    document. A missing key or a different value fails the check.
 9. The check proves that a repo-local capability adds no key to the rendered document of a
    generated project (spec-capability-ship).
-10. The check proves that the permission fixture of spec-role-permissions stays byte-identical
-    after the field `skills` folds into the `capabilities` list. The skill order and the skill
-    set do not change (FCL-04-03).
+10. The check proves that the field `skills` folds into the `capabilities` list with the same
+    order and the same set. The version 3.0.0 skill chain keeps its bytes. The fixture then gains
+    one `skill` allow rule for each active instruction skill of a tool bundle (FCL-04-03,
+    req-capability-bundle). Point 12 names the new expected rules.
 11. The check proves the emitted path of each shipped capability file of the kind `skill` and the
     kind `command`. The check proves that the `ddd-review` capability resolves to the existing
     emitted path without a second emit (FCL-02-01).
+12. The seed-check permission fixture advances to the design tool `figma` and asserts the
+    instruction skill grant of the active tool. The fixture asserts the `context7-mcp` grant of
+    `solution-expert` and `factory-expert`, and the `figma` grant of `designer-expert`. The grant
+    assertion is an eval-time `assert`, so the result file stays exactly five lines. The
+    `uxAssertions.designer-permission` assertion reads the `uxMergedTrue` document at
+    `tool = "unset"` and expects no design-tool rule; the main fixture uses `figma`
+    (req-capability-bundle, C-FCL-06-03, C-FCL-06-04).
 
 ## Description
 
@@ -303,9 +311,10 @@ modeled-key list gain the group `agents` (spec-facade-root of feat-foundation 1.
 | RC01-C1 | The managed key path `agents.<role>.permissions` holds the whole permission array as one leaf. A project or local value of the path is ignored with one log line. The key path and the trace path do not change. | services/factory |
 | RC01-C6 | The seed-check assertions advance to the per-role set: `designer-permission`, `harness-plural`, `logFixturePermissions` and its `assert`, and the fixtures `uxMergedTrue`, `logFixture`, and `presetFullMerged`. The code and fixture edits belong to phase 4; this specification holds the check contract. | services/factory |
 | C-CL18 | The role-contract table holds the capability kind. The functions `managedOpencodeSettings` and `managedOpencodePathLists` add the keys `agents.<role>.model`, `worktree.directory`, and `references.<name>`. The function `renderSelected` composes the document. A capability of the kind `mcp` adds no key; the existing MCP render owns `mcp.servers.<name>` and `disabled` (FCL-01-03, FCL-G-03). A file kind adds its file to the plan through `renderedSources` (spec-capability-ship). | services/factory |
-| C-CL19 | The seed-check fixtures advance to the capability keys and the capability files. The seed-check plan and the rendered-source list hold the capability files. The check proves each shipped capability key, the `asd-ste-100` emitted path, and that a repo-local capability adds no key. The seed check adds no layer script, and the result file stays five lines (FCL-04-01, FCL-04-02). | services/factory |
+| C-CL19 | The seed-check fixtures advance to the capability keys and the capability files. The seed-check plan and the rendered-source list hold the capability files. The check proves each shipped capability key, the `asd-ste-100` emitted path, and that a repo-local capability adds no key. The seed check adds no layer script, and the result file stays five lines. The grant check is an eval-time `assert` (FCL-04-01, FCL-04-02, C-FCL-06-04). | services/factory |
 | C-CL20 | The managed layer holds no value for a repo-local capability. The merge writes no log line for a path that the managed layer does not hold. The author declaration path `factory.project.agents.opencode.extraAgents.<role>.model` is user-wins (FCL-01-05). | services/factory |
-| C-CL21 | The field `skills` of the version 3.0.0 role-contract table folds into the `capabilities` list in the same order and with the same set. The permission fixture stays byte-identical (FCL-04-03). | services/factory |
+| C-CL21 | The field `skills` of the version 3.0.0 role-contract table folds into the `capabilities` list in the same order and with the same set. The version 3.0.0 skill chain keeps its bytes. The fixture gains the instruction skill rules of the bundle (FCL-04-03, req-capability-bundle). The legacy chain maps unconditionally, so the `ddd-review` rule stays under the design method `unset` (C-FCL-06-05). | services/factory |
+| C-FCL-06-04 | The seed-check grant assertion is an eval-time `assert`. The result file stays exactly five lines. The assertion reads the `agents.<role>.permissions` value of the `uxMergedTrue` document at `tool = "unset"` and of the main fixture at `figma`; the two expected arrays agree (C-FCL-06-03). The permission set stays one managed leaf. | services/factory |
 
 The constraint C-F04 keeps its identifier. It extends the version 2.0.0 rule. The version 2.0.0
 one-rule array is superseded.

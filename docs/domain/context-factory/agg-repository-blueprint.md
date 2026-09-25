@@ -93,6 +93,19 @@ carries the contract-first rule (spec-contract-first).
 - The `asd-ste-100` skill is a shipped managed asset. Every generated project receives
   `.agents/skills/asd-ste-100/SKILL.md`.
 - The role models are repo-local. A generated project receives no factory model.
+- A tool capability is a bundle: the `mcp` entry and its instruction skill. The pair holds the
+  same activation. A shipped tool capability without its instruction skill fails the ship rule.
+  The `skill` branch of the capability render emits the instruction skill file once; the `mcp`
+  entry holds a validation link only.
+- Each role that uses a tool grants the instruction skill of the tool. The design tools `figma`
+  and `pencil` are mutually exclusive, and the `designer-expert` grants the instruction skill of
+  the active design tool.
+- The `when` activation applies only to a bundle instruction skill. The legacy skill chain maps
+  unconditionally to the `skill` allow rules, so the `ddd-review` rule stays under the design
+  method `unset`.
+- The design tool arrives as an input of the capability render and the permission derive. The
+  entrypoint passes the value that the `modules/design.nix` `toolFeed` computes. The factory holds
+  no second source of the design tool.
 - Phase 1 holds one interaction point. Phase 2 holds two. An option interview without the
   situation or without the impact of an option fails the rule.
 - Each specification leads with its contract: the interface, the events, the data model, and the
@@ -166,7 +179,7 @@ the release) belong to the coordinator workflow, not to the blueprint transactio
 | Declare MCP entry | The blueprint records one MCP source entry. | MCP entry translated |
 | Declare knowledge access | The blueprint records the canonical `context7` entry in the one MCP source. | Knowledge access declared |
 | Declare role | The blueprint records one role source, its declaration, and its two-axis contract. | Role rendered, Permission set rendered |
-| Declare capability | The blueprint records one capability of a role, its kind, and its home. A shipped capability joins the plan. | Capability declared, Capability shipped, Capability resolved |
+| Declare capability | The blueprint records one capability of a role, its kind, and its home. A shipped capability joins the plan. | Capability declared, Capability bundled, Capability shipped, Capability resolved |
 | State role contract | The blueprint records the ownership axis and the capability axis of the role. | Role contract stated |
 | Select design option | The blueprint records the design method and the ux flag, and computes the design files and chapters. An unknown value is an error. | Design option selected |
 | Select design tool | The blueprint records the design tool and activates the canonical MCP entry of the tool. An unknown value is an error. | Design tool selected |
@@ -192,6 +205,7 @@ the release) belong to the coordinator workflow, not to the blueprint transactio
 | Role rendered | The role name and the rendered path in the opencode file. |
 | Role contract stated | The role name, the ownership axis, and the capability axis. |
 | Capability declared | The role name, the capability kind, the capability name, and the home. |
+| Capability bundled | The tool name and the instruction skill name. |
 | Capability shipped | The capability kind and the emitted path of the generated project. |
 | Capability resolved | The capability kind and the opencode target of the capability. |
 | Permission set rendered | The role name and the ordered permission array. |

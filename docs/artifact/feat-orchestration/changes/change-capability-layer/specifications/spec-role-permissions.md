@@ -1,7 +1,7 @@
 # spec-role-permissions: The default permission set per role from the two axes
 
 **Master:** [Specifications](README.md)
-**Covers:** req-role-permissions, req-capability-options, req-contract-first
+**Covers:** req-role-permissions, req-capability-options, req-capability-bundle, req-contract-first
 **Context:** context-factory
 **Aggregate:** agg-repository-blueprint
 
@@ -44,9 +44,12 @@ The render writes the rules of each role in this order. The order fixes the last
 3. The local read tools: `read`, `glob`, and `grep` with the resource `*` and the effect `allow`.
 4. The external research tools: `webfetch` and `websearch` with the resource `*` and the effect
    `allow` or `deny`.
-5. The skill capabilities: `{ action = "skill"; resource = "*"; effect = "ask"; }`, then one
-   `skill` rule with the effect `allow` for each capability of the kind `skill`. The order and
-   the set of the skill rules equal the version 3.0.0 skill set (spec-capability-kinds).
+5. The skill capabilities: `{ action = "skill"; resource = "*"; effect = "ask"; }`, then the
+   `skill` allow rules in this order: the chain of the version 3.0.0 skill set, then the active
+   instruction skills of the tool bundles. The order of the rules follows the capability list of
+   the role. The version 3.0.0 chain maps unconditionally, so `ddd-review` keeps its allow rule
+   under each design method. The field `when` filters a bundle instruction skill only
+   (C-FCL-06-05, spec-capability-kinds).
 6. The governance: one `subagent` rule and one `question` rule with the resource `*` and the
    effect `allow` or `deny`.
 7. The shell rules: the broad rule of the role, then the specific shell rules.
@@ -96,7 +99,9 @@ spec-capability-kinds. A capability never grants a write outside the ownership s
 | --- | --- |
 | Local read tools (`read`, `glob`, `grep`) | `allow` for each role. |
 | External research tools (`webfetch`, `websearch`) | `allow` for each content role: `requirement-expert`, `solution-expert`, `artifact-release-expert`, `factory-expert`, and `designer-expert`. `deny` for `artifact-master`, because the coordinator does no content research. |
-| `skill` | The broad rule `{ action = "skill"; resource = "*"; effect = "ask"; }` for each role, then one allow rule for each capability of the kind `skill`. |
+| `skill` | The broad rule `{ action = "skill"; resource = "*"; effect = "ask"; }` for each role, then one allow rule for each `skill` capability: the legacy chain maps unconditionally, and an active bundle instruction skill adds its rule. |
+| The legacy skill chain (`asd-ste-100`, `ddd-review`, `artifact-master`, `expert-role`) | The chain maps unconditionally to one `skill` allow rule for each role that holds the skill, in the version 3.0.0 order. The field `when` does not filter the chain, so `ddd-review` keeps its allow rule under the design method `unset` (C-FCL-06-05). |
+| The instruction skill of an `mcp` bundle | The instruction skill is a `skill` capability, so the rule of the `skill` row covers it. The roles that use the tool hold the allow rule: `solution-expert` and `factory-expert` hold `context7-mcp`; `designer-expert` holds the instruction skill of the active design tool. The inactive design tool holds no rule. The field `when` filters this row only. |
 | `command` | No action rule. |
 | `reference` | No action rule. |
 | `model` | No action rule. |
@@ -190,8 +195,8 @@ spec-capability-kinds. A capability never grants a write outside the ownership s
    `agents.<role>.permissions` for each rendered role.
 2. The check compares each array with one independent expected fixture per role. The fixture is
    not the role-contract table. A missing rule, a different rule, or a different order fails the
-   check (RC01-C5). The fixture stays byte-identical after the field `skills` folds into the
-   `capabilities` list (FCL-04-03).
+   check (RC01-C5). The version 3.0.0 skill chain keeps its bytes. The fixture gains the
+   instruction skill rules of the bundle (req-capability-bundle).
 3. The check holds structural assertions: the broad `edit` deny rule precedes each ownership
    allow, and the broad `shell` rule precedes each specific shell rule (RC01-C5).
 4. The check proves the governance rules of the table.
@@ -208,6 +213,26 @@ spec-capability-kinds. A capability never grants a write outside the ownership s
 10. The check proves that the `## Ownership` section of the `factory-expert` body carries the
     four literal path patterns of the ownership table, including `docs/wiki/documentation/*`
     (FCL-05-02).
+11. The check proves the instruction skill grant of each tool bundle (req-capability-bundle). The
+    check runs with the design tool `figma`. Each role below gains exactly one rule, after the
+    version 3.0.0 skill chain, which keeps its bytes. The other rules of the array equal the
+    version 3.0.0 fixture. The new expected rules are:
+
+    | Role | New expected rule | Position |
+    | --- | --- | --- |
+    | `solution-expert` | `{ action = "skill"; resource = "context7-mcp"; effect = "allow"; }` | After the `ddd-review` rule. |
+    | `factory-expert` | `{ action = "skill"; resource = "context7-mcp"; effect = "allow"; }` | After the `asd-ste-100` rule. |
+    | `designer-expert` | `{ action = "skill"; resource = "figma"; effect = "allow"; }` | After the `asd-ste-100` rule. The fixture runs with the design tool `figma`. |
+
+12. The check holds a second designer-expert assertion with the design tool `unset`. The array
+    holds no instruction skill rule for a design tool. The check holds a third designer-expert
+    assertion with the design tool `pencil`; the array holds the `pencil` rule and no `figma`
+    rule. The `uxAssertions.designer-permission` assertion compares the `uxMergedTrue` document,
+    which uses `tool = "unset"`, so it expects the array with no design-tool rule. The main
+    fixture uses `figma` and expects the `figma` rule. The two assertions agree (C-FCL-06-03).
+13. The check proves that the version 3.0.0 chain keeps its `skill` allow rules under the design
+    method `unset`. In particular, the `ddd-review` rule of `requirement-expert` and
+    `solution-expert` stays in the fixture, also when the design method is `unset` (C-FCL-06-05).
 
 ## Errors
 
@@ -222,6 +247,11 @@ spec-capability-kinds. A capability never grants a write outside the ownership s
 - A rendered role whose write scope is not the path pattern set of the table fails the check.
 - A capability rule that grants an `edit` allow outside the ownership scope fails the check.
 - A deny rule that blocks the `context7` MCP tool fails the check.
+- A role that uses a tool and holds no `allow` rule for the instruction skill fails the check.
+- A `designer-expert` array that holds the instruction skill rule of the inactive design tool
+  fails the check.
+- A permission derive that filters the version 3.0.0 chain by the field `when` and drops the
+  `ddd-review` rule under the design method `unset` fails the check.
 - A project or local value of `agents.<role>.permissions` does not fail evaluation. The managed
   value wins, and the factory writes one log line.
 - The `factory-expert` body whose ownership section differs from the four path patterns of the
@@ -240,6 +270,10 @@ spec-capability-kinds. A capability never grants a write outside the ownership s
 | RC03-C3 | The ownership scope of `factory-expert` extends to the role-contract surface: `services/factory/*`, `docs/wiki/documentation/*`, `.agents/skills/expert-role/*`, and `utils/agent/role/factory-expert/ROLE.md` (adr-role-contract-surface). | services/factory |
 | C-CL27 | The `factory-expert` ownership row holds `docs/wiki/documentation/*` and the path `services/factory/*` covers `services/factory/assets/documentation/**`. The ownership table and the ownership section of the body agree (FCL-05-02). | services/factory |
 | C-CL28 | The capability axis holds the seven option kinds. The kind `skill` gives the skill rule set. The kinds `command`, `reference`, `model`, and `worktree` add no rule. The kind `mcp` adds no rule (FCL-01-03). | services/factory |
+| C-CL33 | The instruction skill of a tool bundle is a `skill` capability. The render writes one `skill` allow rule for each active bundle instruction skill. The `solution-expert` and the `factory-expert` hold the rule `context7-mcp`. The `designer-expert` holds the rule of the active design tool. The rule position follows the capability list (req-capability-bundle). The version 3.0.0 chain keeps its unconditional rules (C-FCL-06-05). | services/factory |
+| C-CL34 | The permission derive reads the activation of a bundle instruction skill only. A `design-tool` instruction skill is active only when `design.tool` equals the field `name`. The `designer-expert` array holds one design-tool instruction skill rule, or none when the tool is `unset` (adr-capability-bundle, C-FCL-06-05). | services/factory |
+| C-FCL-06-03 | Each using role array gains exactly one `skill` allow rule after the byte-stable version 3.0.0 chain. The `designer-expert` expected array holds three variants: `figma`, `unset`, and `pencil`. The `uxAssertions.designer-permission` assertion compares the `uxMergedTrue` document at `tool = "unset"`, so it expects no design-tool rule; the main fixture uses `figma`. The permission set stays one managed leaf `agents.<role>.permissions`. | services/factory |
+| C-FCL-06-05 | The `when` activation applies only to a bundle instruction skill. The legacy skill chain `asd-ste-100`, `ddd-review`, `artifact-master`, and `expert-role` maps unconditionally to the `skill` allow rules in the version 3.0.0 order. The `ddd-review` rule stays under the design method `unset`, so the fixture stays byte-stable apart from the one added rule per role. | services/factory |
 
 ## Notes
 

@@ -1,7 +1,7 @@
 # spec-role-render: One role source for opencode
 
 **Master:** [Specifications](README.md)
-**Covers:** req-role-pipeline, req-role-spec, req-capability-options
+**Covers:** req-role-pipeline, req-role-spec, req-capability-options, req-capability-bundle
 **Context:** context-factory
 **Aggregate:** agg-repository-blueprint
 
@@ -87,9 +87,10 @@ The rendered file:
    (spec-capability-kinds). Each capability holds one line. The line syntax is
    `- <kind>: <name> (<home>)`. Example: `- skill: asd-ste-100 (shipped)`. The line names
    the kind, the name, and the home, and holds no other field. The capability set holds no kind
-   outside the seven kinds. The body/table check parses each line and compares the set with the
-   role-contract table of the role (FCL-04-04). The render of the capability through the
-   role-contract table belongs to spec-capability-kinds.
+   outside the seven kinds. A tool capability holds two lines: the `mcp` line of the tool and
+   the `skill` line of its instruction skill. The body/table check parses each line and compares
+   the set with the role-contract table of the role (FCL-04-04). The render of the capability
+   through the role-contract table belongs to spec-capability-kinds.
 4. The two axes stay separate. The capability of a role grants no write outside the ownership
    scope of the role. A capability never widens the ownership.
 5. The role contract of the coordinator holds the ownership `coordination only` and the write
@@ -183,13 +184,17 @@ The rendered file:
 4. The capability axis of a body lists the capabilities of the role with the line syntax of
    "The role contract shape" point 3. The coordinator body lists the capabilities of
    `artifact-master`. The body of a content role lists the capabilities of that role
-   (spec-capability-kinds, spec-capability-ship). The body lists no MCP server that the table
-   does not name for the role. The body of `artifact-master` names no MCP server, because the
-   table removes the MCP capability of that role (FCL-04-06).
+   (spec-capability-kinds, spec-capability-ship). The body names the instruction skill of each
+   tool it uses. The body names no tool that the capability set of the role does not use. The
+   capability set of the role-contract table is the authority. The body of `artifact-master`
+   names no MCP server, because the table removes the MCP capability of that role (FCL-04-06).
 5. The body/table check reads the body of each built-in role and the body of `factory-expert`.
    The check reads the repo-local source `utils/agent/role/factory-expert/ROLE.md` for the
-   `factory-expert` body. The check compares the parsed capability set with the role-contract
-   table of the role (FCL-04-05).
+   `factory-expert` body. The check parses each `## Capability` line and compares the parsed set
+   with the role-contract table of the role (FCL-04-05). The check proves that the body names the
+   instruction skill of each tool it uses, and that the body names no tool outside the capability
+   set (req-capability-bundle). The check reads the `factory-expert` body through its own source
+   path only; the path is not a hand list.
 
 ### The wiki page
 
@@ -238,6 +243,8 @@ and the check of the `expert-role` skill.
 - A capability line without the kind, the name, or the home fails the check.
 - A capability line with a field outside the kind, the name, and the home fails the check.
 - The body of `factory-expert` without the capability axis fails the check.
+- A body that names a tool and no instruction skill of the tool fails the check.
+- A body that names a tool outside the capability set fails the check.
 
 ## Resolved constraints
 
@@ -253,8 +260,9 @@ and the check of the `expert-role` skill.
 | RC03-C3 | The body of `factory-expert` holds the two sections. Its ownership section carries the literal path patterns of the role-contract surface (adr-role-contract-surface). | services/factory |
 | C-CL17 | The section `## Capability` of a body names the capability set of the role over the seven option kinds (spec-capability-kinds). The body and the role-contract table carry the same capability set. The check proves the agreement. | services/factory |
 | C-CL22 | The capability line syntax is `- <kind>: <name> (<home>)`. The line holds the kind, the name, and the home only. The body/table check parses each line and compares the set with the table (FCL-04-04). | services/factory |
-| C-CL23 | The body/table check reads the body of each built-in role and the body of `factory-expert`. The check reads the repo-local source `utils/agent/role/factory-expert/ROLE.md` for the `factory-expert` body (FCL-04-05). | services/factory |
+| C-CL23 | The body/table check reads the body of each built-in role and the body of `factory-expert`. The check reads the repo-local source `utils/agent/role/factory-expert/ROLE.md` for the `factory-expert` body (FCL-04-05). The check parses each `## Capability` line and compares the parsed set with the role-contract table of the role. The check reads the `factory-expert` body through its own source path, and the path is not a hand list. | services/factory |
 | C-CL24 | The body of `artifact-master` names no MCP server, because the capability table removes the MCP capability of that role. Each body names the capability kind of each line (FCL-04-06). | services/factory |
+| C-CL35 | The body of a role names the instruction skill of each tool it uses. A tool capability holds two body lines: the `mcp` line and the `skill` line. The body/table check proves the instruction skill line and rejects a tool outside the capability set (req-capability-bundle). | services/factory |
 
 The constraint C-09 of version 1.0.0 (the codex `agents` fragment) is removed. The codex config
 does not exist at this version (adr-toml-deletion).

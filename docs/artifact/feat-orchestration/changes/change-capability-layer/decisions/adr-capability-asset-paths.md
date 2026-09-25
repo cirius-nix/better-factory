@@ -30,6 +30,10 @@ Option 1. Each live kind holds one asset root under `services/factory/assets/`. 
 sits in the factory data table `capabilityValues` (adr-capability-value-source). The kind
 `plugin` is not live and holds no asset root (FCL-01-07).
 
+The instruction skill of a tool bundle is a `skill` capability, so its asset sits under
+`assets/skills/` too. The assets are `assets/skills/context7-mcp/SKILL.md`,
+`assets/skills/figma/SKILL.md`, and `assets/skills/pencil/SKILL.md` (adr-capability-bundle).
+
 The field `asset` holds a path literal under the kind root, for example
 `../assets/skills/asd-ste-100/SKILL.md`. A new asset root needs no file-plan change, because the
 plan accepts `extraFiles` entries with a rendered source of the run (FCL-02-02, FCL-03-04).
