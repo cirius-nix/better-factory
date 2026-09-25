@@ -26,7 +26,7 @@ write two rows.
 | MCP source | context-factory | The one declaration of the MCP entries that the factory renders into the opencode dialect. | - |
 | role source | context-factory | The one body file of a role that the factory renders for opencode. | - |
 | ownership | context-factory | The content and the write area that a role owns. | - |
-| capability | context-factory | The tools, the skills, and the MCP servers that a role uses to do its job. | - |
+| capability | context-factory | The items that a role uses to do its job: a skill, a command, an MCP server, a reference, a plugin, a model, or a worktree. | - |
 | write scope | context-factory | The hard, per-role boundary of the files that a role may write. | - |
 | default permission set | context-factory | The permission rules that the factory renders for a role from its ownership and its capability. | - |
 | permission rule | context-factory | One entry of the ordered permission array: the action, the resource, and the effect allow, deny, or ask. | - |
@@ -70,3 +70,20 @@ write two rows.
 | scratch directory | context-factory | The directory outside the factory source that holds the emitted tree until the consumer adopts it. | - |
 | consumer guide | context-factory | The guide that names the starter file, the keys to change, and the checks to run. | - |
 | emitted tree | context-factory | The repository tree that the entrypoint writes below the scratch directory. | - |
+| option kind | context-factory | One of the seven kinds of a capability: skill, command, MCP server, reference, plugin, model, or worktree. | - |
+| live kind | context-factory | An option kind that a built-in role uses and that the factory models. | - |
+| kind root | context-factory | The asset root of one option kind under `services/factory/assets/`. | - |
+| capability value table | context-factory | The factory data table `capabilityValues` that holds the value of a config-kind capability. | - |
+| capability render | context-factory | The opencode target of one capability: a file or a config key. | - |
+| capability set | context-factory | The set of capabilities of one role over the option kinds. | - |
+| tool capability | context-factory | A shipped capability of the kind MCP server that a role calls as a tool. | - |
+| instruction skill | context-factory | The skill that states when to use a tool, when not to use the tool, and how to call the tool. | - |
+| capability bundle | context-factory | A tool capability and its instruction skill, shipped and granted together. | - |
+| capability home | context-factory | The one place of a capability: shipped to every generated project, or repo-local to the factory source repository. | - |
+| shipped capability | context-factory | A capability that every generated project receives. | - |
+| repo-local capability | context-factory | A capability that stays in the factory source repository. | - |
+| managed asset | context-factory | A shipped file that the factory owns and renders into a generated project. | - |
+| option interview | context-factory | The message that gives the human the situation, the reason that a choice is necessary, the options with their advantages, their disadvantages, and their impact, and one recommendation. | - |
+| interaction point | context-factory | A defined point of a phase at which an expert talks to the human through the artifact master. | - |
+| contract | context-factory | The interface, the events, the data model, and the invariant of one specification. | - |
+| contract-first rule | context-factory | The rule that a specification leads with its contract, and the human approves the contract before phase 3. | - |

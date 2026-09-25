@@ -17,7 +17,7 @@ mixture and the routing between them. The page needs no other document. It uses 
 | Canonical role body | The shared source of one role contract. |
 | Rendered role | The canonical role body in the file format of one harness. |
 | Ownership | The artifacts and phases of a role and the hard write area of the role. |
-| Capability | The tools, the skills, and the MCP servers that a role uses. |
+| Capability | A declared option of a role. Each capability holds one of the seven kinds: skill, command, MCP server, reference, plugin, model, and worktree. |
 | Default permission set | The ordered array `agents.<role>.permissions` that the factory derives from the two axes of a role. |
 
 ## Roles and ownership
@@ -47,8 +47,9 @@ capability axis.
 - The ownership axis states the artifacts and the phases that the role owns, and the write area
   of the role. The write area is a set of literal path patterns. The scope is hard: a write
   outside the set is denied.
-- The capability axis states the tools, the skills, and the MCP servers that the role uses. The
-  two axes stay separate. A capability never widens the ownership.
+- The capability axis states the capability set of the role over the seven option kinds. Each
+  capability names its kind, its name, and its home. The two axes stay separate. A capability
+  never widens the ownership.
 
 The write area of each role is:
 
@@ -65,9 +66,11 @@ The factory expert also owns the role-contract surface: the mixture-of-experts p
 `expert-role` skill files, and its own role body. The role-contract surface keeps one owner for
 the role contract.
 
-The capability axis gives the local read tools, the external research tools, the skill set, and
-the configured MCP servers. The capability of the artifact master denies the external research
-tools. The configured MCP servers are `figma`, `pencil`, and `context7`. The entry `context7`
+The capability axis names the local read tools and the external research tools of the role. The
+capability lines name the skill, command, MCP server, reference, model, and worktree kinds of the
+role. The kind `plugin` is not live and no role uses it. A role that uses a tool names the
+instruction skill of the tool. The `context7` server serves the solution expert and the factory
+expert. The design tools `figma` and `pencil` serve the designer expert. The entry `context7`
 gives the solution expert external curated documentation. The entry stays disabled until the
 author enables it.
 
@@ -114,9 +117,18 @@ The artifact master keeps the `coordinate-plan` in the chat. It does not put the
 
 ## Contract-driven specifications
 
-The solution expert writes the contract before the explanatory content. The contract gives the
-interface, the events, and the data model. It also gives the context, the aggregate, the
-invariant, and the upstream-to-downstream relation when they apply.
+A specification leads with its contract. The contract comes before the description and before the
+notes of the specification. The contract holds four parts: the interface, the events, the data
+model, and the invariant. The contract names the context in the `**Context:**` line and the
+aggregate in the `**Aggregate:**` line when the specification holds an aggregate.
+
+The human approves the contract before phase 3 starts. The approval comes through the artifact
+master. The solution expert sends the contract to the artifact master. The artifact master
+presents the contract to the human and returns the choice. A phase 3 plan starts only after the
+approval.
+
+The factory emits the rule in the managed page `docs/wiki/documentation/artifact-driven/README.md`.
+The factory holds one source of the page. No role hand-writes the page.
 
 The solution expert sends each contract to the artifact master for a feasibility review. The
 request gives the review identifier, the specification path, the contract, the context, the
@@ -137,16 +149,45 @@ the solution expert gives owner advice to the artifact master. The solution expe
 the selected owner for the applicable feasibility review or phase 4 task. The solution expert
 does not spawn the owner.
 
+## Interaction points
+
+The human speaks with the phase 1 expert and the phase 2 expert at these points. The artifact
+master runs each point.
+
+| Phase | Interaction point | Number | Step |
+| --- | --- | --- | --- |
+| 1 Requirements | The option interview. | One | Before the final write of the requirement artifacts. |
+| 2 Specifications | The option interview. | One | Before the final write of the specification artifacts. |
+| 2 Specifications | The human approval of the contract. | One | Before phase 3 starts. |
+
+Phase 1 holds one point. Phase 2 holds two points.
+
 ## Option interview
 
-A phase 1 or phase 2 expert that finds a correction or a better path sends an option interview
-to the user before the final write. The interview gives at least two options with their
-advantages and their disadvantages. It gives one recommendation and its reason. The user selects
-one option. The expert finalizes the plan from that choice. If only one path is feasible, the
-expert presents that path directly.
+A phase 1 or phase 2 expert that finds a correction or a better path sends an option interview to
+the artifact master before the final write. The artifact master presents the interview to the
+human and returns the choice. The expert does not ask the human directly. The expert finalizes the
+phase artifact from the choice.
 
-The artifact master gates the build. It does not permit the final write before the mid-build
-approval exists. The interview stays in the chat. It is not a repository record.
+The interview holds these fields:
+
+| Field | Content |
+| --- | --- |
+| situation | The summary of the current state and the reason to talk. |
+| reason | The reason that a choice is necessary. |
+| options | Two or more options. |
+| advantages | One list for each option. |
+| disadvantages | One list for each option. |
+| impact | One list for each option. The impact names the effect on the artifacts and the work. |
+| recommendation | One option. |
+| recommendation reason | The reason for the recommendation. |
+
+An interview with fewer than two options fails the rule, unless only one path is feasible. Then
+the expert presents the one path directly. An interview without the situation, the reason, the
+impact of an option, or the reason for the recommendation fails the rule.
+
+The artifact master gates the build. The final write does not start before the choice of the
+human. The interview stays in the chat. It is not a repository record.
 
 ## Parallel implementation
 

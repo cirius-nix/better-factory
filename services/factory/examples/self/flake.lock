@@ -1,0 +1,55 @@
+{
+  "nodes": {
+    "factory": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1,
+        "narHash": "sha256-MDXhKo9GreJo+LX61Kw/UiQOWXOrw4nYZV3ECwOYerE=",
+        "path": "../..",
+        "type": "path"
+      },
+      "original": {
+        "path": "../..",
+        "type": "path"
+      }
+    },
+    "factoryExpertRole": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1,
+        "narHash": "sha256-LMJegud5O7T3aTjbEGBGT2VgtAwVuK7r0h40RqFt5dM=",
+        "path": "../../../../utils/agent/role/factory-expert",
+        "type": "path"
+      },
+      "original": {
+        "path": "../../../../utils/agent/role/factory-expert",
+        "type": "path"
+      }
+    },
+    "nixpkgs": {
+      "locked": {
+        "lastModified": 1735563628,
+        "narHash": "sha256-OnSAY7XDSx7CtDoqNh8jwVwh4xNL/2HaJxGjryLWzX8=",
+        "owner": "NixOS",
+        "repo": "nixpkgs",
+        "rev": "b134951a4c9f3c995fd7be05f3243f8ecd65d798",
+        "type": "github"
+      },
+      "original": {
+        "owner": "NixOS",
+        "repo": "nixpkgs",
+        "rev": "b134951a4c9f3c995fd7be05f3243f8ecd65d798",
+        "type": "github"
+      }
+    },
+    "root": {
+      "inputs": {
+        "factory": "factory",
+        "factoryExpertRole": "factoryExpertRole",
+        "nixpkgs": "nixpkgs"
+      }
+    }
+  },
+  "root": "root",
+  "version": 7
+}

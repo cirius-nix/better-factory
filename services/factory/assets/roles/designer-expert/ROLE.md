@@ -15,12 +15,15 @@ write only the path pattern set below. A write outside the set fails.
 
 ## Capability
 
-You use these tools, skills, and MCP servers:
+The local read tools are `read`, `glob`, and `grep`. The external research tools are `webfetch`
+and `websearch`.
 
-- The local read tools `read`, `glob`, and `grep`.
-- The external research tools `webfetch` and `websearch`.
-- The skill `asd-ste-100`.
-- The configured MCP servers `figma`, `pencil`, and `context7`.
+- skill: asd-ste-100 (shipped)
+- mcp: figma (shipped)
+- skill: figma (shipped)
+- mcp: pencil (shipped)
+- skill: pencil (shipped)
+- model: designer-expert (repo-local)
 
 A capability grants no write outside the ownership scope.
 

@@ -22,6 +22,14 @@ the design work (spec-protocol, spec-release-gate, spec-designer-role). It also 
 default permission set of each rendered role and the canonical `context7` MCP entry
 (spec-role-permissions, spec-mcp-knowledge).
 
+The blueprint also records the capability set of each built-in role over the seven option kinds
+(spec-capability-kinds). Each capability holds one home: shipped to every generated project, or
+repo-local to the factory source repository (spec-capability-ship). The blueprint renders each
+shipped capability into its opencode target and holds each repo-local capability in the factory
+source repository. The blueprint also renders the interaction points of the requirement expert
+and the solution expert (spec-human-interaction) and the managed artifact-driven page that
+carries the contract-first rule (spec-contract-first).
+
 ## State transitions
 
 | From | Command | To |
@@ -34,6 +42,7 @@ default permission set of each rendered role and the canonical `context7` MCP en
 | declared | Declare MCP entry | declared |
 | declared | Declare knowledge access | declared |
 | declared | Declare role | declared |
+| declared | Declare capability | declared |
 | declared | State role contract | declared |
 | declared | Select design option | declared |
 | declared | Select design tool | declared |
@@ -72,6 +81,37 @@ default permission set of each rendered role and the canonical `context7` MCP en
 - Each canonical role body holds the two axes in one shape: the section `## Ownership` and the
   section `## Capability`. The two axes stay separate, and a capability grants no write outside
   the ownership scope.
+- Each capability of a built-in role holds one of the seven option kinds: skill, command, MCP
+  server, reference, plugin, model, or worktree. The factory models the live kinds only. The kind
+  `plugin` is not live at this version.
+- Each capability holds one home: shipped to every generated project, or repo-local to the
+  factory source repository. A shipped capability points only to an asset that the generated
+  project receives.
+- Each file kind holds its own asset root under `services/factory/assets/`. Each config kind holds
+  its value in the factory data table `capabilityValues`. The plan holds each emitted capability
+  path once.
+- The `asd-ste-100` skill is a shipped managed asset. Every generated project receives
+  `.agents/skills/asd-ste-100/SKILL.md`.
+- The role models are repo-local. A generated project receives no factory model.
+- A tool capability is a bundle: the `mcp` entry and its instruction skill. The pair holds the
+  same activation. A shipped tool capability without its instruction skill fails the ship rule.
+  The `skill` branch of the capability render emits the instruction skill file once; the `mcp`
+  entry holds a validation link only.
+- Each role that uses a tool grants the instruction skill of the tool. The design tools `figma`
+  and `pencil` are mutually exclusive, and the `designer-expert` grants the instruction skill of
+  the active design tool.
+- The `when` activation applies only to a bundle instruction skill. The legacy skill chain maps
+  unconditionally to the `skill` allow rules, so the `ddd-review` rule stays under the design
+  method `unset`.
+- The design tool arrives as an input of the capability render and the permission derive. The
+  entrypoint passes the value that the `modules/design.nix` `toolFeed` computes. The factory holds
+  no second source of the design tool.
+- Phase 1 holds one interaction point. Phase 2 holds two. An option interview without the
+  situation or without the impact of an option fails the rule.
+- Each specification leads with its contract: the interface, the events, the data model, and the
+  invariant. The human approves the contract before phase 3.
+- The blueprint emits the managed artifact-driven page into every generated project. The page
+  carries the contract-first rule.
 - Each rendered role holds a default permission set derived from its ownership axis and its
   capability axis (spec-role-permissions). The write scope of the role is a fixed set of path
   patterns, and a write outside the scope is denied.
@@ -139,6 +179,7 @@ the release) belong to the coordinator workflow, not to the blueprint transactio
 | Declare MCP entry | The blueprint records one MCP source entry. | MCP entry translated |
 | Declare knowledge access | The blueprint records the canonical `context7` entry in the one MCP source. | Knowledge access declared |
 | Declare role | The blueprint records one role source, its declaration, and its two-axis contract. | Role rendered, Permission set rendered |
+| Declare capability | The blueprint records one capability of a role, its kind, and its home. A shipped capability joins the plan. | Capability declared, Capability bundled, Capability shipped, Capability resolved |
 | State role contract | The blueprint records the ownership axis and the capability axis of the role. | Role contract stated |
 | Select design option | The blueprint records the design method and the ux flag, and computes the design files and chapters. An unknown value is an error. | Design option selected |
 | Select design tool | The blueprint records the design tool and activates the canonical MCP entry of the tool. An unknown value is an error. | Design tool selected |
@@ -163,6 +204,10 @@ the release) belong to the coordinator workflow, not to the blueprint transactio
 | Knowledge access declared | The `context7` entry name, the canonical command, and the rendered path in the opencode file. |
 | Role rendered | The role name and the rendered path in the opencode file. |
 | Role contract stated | The role name, the ownership axis, and the capability axis. |
+| Capability declared | The role name, the capability kind, the capability name, and the home. |
+| Capability bundled | The tool name and the instruction skill name. |
+| Capability shipped | The capability kind and the emitted path of the generated project. |
+| Capability resolved | The capability kind and the opencode target of the capability. |
 | Permission set rendered | The role name and the ordered permission array. |
 | Design option selected | The design method, the ux flag, the design files, and the chapters. |
 | Design tool selected | The design tool and the enabled canonical entry. |
@@ -187,6 +232,10 @@ None. The blueprint holds every fact of one repository and references no other a
 - The phase protocol messages (Phase planned, Phase built, Expert assigned, Version released)
   belong to the coordinator workflow. The blueprint renders the role files that carry the
   protocol; it emits no protocol event.
+- The interaction messages (Option interview presented, Choice approved, Contract approved)
+  belong to the coordinator workflow. The blueprint renders the role files that carry the
+  interaction points and the managed page that carries the contract-first rule. It emits no
+  interaction event.
 - The design workflow messages (Domain model declared, Design reviewed, Designer assigned)
   belong to the design workflow. The blueprint emits no workflow event. The blueprint computes
   the design files and chapters from the design option and the design tool.
