@@ -114,6 +114,7 @@ change. This change uses the capability model and the bundle rule of that change
 ## Artifacts
 
 - [Requirements](requirements/README.md)
+- [Tasks](tasks/README.md): the implementation plan of the change.
 
 ## Code paths
 
