@@ -31,8 +31,8 @@ and the solution expert (spec-human-interaction) and the managed artifact-driven
 carries the contract-first rule (spec-contract-first).
 
 The blueprint also records the surface declaration of each project of the model
-(spec-coverage-surface). The declaration lists each surface class with its copy mode and its path
-pattern. The blueprint renders the standard declaration of a generated project from the data table
+(spec-coverage-surface). The declaration lists each surface class with its copy mode, its scope, and
+its path pattern. The blueprint renders the standard declaration of a generated project from the data table
 `lib/surface.nix` and the file plan. The blueprint renders the coverage scan bundle: the script,
 the command, and the instruction skill (spec-coverage-bundle). The coverage scan reads the
 declaration of the project under scan and the agent set of the project, applies the last matching
@@ -41,9 +41,9 @@ proposed role (spec-agent-read, spec-coverage-scan, spec-proposed-role). The sca
 it changes no blueprint fact.
 
 The blueprint also ships the seventh role `repository-expert` (spec-repository-role). The role
-holds the ownership of the seven standard surface classes: the root files, the harness tree, and
-the home of the capability of the generated project. The shipped role set holds seven roles, so the
-union of the shipped agents covers the standard surface.
+holds the ownership of the seven standard surface classes, the class `factory-config`, and the root
+files: the harness tree and the home of the capability of the generated project. The shipped role
+set holds seven roles, so the union of the shipped agents covers the standard surface.
 
 ## State transitions
 
@@ -128,8 +128,15 @@ union of the shipped agents covers the standard surface.
 - The blueprint emits the managed artifact-driven page into every generated project. The page
   carries the contract-first rule.
 - Each project of the model holds its own surface declaration. The declaration sits at the root
-  `surface.tsv` of the project and holds one line per surface class: the class, the copy mode, and
-  the path pattern (spec-coverage-surface).
+  `surface.tsv` of the project and holds one line per surface class: the class, the copy mode, the
+  scope, and the path pattern. The scope is `model` or `conditional` (spec-coverage-surface).
+- A class is an author path of a project only when its pattern matches at least one path in the
+  project, or when it is a model class that every generated project must hold. A class that is not
+  an author path produces no report row and no proposal (adr-author-path-rule).
+- The standard surface holds the class `factory-config` for the planned file `factory.config.yaml`.
+  The owner of the class is the shipped role `repository-expert`.
+- An author-writable surface class holds one of the copy modes `seed`, `template`, and `none`. A
+  class with the copy mode `managed` is factory-owned and needs no agent owner.
 - The surface of a project does not depend on the copy mode. The scan reads each class, also when
   the copy mode is `none`. A path class that the factory does not copy, and that the project must
   hold, belongs to the surface.
@@ -142,8 +149,8 @@ union of the shipped agents covers the standard surface.
 - The owner of a surface path is a shipped agent or a project-local role. The union of the write
   scope of the agents of a project covers the surface.
 - The factory ships the role `repository-expert`. The role holds the ownership of the seven
-  standard surface classes. The shipped role set holds seven roles, so the union of the shipped
-  agents covers the standard surface (spec-repository-role).
+  standard surface classes and the class `factory-config`. The shipped role set holds seven roles,
+  so the union of the shipped agents covers the standard surface (spec-repository-role).
 - The scan proposes a role for a project-specific gap. The proposal never names `repository-expert`,
   because that role ships (spec-proposed-role).
 - The write scope of an agent is the set of surface entries where the last matching `edit` rule of

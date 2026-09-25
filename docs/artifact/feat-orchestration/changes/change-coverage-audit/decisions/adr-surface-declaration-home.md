@@ -41,10 +41,11 @@ The factory repository holds its own declaration at `surface.tsv`. The shipped r
 `repository-expert` owns the factory declaration (spec-repository-role). The `factory-expert` owns
 the factory source `lib/surface.nix`.
 
-The declaration holds one line per surface class: the class label, the copy mode, and the path
-pattern. The copy-mode value set is `seed | managed | template | none`. A class with the value
+The declaration holds one line per surface class: the class label, the copy mode, the scope, and the
+path pattern. The copy-mode value set is `seed | managed | template | none`. A class with the value
 `none` stays in the declaration and never passes through `mkFileDecl`. The surface does not depend
-on the copy mode.
+on the copy mode. The scope decides whether the class is an author path of the project
+(adr-author-path-rule).
 
 ## Consequences
 

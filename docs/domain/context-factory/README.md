@@ -29,7 +29,7 @@ notifier, one publish target, and named presets.
 | arch | The shape of the setup, either single or multiple. |
 | e2e seed | The first check that proves the generated setup works end to end. |
 | facade | The single root named factory.project that holds all project settings. |
-| copy mode | The ownership rule of a generated file: seed, managed, or template. |
+| copy mode | The ownership rule of a generated file: seed, managed, template, or none. |
 | repository blueprint | The declared plan of one repository that the factory emits. |
 | base assets | The architecture-neutral file set that every generated repository receives. |
 | overlay | The file set of one arch value that the factory adds to the base assets. |
@@ -108,10 +108,14 @@ notifier, one publish target, and named presets.
 | surface declaration | The declaration of the surface of one project of the model. |
 | standard surface class | A path class that the model requires of every generated project, independent of the copy mode. |
 | agent | An entry of the agent set of a generated project: an agent that the factory ships, or an agent that the user defines. |
-| surface entry | One line of the surface declaration of a project: the class, the copy mode, and the path pattern. |
+| surface entry | One line of the surface declaration of a project: the class, the copy mode, the scope, and the path pattern. |
+| scope | The value of a surface class that decides the author-path rule: model or conditional. |
+| author path | A surface class of a project that the project must manage: a class whose pattern matches at least one path in the project, or a model class that every generated project must hold. |
+| model class | A surface class that every generated project must hold, marked with the scope model. |
+| conditional class | A surface class that is an author path of a project only when its pattern matches at least one path in the project. |
 | coverage report | The deterministic output of the coverage scan: one row for each unowned author path, with the path, the copy mode, the nearest role, and the proposed role. |
 | scan agent | The shipped agent that runs the coverage scan, namely `artifact-master`. |
-| repository role | The shipped role `repository-expert` that owns the seven standard surface classes. |
+| repository role | The shipped role `repository-expert` that owns the seven standard surface classes and the class `factory-config`. |
 
 ## Business rules
 
@@ -180,6 +184,9 @@ notifier, one publish target, and named presets.
 - The owner of a surface path is a shipped agent or a project-local role.
 - A class of the project surface is covered when every path of the class is covered.
 - Two paths of one class may have two owners.
+- A class is an author path of a project only when its pattern matches at least one path in the project, or when it is a model class that every generated project must hold. A class that is not an author path produces no report row and no proposal.
+- The standard surface holds the class `factory-config` for `factory.config.yaml`, owned by the shipped role `repository-expert`.
+- An author-writable surface class holds one of the copy modes `seed`, `template`, and `none`. A class with the copy mode `managed` needs no agent owner.
 - The surface of a project does not depend on the copy mode or on whether the factory copies the file.
 - Each project of the model holds its own surface declaration.
 - The coverage scan reads the surface declaration of the project under scan and the rendered permission file of the project.

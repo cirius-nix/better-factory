@@ -14,8 +14,8 @@
 2. The role source is `services/factory/assets/roles/repository-expert/ROLE.md`.
 3. The role-contract table `roleContracts` of `services/factory/lib/harness.nix` gains one row for
    the name `repository-expert`.
-4. The row holds the ownership axis of the seven standard surface classes and of the repository
-   files (the data model below).
+4. The row holds the ownership axis of the seven standard surface classes, of the class
+   `factory-config`, and of the repository files (the data model below).
 5. The row holds the capability axis of the role: the `skill` capability `asd-ste-100` with the
    home `shipped`.
 6. The permission derive writes the default permission set of the role into
@@ -36,8 +36,9 @@ The events belong to the capability workflow (agg-repository-blueprint).
 
 ### Data model
 
-The ownership axis of `repository-expert` holds the seven standard surface classes and the
-repository files `surface.tsv`, `.opencode/opencode.jsonc`, and `.opencode/scripts/*`.
+The ownership axis of `repository-expert` holds the seven standard surface classes, the class
+`factory-config`, and the repository files `surface.tsv`, `factory.config.yaml`,
+`.opencode/opencode.jsonc`, and `.opencode/scripts/*`.
 
 | Class | Pattern |
 | --- | --- |
@@ -52,6 +53,7 @@ repository files `surface.tsv`, `.opencode/opencode.jsonc`, and `.opencode/scrip
 | `surface-declaration` | `surface.tsv` |
 | `harness-config` | `.opencode/opencode.jsonc` |
 | `scan-script` | `.opencode/scripts/*` |
+| `factory-config` | `factory.config.yaml` |
 
 The capability axis of the role:
 
@@ -80,7 +82,7 @@ The ordered permission array of the role:
 1. The shipped role set holds seven roles: `artifact-master`, `requirement-expert`,
    `solution-expert`, `artifact-release-expert`, `factory-expert`, `designer-expert`, and
    `repository-expert`.
-2. The role owns the seven standard surface classes.
+2. The role owns the seven standard surface classes and the class `factory-config`.
 3. The role ships to every generated project. A generated project receives the file
    `.opencode/agents/repository-expert.md`.
 4. The union of the shipped agents covers the standard surface of a generated project. The
@@ -99,10 +101,10 @@ The ordered permission array of the role:
 The requirement req-write-coverage states that the union of the write scope of the shipped agents
 covers the standard surface. Version 4.0.0 leaves seven standard surface classes uncovered.
 
-The change ships the seventh role `repository-expert`. The role owns the seven classes. The role is
-shipped, so the union of the shipped agents covers the standard surface. The criterion of
-req-write-coverage stays as written and is true at version 5.0.0. The user decision fixes the owner
-(adr-repository-role).
+The change ships the seventh role `repository-expert`. The role owns the seven classes and the class
+`factory-config` for `factory.config.yaml`. The role ships to every generated project, so the union
+of the shipped agents covers the standard surface. The criterion of req-write-coverage stays as
+written and is true at version 5.0.0. The user decision fixes the owner (adr-repository-role).
 
 The role is the role of the repository component: the root files, the harness tree, and the home of
 the capability of the generated project. The `expert-role` skill creates a per-component expert and
@@ -126,7 +128,8 @@ an owner for the root files.
 - A role row outside `roleContracts` fails the check.
 - A role body without the section `## Ownership` or the section `## Capability` fails the check.
 - A role body whose capability axis does not name `asd-ste-100` fails the check.
-- An ownership pattern outside the seven classes and the repository files fails the check.
+- An ownership pattern outside the seven classes, the class `factory-config`, and the repository
+  files fails the check.
 - A permission fixture without one expected array for the role fails the check.
 - A generated project without `.opencode/agents/repository-expert.md` fails the seed check.
 - A role that writes outside its ownership patterns fails the check.
@@ -137,7 +140,7 @@ an owner for the root files.
 | Constraint | Final decision | Owner |
 | --- | --- | --- |
 | C-CA26 | The factory ships the seventh role `repository-expert`. The shipped role set grows from six roles to seven roles. The role source is `assets/roles/repository-expert/ROLE.md`. | services/factory |
-| C-CA27 | The ownership axis of the role holds the seven standard surface classes and the repository files `surface.tsv`, `.opencode/opencode.jsonc`, and `.opencode/scripts/*`. | services/factory |
+| C-CA27 | The ownership axis of the role holds the seven standard surface classes, the class `factory-config`, and the repository files `surface.tsv`, `factory.config.yaml`, `.opencode/opencode.jsonc`, and `.opencode/scripts/*`. | services/factory |
 | C-CA28 | The capability axis of the role holds the shipped `skill` capability `asd-ste-100`. The permission fixture holds one expected ordered array for the role. The body/table check reads the new body. | services/factory |
 | C-FCA-01-05 | The factory repository root `surface.tsv` is owned by the shipped `repository-expert`. The owner of a standard class is a shipped role, because the role ships. | services/factory |
 | C-FCA-01-06 | `lib/surface.nix` stays pure Nix and out of `default.nix`. The new `modules/coverage.nix` joins the module import list. No module imports an asset path. | services/factory |

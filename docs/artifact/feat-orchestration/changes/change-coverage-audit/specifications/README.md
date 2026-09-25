@@ -13,7 +13,7 @@ covered.
 
 The change adds the surface declaration. The declaration is a tab-separated table at the path
 `surface.tsv` of the project root. One line gives one surface class: the class label, the copy
-mode, and the path pattern. The declaration does not depend on the copy mode. The factory owns the
+mode, the scope, and the path pattern. The declaration does not depend on the copy mode. The factory owns the
 standard declaration of a generated project and computes it from the data table
 `services/factory/lib/surface.nix`. The factory repository holds its own declaration at the same
 path. The scan reads the declaration of the project under scan.
@@ -43,10 +43,22 @@ tools, the `skill` allow rule of the instruction skill, and the shell rule of th
 The change ships a seventh role, `repository-expert`. The role holds the ownership of the seven
 standard surface classes: `README.md` at the repository root, `factory.nix`, `.gitignore`,
 `AGENTS.md`, `devenv.nix`, `flake.nix`, and the home of the capability of the generated project.
-The role also owns the artifact-driven template tree and the repository files `surface.tsv`,
-`.opencode/opencode.jsonc`, and `.opencode/scripts/*`. The shipped role set grows from six roles to
-seven roles. The union of the shipped agents covers the standard surface at version 5.0.0, so the
-criterion of req-write-coverage is true as written.
+The role also owns the artifact-driven template tree, the class `factory-config`, and the repository
+files `surface.tsv`, `.opencode/opencode.jsonc`, and `.opencode/scripts/*`. The shipped role set
+grows from six roles to seven roles. The union of the shipped agents covers the standard surface at
+version 5.0.0, so the criterion of req-write-coverage is true as written.
+
+The change closes a completeness defect in the standard surface. The class `factory-config` owns the
+planned file `factory.config.yaml` with the copy mode `template` and the scope `model`. The owner of
+the class is `repository-expert`. The `design` class and the five `component-*` classes hold the
+scope `conditional`.
+
+The change adds the author-path rule. A class is an author path of a project only when the class
+pattern matches a path of the project, or when the class is a model class that every generated
+project must hold. A class whose pattern matches no path of the project, and that is not a model
+class, is not an author path. The class produces no report row and no proposal. A generated project
+with no component therefore reports no component row. The declaration carries the scope of each
+class, so the scan applies the rule with no hard-coded class list (adr-author-path-rule).
 
 The scan still proposes a role for a project-specific gap. The proposal is never `repository-expert`,
 because that role ships. The proposal names a per-component expert for a path under a component
@@ -128,7 +140,7 @@ The bundle renders into the opencode targets below.
 
 | ID | Specification | Covers |
 | --- | --- | --- |
-| [spec-coverage-surface](spec-coverage-surface.md) | The shape and the home of the surface declaration, the declaration of a generated project, the declaration of the factory repository, the standard surface classes, and the owner of the declaration. | req-write-coverage, req-coverage-audit |
+| [spec-coverage-surface](spec-coverage-surface.md) | The shape and the home of the surface declaration, the declaration of a generated project, the declaration of the factory repository, the standard surface classes, the author-path rule, the scope, the class `factory-config`, and the owner of the declaration. | req-write-coverage, req-coverage-audit |
 | [spec-agent-read](spec-agent-read.md) | The read of the agent set: the configuration merge order, the file frontmatter, the last-match rule, the union of the `edit` allow rules, and the agents that the user defines. | req-coverage-audit |
 | [spec-coverage-scan](spec-coverage-scan.md) | The deterministic scan: the inputs, the classification of each surface entry, the report rows, the exit condition, and the determinism invariant. | req-write-coverage, req-coverage-audit |
 | [spec-proposed-role](spec-proposed-role.md) | The shape of the proposal: the role name, the ownership path patterns, the capability set, and the handoff to the `expert-role` skill. | req-write-coverage, req-coverage-audit |
@@ -189,6 +201,8 @@ The change adds these decisions:
   two agent definition forms and the file form as the last definition of one id.
 - [adr-repository-role](../decisions/adr-repository-role.md) selects the seventh shipped role
   `repository-expert` and the growth of the shipped role set.
+- [adr-author-path-rule](../decisions/adr-author-path-rule.md) selects the author-path rule, the
+  scope of each class, and the class `factory-config`.
 
 ## Feasibility review
 
@@ -236,6 +250,10 @@ factory-expert supplies the constraints. Each constraint has a resolution row in
 | FCA-07 | spec-coverage-scan | The scan algorithm | context-factory | agg-repository-blueprint | The declaration read | C-FCA-07-07 | C-FCA-07-07 |
 | FCA-07 | spec-coverage-bundle | The seed check and the proof | context-factory | agg-repository-blueprint | The consumer target | C-FCA-07-08 | C-FCA-07-08 |
 | FCA-07 | spec-agent-read, spec-coverage-scan | The scan algorithm | context-factory | agg-repository-blueprint | The global-config precondition | C-FCA-07-09 | C-FCA-07-09 |
+| FCA-08 | spec-coverage-surface, spec-coverage-scan, spec-repository-role | The completeness fix | context-factory | agg-repository-blueprint | The author-path rule and the scope | C-CA29 | C-CA29 |
+| FCA-08 | spec-coverage-surface | The completeness fix | context-factory | agg-repository-blueprint | The class `factory-config` and its owner | C-CA30 | C-CA30 |
+| FCA-08 | spec-coverage-surface, spec-coverage-scan | The completeness fix | context-factory | agg-repository-blueprint | The conditional scope | C-CA31 | C-CA31 |
+| FCA-08 | spec-coverage-surface, spec-coverage-scan | The completeness fix | context-factory | agg-repository-blueprint | The two clean scans | C-FCA-08-01 | C-FCA-08-01 |
 
 The resolution row C-FCA-04-01 of the earlier review is superseded by the user decision. The owner
 of the seven standard surface classes is the shipped role `repository-expert`

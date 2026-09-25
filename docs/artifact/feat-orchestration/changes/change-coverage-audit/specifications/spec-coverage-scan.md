@@ -10,20 +10,28 @@
 ### Interface
 
 1. The scan takes the project root as its input. The scan reads the surface declaration of the
-   project (spec-coverage-surface) and the agent set of the project (spec-agent-read).
-2. The scan classifies each surface entry as covered or unowned.
-3. An entry is covered when at least one agent covers the entry. The scan computes the coverage
+   project (spec-coverage-surface), the project path list, and the agent set of the project
+   (spec-agent-read).
+2. The scan classifies each surface entry as factory-owned, an author path, or not an author path
+   (spec-coverage-surface interface 12 and 13).
+3. A factory-owned entry is a class with the copy mode `managed`. The factory owns the file. The
+   entry needs no agent owner and produces no report row.
+4. An entry is an author path when the entry scope is `model`, or when the entry scope is
+   `conditional` and the entry pattern matches at least one path of the project path list.
+5. An entry whose scope is `conditional` and whose pattern matches no path of the project path
+   list is not an author path of the project. The entry produces no report row and no proposal.
+6. An author path is covered when at least one agent covers it. The scan computes the coverage
    with the relation of the data model and the last-match rule.
-4. An entry is an unowned author path when no agent covers the entry.
-5. For each unowned author path the scan computes the nearest role and the proposed role
+7. An author path that no agent covers is an unowned author path.
+8. For each unowned author path the scan computes the nearest role and the proposed role
    (spec-proposed-role).
-6. The scan writes one report to the standard output. The report holds one row for each unowned
+9. The scan writes one report to the standard output. The report holds one row for each unowned
    author path, and the proposal.
-7. The scan writes no file. The scan is read-only. The scan agent holds no `edit` allow rule, so
-   the agent holds no write scope (spec-coverage-bundle).
-8. The scan reads no network. The scan holds no timestamp, no hostname, and no random value.
-9. The scan holds no hard-coded standard class list. The scan reads the declaration of the project
-   under scan only (spec-coverage-surface).
+10. The scan writes no file. The scan is read-only. The scan agent holds no `edit` allow rule, so
+    the agent holds no write scope (spec-coverage-bundle).
+11. The scan reads no network. The scan holds no timestamp, no hostname, and no random value.
+12. The scan holds no hard-coded standard class list. The scan reads the declaration of the project
+    under scan only (spec-coverage-surface).
 
 ### Events
 
@@ -36,6 +44,17 @@ The events belong to the coverage workflow. The blueprint emits no coverage even
 (agg-repository-blueprint).
 
 ### Data model
+
+The project path list:
+
+1. The scan reads the project path list. The list holds each regular file below the project root.
+2. The scan reads the list with the tool `find`. The tool `find` is a member of the declared tool
+   set (spec-agent-read, C-FCA-02-03).
+3. The list is deterministic. The scan sorts the list with `LC_ALL=C`.
+
+An entry is an author path of the project when the entry scope is `model`, or when the entry scope
+is `conditional` and the entry pattern matches at least one path of the project path list. The scan
+tests the match with the coverage relation below.
 
 The coverage relation of one resource pattern and one surface pattern:
 
@@ -51,12 +70,16 @@ The coverage relation of one resource pattern and one surface pattern:
 
 The classification of one surface entry:
 
-1. The scan reads the `edit` rules of each agent in order.
-2. The scan finds the last rule whose resource pattern covers the entry pattern.
-3. The agent covers the entry when that rule has the effect `allow`. A missing rule or the effect
+1. The scan reads the entry scope and the entry copy mode.
+2. A class with the copy mode `managed` is factory-owned. The scan holds no row for it.
+3. A class with the scope `conditional` and no matching path in the project path list is not an
+   author path. The scan holds no row for it and no proposal for it.
+4. Otherwise the entry is an author path. The scan reads the `edit` rules of each agent in order.
+5. The scan finds the last rule whose resource pattern covers the entry pattern.
+6. The agent covers the entry when that rule has the effect `allow`. A missing rule or the effect
    `deny` gives no coverage from that agent.
-4. The entry is covered when at least one agent covers it.
-5. The entry is an unowned author path when every agent gives no coverage.
+7. The entry is covered when at least one agent covers it.
+8. The entry is an unowned author path when every agent gives no coverage.
 
 The nearest role of an unowned author path:
 
@@ -88,7 +111,8 @@ proposal: <role-name>
 2. The rows sort by the path string in the ascending order.
 3. The proposal holds the role name and the ownership patterns of the proposal
    (spec-proposed-role). The proposals sort by the role name in the ascending order.
-4. The report holds no row for a covered entry.
+4. The report holds no row for a covered entry. The report holds no row and no proposal for a class
+   that is not an author path of the project (interface 5).
 
 The exit code:
 
@@ -130,6 +154,13 @@ The exit code:
 11. The exit code `2` is reserved for an input error. A command failure gives the exit code `2`.
 12. The coverage relation uses the POSIX `case` construct. The relation is deterministic under
     `LC_ALL=C`.
+13. A class with the copy mode `managed` is factory-owned. The scan holds no row for it.
+14. A class with the scope `conditional` and no matching path in the project path list is not an
+    author path. The scan holds no row for it and no proposal for it.
+15. A class with the scope `model` is an author path of every project.
+16. The scan applies the author-path rule from the declaration. The scan holds no hard-coded
+    class list. The rule is deterministic: the same declaration, the same project path list, and
+    the same agent set give the same rows.
 
 ## Description
 
@@ -139,6 +170,13 @@ owner (req-write-coverage). The coverage scan is the deterministic check that pr
 
 The scan reads the surface declaration and the agent set. The scan compares the surface with the
 union of the write scope of the agents. The scan reports each unowned author path.
+
+The scan applies the author-path rule (spec-coverage-surface interface 12 and 13). A class with the
+copy mode `managed` is factory-owned: the factory writes the file, so the class needs no agent owner
+and produces no row. A class is an author path of the project when the class scope is `model`, or
+when the class scope is `conditional` and the class pattern matches a path of the project path
+list. A conditional class with no matching path is not an author path: it produces no row. The rule
+closes the completeness defect (C-CA29, C-CA31, C-FCA-08-01).
 
 The change fixes the algorithm. The scan classifies each surface entry with the coverage relation
 and the last-match rule. The scan computes the nearest role and the proposed role of each unowned
