@@ -75,6 +75,11 @@ The keep window:
 3. The delete list is the remaining folders of the ordered list.
 4. A feature with three or fewer folders of one kind holds an empty delete list of that kind.
    The cleanup is a no-op for that kind.
+5. A feature with three or fewer folders of each kind holds an empty delete list and an empty
+   README edit. The cleanup reads the feature README only for a kind that holds more than three
+   folders. An absent kind folder is the empty folder list of the kind. The feature `feat-example`
+   is the starter feature: its README holds no `**Current version:**` line, no `## Versions` table,
+   and its feature folder holds no `versions/` folder. The no-op holds for it (FAC-03-04).
 
 The plan:
 
@@ -158,8 +163,10 @@ seventh folder of each kind. The cleanup is deterministic on the real feature fo
 
 ## Errors
 
-- A feature folder without a `## Versions` table fails the plan with the exit code `2`.
-- A feature README without the `**Current version:**` line fails the plan with the exit code `2`.
+- A feature folder without a `## Versions` table fails the plan with the exit code `2`, when the
+  feature holds more than three change folders.
+- A feature README without the `**Current version:**` line fails the plan with the exit code `2`,
+  when the feature holds more than three version folders.
 - A version folder name outside `<major>.<minor>.<patch>` fails the plan with the exit code `2`.
 - A change folder name without the prefix `change-` fails the plan with the exit code `2`.
 - A delete path outside `docs/artifact/<feature>/versions/` or `docs/artifact/<feature>/changes/`
@@ -180,3 +187,4 @@ seventh folder of each kind. The cleanup is deterministic on the real feature fo
 | C-FAC-01-02 | The plan holds the delete list, the keep list, and the README edit. Each list is in ascending path order. The cleanup holds the plan form (read-only) and the apply form (`--apply`). The cleanup deletes only in the apply form, after the confirmation of the human (adr-cleanup-plan-gate). | services/factory |
 | C-FAC-01-03 | The cleanup checks each delete path before the delete: a folder below the feature kind folder, a valid name, a path in the plan, and a path other than the current version folder. A failed check stops the cleanup with the exit code `2` and deletes no path. | services/factory |
 | C-FAC-01-10 | The cleanup script joins the plan as an `extraFiles` entry with the copy mode `managed`. The module reads the asset and makes a `builtins.toFile` render. The five-line result rule of the seed check stays. | services/factory |
+| FAC-03-04 | The no-op precedes the read of the feature README. A kind with three or fewer folders is a no-op, and an absent kind folder is the empty list of the kind. The input errors apply only to a kind with more than three folders, so the starter feature `feat-example` is a no-op (keep window 5). | services/factory |
