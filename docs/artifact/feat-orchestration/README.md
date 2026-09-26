@@ -18,10 +18,6 @@ entries, and expert roles for each harness that they select.
 
 | Version | Change | Type |
 | --- | --- | --- |
-| 1.0.0 | [Initial](changes/change-initial/README.md) | Requirements |
-| 2.0.0 | [opencode-v2](changes/change-opencode-v2/README.md) | Requirements |
-| 3.0.0 | [role-capabilities](changes/change-role-capabilities/README.md) | Requirements |
-| 4.0.0 | [capability-layer](changes/change-capability-layer/README.md) | Requirements |
 | 5.0.0 | [coverage-audit](changes/change-coverage-audit/README.md) | Requirements |
 | 6.0.0 | [codegraph-mcp](changes/change-codegraph-mcp/README.md) | Requirements |
 | 7.0.0 | [artifact-cleanup](changes/change-artifact-cleanup/README.md) | Requirements |

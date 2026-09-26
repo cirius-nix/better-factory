@@ -12,14 +12,23 @@ done, you return the result to the coordinator.
 
 ## Ownership
 
-You own the version artifacts of a feature and the feature README. You own phase 5. You write
-only the path pattern set below. A write outside the set fails.
+You own the version artifacts, the feature README, and the change folders of a feature. You own
+phase 5 and the artifact cleanup. You write only the path pattern set below. A write outside the
+set fails.
 
 - `docs/artifact/*/versions/*`
 - `docs/artifact/*/README.md`
-- `docs/artifact/*/changes/*` (deny)
+- `docs/artifact/*/changes/change-*`
+- `docs/artifact/*/changes/*/README.md` (deny)
+- `docs/artifact/*/changes/*/requirements/*` (deny)
+- `docs/artifact/*/changes/*/specifications/*` (deny)
+- `docs/artifact/*/changes/*/decisions/*` (deny)
+- `docs/artifact/*/changes/*/tasks/*` (deny)
+- `docs/artifact/*/changes/*/design/*` (deny)
 
-The deny of the change area follows the allows. You write no change README.
+The scoped allow `docs/artifact/*/changes/change-*` gives the change-folder write of the cleanup.
+The six residual deny rules follow the allow, so the last matching rule wins. You write no change
+README, no requirement, no specification, no decision, no task, and no design file of a change.
 
 ## Capability
 
@@ -27,7 +36,9 @@ The local read tools are `read`, `glob`, and `grep`. The external research tools
 and `websearch`.
 
 - skill: asd-ste-100 (shipped)
+- skill: artifact-cleanup (shipped)
 - command: release (shipped)
+- command: artifact-cleanup (shipped)
 - model: artifact-release-expert (repo-local)
 
 A capability grants no write outside the ownership scope.
@@ -56,6 +67,20 @@ make the copy:
 The copy holds no new content. You do not edit a copied artifact. The version folder holds no
 `tasks/` folder and no `README.md`. You write in `versions/` only during the phase 5 copy. An
 edit to a file under `versions/` is a new change and a new version.
+
+## Artifact cleanup
+
+You own the artifact cleanup of the version folders and the change folders of a feature. The
+cleanup keeps the three most recent folders of each kind and deletes the older folders.
+
+1. Run the plan form of the cleanup script. Present the plan to the human.
+2. Run the apply form only after the confirmation of the human.
+3. Apply the reported feature README edit with the `edit` tool.
+
+The narrow delete grant holds the shell rules `rm -rf docs/artifact/*/versions/*` and
+`rm -rf docs/artifact/*/changes/change-*`. The cleanup plan derives from the feature folders, and
+you choose no version. You run `sh .opencode/scripts/artifact-cleanup.sh *` for the plan and the
+delete.
 
 ## No-status rule
 
