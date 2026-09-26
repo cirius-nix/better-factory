@@ -17,7 +17,8 @@ or repo-local to the factory source repository. It decides the interaction point
 requirement expert and the solution expert with the human. It decides the contract-first rule for
 each specification. It decides the surface declaration of a project, the write coverage, the owner
 of each surface path, and the coverage scan. It decides the external code intelligence of the
-roles `solution-expert` and `factory-expert` through the codegraph MCP server.
+roles `solution-expert` and `factory-expert` through the codegraph MCP server. It decides the
+artifact cleanup of the version folders and the change folders of a feature.
 
 It also fixes the delivery path with one docs site, one CI choice, one
 notifier, one publish target, and named presets.
@@ -118,6 +119,11 @@ notifier, one publish target, and named presets.
 | coverage report | The deterministic output of the coverage scan: one row for each unowned author path, with the path, the copy mode, the nearest role, and the proposed role. |
 | scan agent | The shipped agent that runs the coverage scan, namely `artifact-master`. |
 | repository role | The shipped role `repository-expert` that owns the seven standard surface classes and the class `factory-config`. |
+| artifact cleanup | The deletion of the version folders and the change folders of a feature outside the keep window. |
+| keep window | The three most recent version folders and the three most recent change folders of a feature. |
+| cleanup plan | The deterministic list of the paths to delete and the paths to keep of one feature. |
+| cleanup bundle | The artifact cleanup script, the command, and the instruction skill, shipped together. |
+| release role | The shipped role `artifact-release-expert` that owns the version folders, the feature README, and the artifact cleanup. |
 
 ## Business rules
 
@@ -150,6 +156,16 @@ notifier, one publish target, and named presets.
 - The factory declares the codegraph MCP server once in the one MCP source, and the roles `solution-expert` and `factory-expert` reach external code intelligence through it.
 - The factory expert owns the role-contract surface: the factory component, the mixture-of-experts page, the expert-role skill, and its own role body.
 - Each version is a copy that passes a readiness gate before release.
+- The project keeps the three most recent version folders of each feature and deletes the older version folders.
+- The project keeps the three most recent change folders of each feature and deletes the older change folders.
+- A cleanup of a feature with three or fewer version folders, or three or fewer change folders, deletes no folder.
+- The current version of a feature stays in each cleanup.
+- The artifact cleanup deletes only a path under a version folder or a change folder of the artifact tree.
+- The artifact cleanup presents its plan and deletes only after the confirmation of the human.
+- The artifact cleanup is deterministic.
+- The artifact cleanup ships as a bundle: the cleanup script, the command, and the instruction skill.
+- The release role owns the artifact cleanup of the version folders and the change folders.
+- The feature README names the kept versions only.
 - The project uses one design method selected with design.use.
 - Each context holds a context canvas, an aggregate canvas, and a glossary.
 - The design review writes findings in a report and makes no edits.
@@ -232,6 +248,7 @@ notifier, one publish target, and named presets.
 | Review design | query | reviewer |
 | Check seed | query | repository author |
 | Run coverage scan | command | repository author |
+| Run artifact cleanup | command | repository author |
 | Create role | command | role author |
 | Run phase | command | change coordinator |
 | Assign expert | command | change coordinator |
@@ -278,6 +295,8 @@ notifier, one publish target, and named presets.
 | Role proposed | event | repository author |
 | Owner assigned | event | role author |
 | Coverage proved | event | repository author |
+| Cleanup planned | event | repository author |
+| Artifacts cleaned | event | repository author |
 | Design option selected | event | repository author |
 | Design tool selected | event | repository author |
 | Domain model declared | event | solution expert |
@@ -314,6 +333,9 @@ notifier, one publish target, and named presets.
 - A path of the surface with no owner blocks the repository author.
 - A scan gives the same result for the same surface and the same agent set.
 - A role assignment needs a named role and its ownership path patterns, so the scan proposes a role.
+- A repository author wants a short history, so the project keeps only the three most recent versions and changes of a feature.
+- A delete of a version folder is safe only when the plan names the paths to delete and the paths to keep.
+- The same feature state gives the same cleanup plan.
 
 ## Open questions
 
