@@ -9,7 +9,7 @@ write two rows.
 | arch | context-factory | The shape of the setup, either single or multiple. | - |
 | e2e seed | context-factory | The first check that proves the generated setup works end to end. | - |
 | facade | context-factory | The single root named factory.project that holds all project settings. | - |
-| copy mode | context-factory | The ownership rule of a generated file: seed, managed, or template. | - |
+| copy mode | context-factory | The ownership rule of a generated file: seed, managed, template, or none. | - |
 | repository blueprint | context-factory | The declared plan of one repository that the factory emits. | - |
 | base assets | context-factory | The architecture-neutral file set that every generated repository receives. | - |
 | overlay | context-factory | The file set of one arch value that the factory adds to the base assets. | - |
@@ -87,3 +87,20 @@ write two rows.
 | interaction point | context-factory | A defined point of a phase at which an expert talks to the human through the artifact master. | - |
 | contract | context-factory | The interface, the events, the data model, and the invariant of one specification. | - |
 | contract-first rule | context-factory | The rule that a specification leads with its contract, and the human approves the contract before phase 3. | - |
+| project surface | context-factory | The set of every path that a project of the model must manage. | - |
+| surface declaration | context-factory | The declaration of the surface of one project of the model. | - |
+| standard surface class | context-factory | A path class that the model requires of every generated project, independent of the copy mode. | - |
+| agent | context-factory | An entry of the agent set of a generated project: an agent that the factory ships, or an agent that the user defines. | - |
+| write coverage | context-factory | The property of a project that every path of the project surface has at least one owner. A class is covered when every path of the class is covered. | - |
+| unowned author path | context-factory | A path of the project surface that no agent may write. | - |
+| coverage scan | context-factory | The deterministic check that reads the surface declaration of the project under scan and the rendered permission file of the project, and reports each unowned author path. | - |
+| nearest role | context-factory | The role with the write scope closest to an unowned author path. | - |
+| proposed role | context-factory | The role that the coverage scan proposes for an unowned author path: the role name and the ownership path patterns that cover the path or the class. | - |
+| surface entry | context-factory | One line of the surface declaration of a project: the class, the copy mode, the scope, and the path pattern. | - |
+| scope | context-factory | The value of a surface class that decides the author-path rule: model or conditional. | - |
+| author path | context-factory | A surface class of a project that the project must manage: a class whose pattern matches at least one path in the project, or a model class that every generated project must hold. | - |
+| model class | context-factory | A surface class that every generated project must hold, marked with the scope model. | - |
+| conditional class | context-factory | A surface class that is an author path of a project only when its pattern matches at least one path in the project. | - |
+| coverage report | context-factory | The deterministic output of the coverage scan: one row for each unowned author path, with the path, the copy mode, the nearest role, and the proposed role. | - |
+| scan agent | context-factory | The shipped agent that runs the coverage scan, namely `artifact-master`. | - |
+| repository role | context-factory | The shipped role `repository-expert` that owns the seven standard surface classes and the class `factory-config`. | - |

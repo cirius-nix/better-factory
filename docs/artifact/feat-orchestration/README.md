@@ -1,6 +1,6 @@
 # Feature: orchestration
 
-**Current version:** 4.0.0
+**Current version:** 5.0.0
 
 ## Summary
 
@@ -10,9 +10,9 @@ entries, and expert roles for each harness that they select.
 
 ## Current artifacts
 
-- [Requirements](versions/4.0.0/requirements/README.md)
-- [Specifications](versions/4.0.0/specifications/README.md)
-- [Decisions](versions/4.0.0/decisions/)
+- [Requirements](versions/5.0.0/requirements/README.md)
+- [Specifications](versions/5.0.0/specifications/README.md)
+- [Decisions](versions/5.0.0/decisions/)
 
 ## Versions
 
@@ -22,6 +22,7 @@ entries, and expert roles for each harness that they select.
 | 2.0.0 | [opencode-v2](changes/change-opencode-v2/README.md) | Requirements |
 | 3.0.0 | [role-capabilities](changes/change-role-capabilities/README.md) | Requirements |
 | 4.0.0 | [capability-layer](changes/change-capability-layer/README.md) | Requirements |
+| 5.0.0 | [coverage-audit](changes/change-coverage-audit/README.md) | Requirements |
 
 ## Artifacts
 
