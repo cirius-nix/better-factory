@@ -482,6 +482,7 @@ let
       { action = "skill"; resource = "asd-ste-100"; effect = "allow"; }
       { action = "skill"; resource = "ddd-review"; effect = "allow"; }
       { action = "skill"; resource = "context7-mcp"; effect = "allow"; }
+      { action = "skill"; resource = "codegraph"; effect = "allow"; }
       { action = "subagent"; resource = "*"; effect = "deny"; }
       { action = "question"; resource = "*"; effect = "deny"; }
       { action = "shell"; resource = "*"; effect = "deny"; }
@@ -519,6 +520,7 @@ let
       { action = "skill"; resource = "*"; effect = "ask"; }
       { action = "skill"; resource = "asd-ste-100"; effect = "allow"; }
       { action = "skill"; resource = "context7-mcp"; effect = "allow"; }
+      { action = "skill"; resource = "codegraph"; effect = "allow"; }
       { action = "subagent"; resource = "*"; effect = "deny"; }
       { action = "question"; resource = "*"; effect = "deny"; }
       { action = "shell"; resource = "*"; effect = "ask"; }
@@ -1322,6 +1324,7 @@ let
         enabled = false;
       };
       context7 = { };
+      codegraph = { };
     };
   };
   mcpV2Merged = harnessLib.mergeAgents {
@@ -1416,6 +1419,21 @@ let
         && !(mcpV2Doc.mcp.servers.context7 ? env)
         && !(mcpV2Doc.mcp.servers.context7 ? enabled);
       message = "mcp-servers-context7: the rendered `context7` entry misses the canonical joined command array, `type = \"local\"`, the empty `environment` map, or `disabled = true`";
+    }
+    {
+      name = "mcp-servers-codegraph";
+      assertion =
+        mcpV2Doc.mcp.servers.codegraph.command == [
+          "codegraph"
+          "serve"
+          "--mcp"
+        ]
+        && mcpV2Doc.mcp.servers.codegraph.type == "local"
+        && mcpV2Doc.mcp.servers.codegraph.environment == { }
+        && mcpV2Doc.mcp.servers.codegraph.disabled == true
+        && !(mcpV2Doc.mcp.servers.codegraph ? env)
+        && !(mcpV2Doc.mcp.servers.codegraph ? enabled);
+      message = "mcp-servers-codegraph: the rendered `codegraph` entry misses the canonical joined command array, `type = \"local\"`, the empty `environment` map, or `disabled = true`";
     }
     {
       name = "mcp-no-remote";
@@ -1513,6 +1531,7 @@ let
     ".agents/skills/artifact-master/SKILL.md"
     ".agents/skills/asd-ste-100/SKILL.md"
     ".agents/skills/context7-mcp/SKILL.md"
+    ".agents/skills/codegraph/SKILL.md"
     ".agents/skills/coverage-audit/SKILL.md"
     ".agents/skills/expert-role/SKILL.md"
     ".opencode/commands/contract-review.md"
@@ -1673,8 +1692,11 @@ let
   capabilityGrantOk =
     capabilityHasAllow "solution-expert" "figma" "context7-mcp"
     && capabilityHasAllow "factory-expert" "figma" "context7-mcp"
+    && capabilityHasAllow "solution-expert" "figma" "codegraph"
+    && capabilityHasAllow "factory-expert" "figma" "codegraph"
     && capabilityHasAllow "designer-expert" "figma" "figma"
     && !(capabilityHasAllow "designer-expert" "figma" "pencil")
+    && !(capabilityHasAllow "designer-expert" "figma" "codegraph")
     && !(capabilityHasAllow "designer-expert" "figma" "context7-mcp");
   capabilityLegacyUnset =
     capabilityHasAllow "requirement-expert" "unset" "asd-ste-100"
@@ -3069,8 +3091,13 @@ let
     }
     {
       name = "preset-full-mcp";
-      assertion = presetFullEff.agents.mcp == { context7 = { }; };
-      message = "preset-full-mcp: the `full` bundle does not declare `agents.mcp = { context7 = { }; }`";
+      assertion = presetFullEff.agents.mcp == { context7 = { }; codegraph = { }; };
+      message = "preset-full-mcp: the `full` bundle does not declare `agents.mcp = { context7 = { }; codegraph = { }; }`";
+    }
+    {
+      name = "preset-full-codegraph";
+      assertion = presetFullMerged.mcp.codegraph.enabled == false;
+      message = "preset-full-codegraph: the `full` fixture misses the canonical `codegraph` entry with the default `enabled = false`";
     }
     {
       name = "preset-full-context7";

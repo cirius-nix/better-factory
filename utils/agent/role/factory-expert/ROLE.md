@@ -22,7 +22,9 @@ and `websearch`.
 
 - skill: asd-ste-100 (shipped)
 - skill: context7-mcp (shipped)
+- skill: codegraph (shipped)
 - mcp: context7 (shipped)
+- mcp: codegraph (shipped)
 - reference: opencode-v2 (shipped)
 - model: factory-expert (repo-local)
 

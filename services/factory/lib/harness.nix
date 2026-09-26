@@ -582,6 +582,13 @@ let
           asset = ../assets/skills/context7-mcp/SKILL.md;
         }
         {
+          kind = "skill";
+          name = "codegraph";
+          home = "shipped";
+          when = "always";
+          asset = ../assets/skills/codegraph/SKILL.md;
+        }
+        {
           kind = "command";
           name = "interview";
           home = "shipped";
@@ -601,6 +608,13 @@ let
           home = "shipped";
           when = "always";
           instruction = "context7-mcp";
+        }
+        {
+          kind = "mcp";
+          name = "codegraph";
+          home = "shipped";
+          when = "always";
+          instruction = "codegraph";
         }
         {
           kind = "reference";
@@ -720,11 +734,25 @@ let
           asset = ../assets/skills/context7-mcp/SKILL.md;
         }
         {
+          kind = "skill";
+          name = "codegraph";
+          home = "shipped";
+          when = "always";
+          asset = ../assets/skills/codegraph/SKILL.md;
+        }
+        {
           kind = "mcp";
           name = "context7";
           home = "shipped";
           when = "always";
           instruction = "context7-mcp";
+        }
+        {
+          kind = "mcp";
+          name = "codegraph";
+          home = "shipped";
+          when = "always";
+          instruction = "codegraph";
         }
         {
           kind = "reference";
@@ -1213,6 +1241,14 @@ let
       args = [
         "-y"
         "@upstash/context7-mcp"
+      ];
+      env = { };
+    };
+    codegraph = {
+      command = "codegraph";
+      args = [
+        "serve"
+        "--mcp"
       ];
       env = { };
     };

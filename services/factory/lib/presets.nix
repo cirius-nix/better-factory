@@ -64,6 +64,7 @@ let
       ];
       "agents.mcp" = {
         context7 = { };
+        codegraph = { };
       };
       "agents.roles" = { };
       "agents.opencode" = { };

@@ -25,9 +25,11 @@ and `websearch`.
 - skill: asd-ste-100 (shipped)
 - skill: ddd-review (shipped)
 - skill: context7-mcp (shipped)
+- skill: codegraph (shipped)
 - command: interview (shipped)
 - command: contract-review (shipped)
 - mcp: context7 (shipped)
+- mcp: codegraph (shipped)
 - reference: opencode-v2 (shipped)
 - model: solution-expert (repo-local)
 

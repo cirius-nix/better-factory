@@ -72,7 +72,10 @@ role. The kind `plugin` is not live and no role uses it. A role that uses a tool
 instruction skill of the tool. The `context7` server serves the solution expert and the factory
 expert. The design tools `figma` and `pencil` serve the designer expert. The entry `context7`
 gives the solution expert external curated documentation. The entry stays disabled until the
-author enables it.
+author enables it. The `codegraph` server serves the solution expert and the factory expert. The
+two roles grant the instruction skill `codegraph`. The entry `codegraph` gives external code
+intelligence: the symbols, the calls, and the dependencies of the code. The entry stays disabled
+until the author enables it.
 
 ## Phase routing
 
