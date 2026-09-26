@@ -8,6 +8,7 @@ let
     ./modules/design.nix
     ./modules/delivery.nix
     ./modules/coverage.nix
+    ./modules/artifact-cleanup.nix
   ];
   isAssetOrExample =
     m:

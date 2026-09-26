@@ -23,6 +23,7 @@ let
   design = import ./design.nix;
   delivery = import ./delivery.nix;
   coverage = import ./coverage.nix;
+  artifactCleanup = import ./artifact-cleanup.nix;
 
   # Argument validation (spec-consumer-entry, error contract).
   projectChecked =
@@ -193,6 +194,11 @@ let
   # source is a `builtins.toFile` render of the run.
   coverageScript = coverage.scriptFiles;
 
+  # The artifact cleanup script (spec-cleanup-bundle, C-FAC-01-04, C-FAC-01-10).
+  # The script is not a capability kind. It joins the plan as a managed extra
+  # file whose source is a `builtins.toFile` render of the run.
+  artifactCleanupScript = artifactCleanup;
+
   # The base plan without the surface declaration. The render order is: the
   # file plan first, the declaration second, the entry third (C-FCA-01-03).
   # The function `planForArch` reads no output of the declaration.
@@ -202,6 +208,7 @@ let
     documentationSource
   ]
   ++ coverageScript.renderedSources
+  ++ artifactCleanupScript.renderedSources
   ++ harnessRender.renderedSources
   ++ roleRender.renderedSources
   ++ designOut.renderedSources
@@ -226,6 +233,7 @@ let
     }
   ]
   ++ coverageScript.extraFiles
+  ++ artifactCleanupScript.extraFiles
   ++ harnessRender.fileDecls
   ++ roleRender.fileDecls
   ++ designOut.extraFiles

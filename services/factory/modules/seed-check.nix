@@ -24,6 +24,7 @@ let
   design = import ./design.nix;
   delivery = import ./delivery.nix;
   coverage = import ./coverage.nix;
+  artifactCleanup = import ./artifact-cleanup.nix;
 
   facadeSrc =
     if arch == "single" then
@@ -491,7 +492,13 @@ let
       { action = "edit"; resource = "*"; effect = "deny"; }
       { action = "edit"; resource = "docs/artifact/*/versions/*"; effect = "allow"; }
       { action = "edit"; resource = "docs/artifact/*/README.md"; effect = "allow"; }
-      { action = "edit"; resource = "docs/artifact/*/changes/*"; effect = "deny"; }
+      { action = "edit"; resource = "docs/artifact/*/changes/change-*"; effect = "allow"; }
+      { action = "edit"; resource = "docs/artifact/*/changes/*/README.md"; effect = "deny"; }
+      { action = "edit"; resource = "docs/artifact/*/changes/*/requirements/*"; effect = "deny"; }
+      { action = "edit"; resource = "docs/artifact/*/changes/*/specifications/*"; effect = "deny"; }
+      { action = "edit"; resource = "docs/artifact/*/changes/*/decisions/*"; effect = "deny"; }
+      { action = "edit"; resource = "docs/artifact/*/changes/*/tasks/*"; effect = "deny"; }
+      { action = "edit"; resource = "docs/artifact/*/changes/*/design/*"; effect = "deny"; }
       { action = "read"; resource = "*"; effect = "allow"; }
       { action = "glob"; resource = "*"; effect = "allow"; }
       { action = "grep"; resource = "*"; effect = "allow"; }
@@ -499,12 +506,15 @@ let
       { action = "websearch"; resource = "*"; effect = "allow"; }
       { action = "skill"; resource = "*"; effect = "ask"; }
       { action = "skill"; resource = "asd-ste-100"; effect = "allow"; }
+      { action = "skill"; resource = "artifact-cleanup"; effect = "allow"; }
       { action = "subagent"; resource = "*"; effect = "deny"; }
       { action = "question"; resource = "*"; effect = "deny"; }
       { action = "shell"; resource = "*"; effect = "deny"; }
       { action = "shell"; resource = "cp *"; effect = "allow"; }
       { action = "shell"; resource = "mkdir -p *"; effect = "allow"; }
-      { action = "shell"; resource = "rm docs/artifact/*"; effect = "allow"; }
+      { action = "shell"; resource = "rm -rf docs/artifact/*/versions/*"; effect = "allow"; }
+      { action = "shell"; resource = "rm -rf docs/artifact/*/changes/change-*"; effect = "allow"; }
+      { action = "shell"; resource = "sh .opencode/scripts/artifact-cleanup.sh *"; effect = "allow"; }
     ];
     factory-expert = [
       { action = "edit"; resource = "*"; effect = "deny"; }
@@ -789,7 +799,13 @@ let
     artifact-release-expert = [
       "docs/artifact/*/versions/*"
       "docs/artifact/*/README.md"
-      "docs/artifact/*/changes/*"
+      "docs/artifact/*/changes/change-*"
+      "docs/artifact/*/changes/*/README.md"
+      "docs/artifact/*/changes/*/requirements/*"
+      "docs/artifact/*/changes/*/specifications/*"
+      "docs/artifact/*/changes/*/decisions/*"
+      "docs/artifact/*/changes/*/tasks/*"
+      "docs/artifact/*/changes/*/design/*"
     ];
     designer-expert = [ "docs/artifact/*/changes/*/design/*" ];
     repository-expert = [
@@ -1463,6 +1479,12 @@ let
   # run (C-CA25, C-FCA-07-03). The script is not a capability kind.
   coverageScript = coverage.scriptFiles;
 
+  # The artifact cleanup script joins the plan as a managed extra file whose
+  # source is a `builtins.toFile` render in the rendered-source list of the
+  # run (spec-cleanup-bundle, C-FAC-01-04, C-FAC-01-10). The script is not a
+  # capability kind.
+  artifactCleanupScript = artifactCleanup;
+
   # The base plan without the surface declaration. The render order is: the
   # file plan first, the declaration second, the entry third (C-FCA-01-03).
   baseRenderedSources = [
@@ -1470,6 +1492,7 @@ let
     documentationSource
   ]
   ++ coverageScript.renderedSources
+  ++ artifactCleanupScript.renderedSources
   ++ designOut.renderedSources
   ++ skillOut.renderedSources
   ++ deliveryOut.renderedSources
@@ -1487,6 +1510,7 @@ let
     }
   ]
   ++ coverageScript.extraFiles
+  ++ artifactCleanupScript.extraFiles
   ++ designOut.extraFiles
   ++ skillOut.extraFiles
   ++ deliveryOut.extraFiles
@@ -1528,12 +1552,14 @@ let
     tool = design.toolFeed settings;
   };
   capabilityExpectedRels = [
+    ".agents/skills/artifact-cleanup/SKILL.md"
     ".agents/skills/artifact-master/SKILL.md"
     ".agents/skills/asd-ste-100/SKILL.md"
     ".agents/skills/context7-mcp/SKILL.md"
     ".agents/skills/codegraph/SKILL.md"
     ".agents/skills/coverage-audit/SKILL.md"
     ".agents/skills/expert-role/SKILL.md"
+    ".opencode/commands/artifact-cleanup.md"
     ".opencode/commands/contract-review.md"
     ".opencode/commands/coverage-audit.md"
     ".opencode/commands/interview.md"
@@ -1989,6 +2015,130 @@ let
       true
     else
       throw "seed check: the coverage bundle fixture of `${arch}` fails ${(builtins.head bundleFailing).message}";
+
+  # Artifact cleanup bundle fixture (spec-cleanup-bundle, "The seed check and
+  # the proof" 1 to 3; C-FAC-01-04, C-FAC-01-10). The fixture proves the three
+  # emitted paths of the cleanup bundle, the script render in the rendered
+  # source list, the two capability sources, the two grants, the command
+  # frontmatter and body, the instruction skill sections, and the release-role
+  # body capability lines. Each proof is an eval-time `assert`, so the result
+  # file stays exactly five lines.
+  cleanupCapabilityRels = [
+    ".agents/skills/artifact-cleanup/SKILL.md"
+    ".opencode/commands/artifact-cleanup.md"
+  ];
+  cleanupScriptRel = ".opencode/scripts/artifact-cleanup.sh";
+  cleanupRels = cleanupCapabilityRels ++ [ cleanupScriptRel ];
+  cleanupCommandAsset = factoryDir + "/assets/commands/artifact-cleanup.md";
+  cleanupSkillAsset = factoryDir + "/assets/skills/artifact-cleanup/SKILL.md";
+  cleanupCommandText = builtins.readFile cleanupCommandAsset;
+  cleanupSkillText = builtins.readFile cleanupSkillAsset;
+  cleanupAgent = "artifact-release-expert";
+  cleanupSkillRule = {
+    action = "skill";
+    resource = "artifact-cleanup";
+    effect = "allow";
+  };
+  cleanupShellRule = {
+    action = "shell";
+    resource = "sh .opencode/scripts/artifact-cleanup.sh *";
+    effect = "allow";
+  };
+  cleanupPermissions = permDoc.agents.${cleanupAgent}.permissions;
+  cleanupExtraFiles = baseExtraFiles ++ declarationOut.extraFiles;
+  cleanupAssertions = [
+    {
+      name = "cleanup-plan-files";
+      assertion = builtins.all (rel: builtins.hasAttr rel plan.files) cleanupRels;
+      message = "cleanup-plan-files: the plan misses a cleanup bundle path";
+    }
+    {
+      name = "cleanup-plan-mode";
+      assertion = builtins.all (rel: plan.files.${rel}.copyMode == "managed") cleanupRels;
+      message = "cleanup-plan-mode: a cleanup bundle file holds a copy mode other than managed";
+    }
+    {
+      name = "cleanup-plan-once";
+      assertion = builtins.all (
+        rel: builtins.length (builtins.filter (e: e.rel == rel) cleanupExtraFiles) == 1
+      ) cleanupRels;
+      message = "cleanup-plan-once: the plan holds a cleanup bundle path more than one time";
+    }
+    {
+      name = "cleanup-script-source";
+      assertion =
+        builtins.hasAttr cleanupScriptRel plan.files
+        && plan.files.${cleanupScriptRel}.source == artifactCleanup.scriptSource
+        && builtins.elem (toString artifactCleanup.scriptSource) (
+          builtins.map toString baseRenderedSources
+        );
+      message = "cleanup-script-source: the cleanup script source is not the `builtins.toFile` render of the module";
+    }
+    {
+      name = "cleanup-capability-sources";
+      assertion = builtins.all (
+        rel:
+        builtins.hasAttr rel plan.files
+        && builtins.elem (toString plan.files.${rel}.source) (
+          builtins.map toString capabilityOut.renderedSources
+        )
+      ) cleanupCapabilityRels;
+      message = "cleanup-capability-sources: a cleanup capability source is not a rendered path of the capability render";
+    }
+    {
+      name = "cleanup-grant-skill";
+      assertion = builtins.elem cleanupSkillRule cleanupPermissions;
+      message = "cleanup-grant-skill: the rendered permission array of the release agent misses the `skill` allow rule `artifact-cleanup`";
+    }
+    {
+      name = "cleanup-grant-shell";
+      assertion = builtins.elem cleanupShellRule cleanupPermissions;
+      message = "cleanup-grant-shell: the rendered permission array of the release agent misses the shell allow rule of the cleanup script";
+    }
+    {
+      name = "cleanup-command-agent";
+      assertion =
+        builtins.elem cleanupAgent (builtins.attrNames permDoc.agents)
+        && contains cleanupCommandText "agent: artifact-release-expert";
+      message = "cleanup-command-agent: the command frontmatter does not hold `agent: artifact-release-expert`";
+    }
+    {
+      name = "cleanup-command-exact";
+      assertion =
+        contains cleanupCommandText "sh .opencode/scripts/artifact-cleanup.sh versions"
+        && contains cleanupCommandText "sh .opencode/scripts/artifact-cleanup.sh changes"
+        && contains cleanupCommandText "sh .opencode/scripts/artifact-cleanup.sh --apply versions"
+        && contains cleanupCommandText "sh .opencode/scripts/artifact-cleanup.sh --apply changes";
+      message = "cleanup-command-exact: the command body misses one of the exact cleanup strings";
+    }
+    {
+      name = "cleanup-skill-sections";
+      assertion =
+        contains cleanupSkillText "## When to use"
+        && contains cleanupSkillText "## When not to use"
+        && contains cleanupSkillText "## How to call";
+      message = "cleanup-skill-sections: the instruction skill misses one of the three sections";
+    }
+    {
+      name = "cleanup-skill-no-permission";
+      assertion = !(contains cleanupSkillText "permissions");
+      message = "cleanup-skill-no-permission: the instruction skill holds a permission list";
+    }
+    {
+      name = "cleanup-body-capability";
+      assertion =
+        builtins.elem cleanupAgent bodyRoleNames
+        && bodyMatches cleanupAgent (bodyOf cleanupAgent)
+        && bodyExtraBullets (bodyOf cleanupAgent) == [ ];
+      message = "cleanup-body-capability: the `## Capability` axis of the release body differs from the role-contract table";
+    }
+  ];
+  cleanupFailing = builtins.filter (a: !a.assertion) cleanupAssertions;
+  cleanupMatch =
+    if cleanupFailing == [ ] then
+      true
+    else
+      throw "seed check: the cleanup bundle fixture of `${arch}` fails ${(builtins.head cleanupFailing).message}";
 
   # The design files and the skill file join the one transaction that
   # holds the base files, the overlay files, the role files, the MCP
@@ -3281,6 +3431,7 @@ assert uxMatch;
 assert mcpV2Match;
 assert capabilityMatch;
 assert bundleMatch;
+assert cleanupMatch;
 assert planPathMatch;
 assert logFixturePermissions;
 assert evalAssertions;

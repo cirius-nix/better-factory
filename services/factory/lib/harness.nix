@@ -649,7 +649,31 @@ let
           effect = "allow";
         }
         {
-          resource = "docs/artifact/*/changes/*";
+          resource = "docs/artifact/*/changes/change-*";
+          effect = "allow";
+        }
+        {
+          resource = "docs/artifact/*/changes/*/README.md";
+          effect = "deny";
+        }
+        {
+          resource = "docs/artifact/*/changes/*/requirements/*";
+          effect = "deny";
+        }
+        {
+          resource = "docs/artifact/*/changes/*/specifications/*";
+          effect = "deny";
+        }
+        {
+          resource = "docs/artifact/*/changes/*/decisions/*";
+          effect = "deny";
+        }
+        {
+          resource = "docs/artifact/*/changes/*/tasks/*";
+          effect = "deny";
+        }
+        {
+          resource = "docs/artifact/*/changes/*/design/*";
           effect = "deny";
         }
       ];
@@ -663,11 +687,25 @@ let
           asset = ../assets/skills/asd-ste-100/SKILL.md;
         }
         {
+          kind = "skill";
+          name = "artifact-cleanup";
+          home = "shipped";
+          when = "always";
+          asset = ../assets/skills/artifact-cleanup/SKILL.md;
+        }
+        {
           kind = "command";
           name = "release";
           home = "shipped";
           when = "always";
           asset = ../assets/commands/release.md;
+        }
+        {
+          kind = "command";
+          name = "artifact-cleanup";
+          home = "shipped";
+          when = "always";
+          asset = ../assets/commands/artifact-cleanup.md;
         }
         {
           kind = "model";
@@ -692,7 +730,15 @@ let
             effect = "allow";
           }
           {
-            resource = "rm docs/artifact/*";
+            resource = "rm -rf docs/artifact/*/versions/*";
+            effect = "allow";
+          }
+          {
+            resource = "rm -rf docs/artifact/*/changes/change-*";
+            effect = "allow";
+          }
+          {
+            resource = "sh .opencode/scripts/artifact-cleanup.sh *";
             effect = "allow";
           }
         ];
