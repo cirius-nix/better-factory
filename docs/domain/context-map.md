@@ -29,5 +29,10 @@ context. The factory follows the published protocol of the server. The factory r
 declares the canonical `context7` entry in its own one MCP source, and the preset `full`
 declares the entry for a generated project.
 
+The codegraph MCP server is an external supplier of code intelligence. It is not a bounded
+context. The factory follows the published protocol of the server. The factory declares the
+canonical `codegraph` entry in the one MCP source, and the preset `full` declares the entry for a
+generated project.
+
 | Upstream | Downstream | Contract | Shared code |
 | --- | --- | --- | --- |

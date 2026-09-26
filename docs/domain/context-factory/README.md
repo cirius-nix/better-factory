@@ -16,7 +16,8 @@ role over seven option kinds, and the home of each capability: shipped to every 
 or repo-local to the factory source repository. It decides the interaction points of the
 requirement expert and the solution expert with the human. It decides the contract-first rule for
 each specification. It decides the surface declaration of a project, the write coverage, the owner
-of each surface path, and the coverage scan.
+of each surface path, and the coverage scan. It decides the external code intelligence of the
+roles `solution-expert` and `factory-expert` through the codegraph MCP server.
 
 It also fixes the delivery path with one docs site, one CI choice, one
 notifier, one publish target, and named presets.
@@ -51,6 +52,7 @@ notifier, one publish target, and named presets.
 | default permission set | The permission rules that the factory renders for a role from its ownership and its capability. |
 | role contract | The two-axis statement of one role: its ownership and its capability. |
 | external curated knowledge | The documentation that an MCP server supplies to a role on request. |
+| external code intelligence | The structure of the code (the symbols, the calls, and the dependencies) that the codegraph MCP server supplies to a role on request. |
 | governance rule | A rule that fixes who starts a subagent, who asks the user, and who pushes. |
 | chapter append | A file that the factory appends after the role source when its design option is active. |
 | phase protocol | The rule that each change runs Plan-Pn then Build-Pn with one phase in one commit. |
@@ -145,6 +147,7 @@ notifier, one publish target, and named presets.
 - The last matching permission rule wins, so the broad rule comes before the specific rule.
 - The repository declares external curated knowledge in the one MCP source under `agents.mcp`.
 - The factory declares the Context7 MCP server once in the one MCP source, and the preset full declares the entry for a generated project.
+- The factory declares the codegraph MCP server once in the one MCP source, and the roles `solution-expert` and `factory-expert` reach external code intelligence through it.
 - The factory expert owns the role-contract surface: the factory component, the mixture-of-experts page, the expert-role skill, and its own role body.
 - Each version is a copy that passes a readiness gate before release.
 - The project uses one design method selected with design.use.

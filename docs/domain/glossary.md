@@ -35,6 +35,7 @@ write two rows.
 | role-contract surface | context-factory | The factory component, the mixture-of-experts page, the `expert-role` skill, and the `factory-expert` role body. | - |
 | role contract | context-factory | The two-axis statement of one role: its ownership and its capability. | - |
 | external curated knowledge | context-factory | The documentation that an MCP server supplies to a role on request. | - |
+| external code intelligence | context-factory | The structure of the code (the symbols, the calls, and the dependencies) that the codegraph MCP server supplies to a role on request. | - |
 | governance rule | context-factory | A rule that fixes who starts a subagent, who asks the user, and who pushes. | - |
 | chapter append | context-factory | A file that the factory appends after the role source when its design option is active. | - |
 | phase protocol | context-factory | The rule that each change runs Plan-Pn then Build-Pn with one phase in one commit. | - |
