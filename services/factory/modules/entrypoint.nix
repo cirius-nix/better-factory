@@ -22,6 +22,7 @@ let
   rolesLib = import ../lib/roles.nix;
   design = import ./design.nix;
   delivery = import ./delivery.nix;
+  coverage = import ./coverage.nix;
 
   # Argument validation (spec-consumer-entry, error contract).
   projectChecked =
@@ -187,44 +188,72 @@ let
     }
   );
 
+  # The coverage scan script (spec-coverage-bundle, C-FCA-05-02). The script is
+  # not a capability kind. It joins the plan as a managed extra file whose
+  # source is a `builtins.toFile` render of the run.
+  coverageScript = coverage.scriptFiles;
+
+  # The base plan without the surface declaration. The render order is: the
+  # file plan first, the declaration second, the entry third (C-FCA-01-03).
+  # The function `planForArch` reads no output of the declaration.
+  baseRenderedSources = [
+    declarationSrc
+    configYaml
+    documentationSource
+  ]
+  ++ coverageScript.renderedSources
+  ++ harnessRender.renderedSources
+  ++ roleRender.renderedSources
+  ++ designOut.renderedSources
+  ++ skillOut.renderedSources
+  ++ deliveryOut.renderedSources
+  ++ capabilityOut.renderedSources;
+  baseExtraFiles = [
+    {
+      rel = "factory.nix";
+      source = declarationSrc;
+      copyMode = "seed";
+    }
+    {
+      rel = "factory.config.yaml";
+      source = configYaml;
+      copyMode = "template";
+    }
+    {
+      rel = "docs/wiki/documentation/artifact-driven/README.md";
+      source = documentationSource;
+      copyMode = "managed";
+    }
+  ]
+  ++ coverageScript.extraFiles
+  ++ harnessRender.fileDecls
+  ++ roleRender.fileDecls
+  ++ designOut.extraFiles
+  ++ skillOut.extraFiles
+  ++ deliveryOut.extraFiles
+  ++ capabilityOut.fileDecls;
+  basePlan = filePlan.planForArch {
+    arch = settings.arch;
+    inherit factoryDir;
+    modes = filePlan.foundationModes;
+    renderedSources = baseRenderedSources;
+    extraFiles = baseExtraFiles;
+  };
+
+  # Surface declaration (spec-coverage-surface, C-FCA-01-02): the render
+  # computes the declaration of a generated project from the standard table
+  # `lib/surface.nix` and the effective file plan. The entry joins the plan
+  # as a `managed` extra file whose source is a `builtins.toFile` render in
+  # the rendered-source list of the run. The plan holds the path
+  # `surface.tsv` once.
+  declarationOut = coverage.surfaceDeclaration basePlan;
+
   plan = filePlan.planForArch {
     arch = settings.arch;
     inherit factoryDir;
     modes = filePlan.foundationModes;
-    renderedSources = [
-      declarationSrc
-      configYaml
-      documentationSource
-    ]
-    ++ harnessRender.renderedSources
-    ++ roleRender.renderedSources
-    ++ designOut.renderedSources
-    ++ skillOut.renderedSources
-    ++ deliveryOut.renderedSources
-    ++ capabilityOut.renderedSources;
-    extraFiles = [
-      {
-        rel = "factory.nix";
-        source = declarationSrc;
-        copyMode = "seed";
-      }
-      {
-        rel = "factory.config.yaml";
-        source = configYaml;
-        copyMode = "template";
-      }
-      {
-        rel = "docs/wiki/documentation/artifact-driven/README.md";
-        source = documentationSource;
-        copyMode = "managed";
-      }
-    ]
-    ++ harnessRender.fileDecls
-    ++ roleRender.fileDecls
-    ++ designOut.extraFiles
-    ++ skillOut.extraFiles
-    ++ deliveryOut.extraFiles
-    ++ capabilityOut.fileDecls;
+    renderedSources = baseRenderedSources ++ declarationOut.renderedSources;
+    extraFiles = baseExtraFiles ++ declarationOut.extraFiles;
   };
 
   files = plan.files;

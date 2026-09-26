@@ -379,6 +379,13 @@ let
           asset = ../assets/skills/expert-role/SKILL.md;
         }
         {
+          kind = "skill";
+          name = "coverage-audit";
+          home = "shipped";
+          when = "always";
+          asset = ../assets/skills/coverage-audit/SKILL.md;
+        }
+        {
           kind = "command";
           name = "plan-pn";
           home = "shipped";
@@ -391,6 +398,13 @@ let
           home = "shipped";
           when = "always";
           asset = ../assets/commands/interview.md;
+        }
+        {
+          kind = "command";
+          name = "coverage-audit";
+          home = "shipped";
+          when = "always";
+          asset = ../assets/commands/coverage-audit.md;
         }
         {
           kind = "reference";
@@ -457,6 +471,10 @@ let
           {
             resource = "git push *";
             effect = "deny";
+          }
+          {
+            resource = "sh .opencode/scripts/coverage-audit.sh *";
+            effect = "allow";
           }
         ];
       };
@@ -819,6 +837,113 @@ let
         specific = [ ];
       };
     };
+    repository-expert = {
+      ownership = [
+        {
+          resource = "README.md";
+          effect = "allow";
+        }
+        {
+          resource = "factory.nix";
+          effect = "allow";
+        }
+        {
+          resource = ".gitignore";
+          effect = "allow";
+        }
+        {
+          resource = "AGENTS.md";
+          effect = "allow";
+        }
+        {
+          resource = "devenv.nix";
+          effect = "allow";
+        }
+        {
+          resource = "flake.nix";
+          effect = "allow";
+        }
+        {
+          resource = ".agents/skills/*";
+          effect = "allow";
+        }
+        {
+          resource = ".opencode/commands/*";
+          effect = "allow";
+        }
+        {
+          resource = ".opencode/agents/*";
+          effect = "allow";
+        }
+        {
+          resource = "docs/wiki/documentation/artifact-driven/templates/*";
+          effect = "allow";
+        }
+        {
+          resource = "surface.tsv";
+          effect = "allow";
+        }
+        {
+          resource = "factory.config.yaml";
+          effect = "allow";
+        }
+        {
+          resource = ".opencode/opencode.jsonc";
+          effect = "allow";
+        }
+        {
+          resource = ".opencode/scripts/*";
+          effect = "allow";
+        }
+      ];
+      research = "allow";
+      capabilities = validateCapabilities "repository-expert" [
+        {
+          kind = "skill";
+          name = "asd-ste-100";
+          home = "shipped";
+          when = "always";
+          asset = ../assets/skills/asd-ste-100/SKILL.md;
+        }
+      ];
+      governance = {
+        subagent = "deny";
+        question = "deny";
+      };
+      shell = {
+        broad = "ask";
+        specific = [
+          {
+            resource = "nix flake check *";
+            effect = "allow";
+          }
+          {
+            resource = "nix build *";
+            effect = "allow";
+          }
+          {
+            resource = "nix eval *";
+            effect = "allow";
+          }
+          {
+            resource = "git status *";
+            effect = "allow";
+          }
+          {
+            resource = "git diff *";
+            effect = "allow";
+          }
+          {
+            resource = "git log *";
+            effect = "allow";
+          }
+          {
+            resource = "git show *";
+            effect = "allow";
+          }
+        ];
+      };
+    };
   };
 
   # The restrictive default of a rendered role name outside the table
@@ -858,19 +983,20 @@ let
     let
       c =
         if builtins.hasAttr roleName roleContracts then roleContracts.${roleName} else defaultRoleContract;
-      bundleInstructions = builtins.map (cap: cap.instruction) (
-        builtins.filter (cap: cap.kind == "mcp") c.capabilities
-      );
       skillActive =
         cap:
         let
           when = cap.when or "always";
         in
         when == "always" || (when == "design-tool" && cap.name == tool);
+      # The allow rule of one `skill` capability (spec-role-permissions). The
+      # legacy chain maps unconditionally. Every other active skill capability
+      # adds its rule, so a standalone instruction skill grants its load
+      # (spec-coverage-bundle C-CA23, C-FCA-06-02).
       skillAllowed =
         cap:
         builtins.elem cap.name legacySkillChain
-        || (builtins.elem cap.name bundleInstructions && skillActive cap);
+        || skillActive cap;
       skillAllows = builtins.filter (cap: cap.kind == "skill" && skillAllowed cap) c.capabilities;
     in
     [ { action = "edit"; resource = "*"; effect = "deny"; } ]

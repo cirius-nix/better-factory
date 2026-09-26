@@ -7,6 +7,7 @@ let
     ./modules/orchestration.nix
     ./modules/design.nix
     ./modules/delivery.nix
+    ./modules/coverage.nix
   ];
   isAssetOrExample =
     m:

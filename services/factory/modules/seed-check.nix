@@ -23,6 +23,7 @@ let
   rolesLib = import ../lib/roles.nix;
   design = import ./design.nix;
   delivery = import ./delivery.nix;
+  coverage = import ./coverage.nix;
 
   facadeSrc =
     if arch == "single" then
@@ -368,7 +369,7 @@ let
       throw "seed check: the tool fixture of `${arch}` fails ${(builtins.head toolFailing).message}";
 
   # Permission fixture (spec-role-permissions, RC01-C1 to RC01-C6). The
-  # fixture renders the six known role names and one unknown role name. It
+  # fixture renders the seven known role names and one unknown role name. It
   # compares each rendered array with one independent expected fixture
   # (RC01-C5). The expected fixtures are literal and do not come from the
   # role-contract table. The fixture also proves the broad-before-specific
@@ -432,6 +433,7 @@ let
       { action = "skill"; resource = "*"; effect = "ask"; }
       { action = "skill"; resource = "artifact-master"; effect = "allow"; }
       { action = "skill"; resource = "expert-role"; effect = "allow"; }
+      { action = "skill"; resource = "coverage-audit"; effect = "allow"; }
       { action = "subagent"; resource = "*"; effect = "allow"; }
       { action = "question"; resource = "*"; effect = "allow"; }
       { action = "shell"; resource = "*"; effect = "ask"; }
@@ -445,6 +447,7 @@ let
       { action = "shell"; resource = "git branch *"; effect = "allow"; }
       { action = "shell"; resource = "git checkout -b *"; effect = "allow"; }
       { action = "shell"; resource = "git push *"; effect = "deny"; }
+      { action = "shell"; resource = "sh .opencode/scripts/coverage-audit.sh *"; effect = "allow"; }
     ];
     requirement-expert = [
       { action = "edit"; resource = "*"; effect = "deny"; }
@@ -527,6 +530,40 @@ let
       { action = "shell"; resource = "git log *"; effect = "allow"; }
       { action = "shell"; resource = "git show *"; effect = "allow"; }
     ];
+    repository-expert = [
+      { action = "edit"; resource = "*"; effect = "deny"; }
+      { action = "edit"; resource = "README.md"; effect = "allow"; }
+      { action = "edit"; resource = "factory.nix"; effect = "allow"; }
+      { action = "edit"; resource = ".gitignore"; effect = "allow"; }
+      { action = "edit"; resource = "AGENTS.md"; effect = "allow"; }
+      { action = "edit"; resource = "devenv.nix"; effect = "allow"; }
+      { action = "edit"; resource = "flake.nix"; effect = "allow"; }
+      { action = "edit"; resource = ".agents/skills/*"; effect = "allow"; }
+      { action = "edit"; resource = ".opencode/commands/*"; effect = "allow"; }
+      { action = "edit"; resource = ".opencode/agents/*"; effect = "allow"; }
+      { action = "edit"; resource = "docs/wiki/documentation/artifact-driven/templates/*"; effect = "allow"; }
+      { action = "edit"; resource = "surface.tsv"; effect = "allow"; }
+      { action = "edit"; resource = "factory.config.yaml"; effect = "allow"; }
+      { action = "edit"; resource = ".opencode/opencode.jsonc"; effect = "allow"; }
+      { action = "edit"; resource = ".opencode/scripts/*"; effect = "allow"; }
+      { action = "read"; resource = "*"; effect = "allow"; }
+      { action = "glob"; resource = "*"; effect = "allow"; }
+      { action = "grep"; resource = "*"; effect = "allow"; }
+      { action = "webfetch"; resource = "*"; effect = "allow"; }
+      { action = "websearch"; resource = "*"; effect = "allow"; }
+      { action = "skill"; resource = "*"; effect = "ask"; }
+      { action = "skill"; resource = "asd-ste-100"; effect = "allow"; }
+      { action = "subagent"; resource = "*"; effect = "deny"; }
+      { action = "question"; resource = "*"; effect = "deny"; }
+      { action = "shell"; resource = "*"; effect = "ask"; }
+      { action = "shell"; resource = "nix flake check *"; effect = "allow"; }
+      { action = "shell"; resource = "nix build *"; effect = "allow"; }
+      { action = "shell"; resource = "nix eval *"; effect = "allow"; }
+      { action = "shell"; resource = "git status *"; effect = "allow"; }
+      { action = "shell"; resource = "git diff *"; effect = "allow"; }
+      { action = "shell"; resource = "git log *"; effect = "allow"; }
+      { action = "shell"; resource = "git show *"; effect = "allow"; }
+    ];
     designer-expert = permDesignerFig;
     unknown-role = [
       { action = "edit"; resource = "*"; effect = "deny"; }
@@ -548,6 +585,7 @@ let
     "artifact-release-expert"
     "factory-expert"
     "designer-expert"
+    "repository-expert"
     "unknown-role"
   ];
   permDeclaredNames = builtins.filter (n: n != "designer-expert") permRoleNames;
@@ -730,6 +768,7 @@ let
     "solution-expert"
     "artifact-release-expert"
     "designer-expert"
+    "repository-expert"
   ];
   permContractOwnership = {
     artifact-master = [ ];
@@ -751,6 +790,22 @@ let
       "docs/artifact/*/changes/*"
     ];
     designer-expert = [ "docs/artifact/*/changes/*/design/*" ];
+    repository-expert = [
+      "README.md"
+      "factory.nix"
+      ".gitignore"
+      "AGENTS.md"
+      "devenv.nix"
+      "flake.nix"
+      ".agents/skills/*"
+      ".opencode/commands/*"
+      ".opencode/agents/*"
+      "docs/wiki/documentation/artifact-driven/templates/*"
+      "surface.tsv"
+      "factory.config.yaml"
+      ".opencode/opencode.jsonc"
+      ".opencode/scripts/*"
+    ];
   };
   permContractRoles = builtins.listToAttrs (
     builtins.map (n: {
@@ -1385,32 +1440,55 @@ let
 
   modes = filePlan.foundationModes;
 
+  # The coverage scan script joins the plan as a managed extra file whose
+  # source is a `builtins.toFile` render in the rendered-source list of the
+  # run (C-CA25, C-FCA-07-03). The script is not a capability kind.
+  coverageScript = coverage.scriptFiles;
+
+  # The base plan without the surface declaration. The render order is: the
+  # file plan first, the declaration second, the entry third (C-FCA-01-03).
+  baseRenderedSources = [
+    configYaml
+    documentationSource
+  ]
+  ++ coverageScript.renderedSources
+  ++ designOut.renderedSources
+  ++ skillOut.renderedSources
+  ++ deliveryOut.renderedSources
+  ++ capabilityOut.renderedSources;
+  baseExtraFiles = [
+    {
+      rel = "factory.config.yaml";
+      source = configYaml;
+      copyMode = "template";
+    }
+    {
+      rel = documentationRel;
+      source = documentationSource;
+      copyMode = "managed";
+    }
+  ]
+  ++ coverageScript.extraFiles
+  ++ designOut.extraFiles
+  ++ skillOut.extraFiles
+  ++ deliveryOut.extraFiles
+  ++ capabilityOut.fileDecls;
+  basePlan = filePlan.planForArch {
+    inherit arch factoryDir modes;
+    renderedSources = baseRenderedSources;
+    extraFiles = baseExtraFiles;
+  };
+
+  # The surface declaration (C-FCA-01-02, C-FCA-07-03). The render computes
+  # the declaration of the plan and joins it as a managed extra file whose
+  # source is a `builtins.toFile` render of the run. The plan holds the path
+  # `surface.tsv` once.
+  declarationOut = coverage.surfaceDeclaration basePlan;
+
   plan = filePlan.planForArch {
     inherit arch factoryDir modes;
-    renderedSources = [
-      configYaml
-      documentationSource
-    ]
-    ++ designOut.renderedSources
-    ++ skillOut.renderedSources
-    ++ deliveryOut.renderedSources
-    ++ capabilityOut.renderedSources;
-    extraFiles = [
-      {
-        rel = "factory.config.yaml";
-        source = configYaml;
-        copyMode = "template";
-      }
-      {
-        rel = documentationRel;
-        source = documentationSource;
-        copyMode = "managed";
-      }
-    ]
-    ++ designOut.extraFiles
-    ++ skillOut.extraFiles
-    ++ deliveryOut.extraFiles
-    ++ capabilityOut.fileDecls;
+    renderedSources = baseRenderedSources ++ declarationOut.renderedSources;
+    extraFiles = baseExtraFiles ++ declarationOut.extraFiles;
   };
 
   # Capability layer fixture (spec-capability-ship C-CL09, C-CL13, C-CL18,
@@ -1435,8 +1513,10 @@ let
     ".agents/skills/artifact-master/SKILL.md"
     ".agents/skills/asd-ste-100/SKILL.md"
     ".agents/skills/context7-mcp/SKILL.md"
+    ".agents/skills/coverage-audit/SKILL.md"
     ".agents/skills/expert-role/SKILL.md"
     ".opencode/commands/contract-review.md"
+    ".opencode/commands/coverage-audit.md"
     ".opencode/commands/interview.md"
     ".opencode/commands/plan-pn.md"
     ".opencode/commands/release.md"
@@ -1488,6 +1568,7 @@ let
     "solution-expert"
     "artifact-release-expert"
     "designer-expert"
+    "repository-expert"
   ];
   bodyOf = role: builtins.readFile (factoryDir + "/assets/roles/${role}/ROLE.md");
   bodyCapabilityLines =
@@ -1756,6 +1837,136 @@ let
       true
     else
       throw "seed check: the capability fixture of `${arch}` fails ${(builtins.head capabilityFailing).message}";
+
+  # Coverage bundle fixture (spec-coverage-bundle, "The seed check and the
+  # proof" 1 to 3; C-CA25, C-FCA-07-02, C-FCA-07-03). The fixture composes
+  # the coverage scan script and the surface declaration into the plan and
+  # proves the three emitted paths of the bundle, the declaration, the grant
+  # of the scan agent, the command frontmatter, and the instruction skill
+  # sections. Each proof is a value of the `assert` chain, so the result file
+  # stays exactly five lines.
+  bundleCapabilityRels = [
+    ".agents/skills/coverage-audit/SKILL.md"
+    ".opencode/commands/coverage-audit.md"
+  ];
+  bundleScriptRel = ".opencode/scripts/coverage-audit.sh";
+  bundleDeclarationRel = "surface.tsv";
+  bundleRels = bundleCapabilityRels ++ [
+    bundleScriptRel
+    bundleDeclarationRel
+  ];
+  commandAsset = factoryDir + "/assets/commands/coverage-audit.md";
+  instructionSkillAsset = factoryDir + "/assets/skills/coverage-audit/SKILL.md";
+  commandText = builtins.readFile commandAsset;
+  instructionSkillText = builtins.readFile instructionSkillAsset;
+  scanAgent = "artifact-master";
+  scanSkillRule = {
+    action = "skill";
+    resource = "coverage-audit";
+    effect = "allow";
+  };
+  scanShellRule = {
+    action = "shell";
+    resource = "sh .opencode/scripts/coverage-audit.sh *";
+    effect = "allow";
+  };
+  artifactMasterPermissions = permDoc.agents.${scanAgent}.permissions;
+  bundleExtraFiles = baseExtraFiles ++ declarationOut.extraFiles;
+  bundleHasMode = rel: mode: builtins.hasAttr rel plan.files && plan.files.${rel}.copyMode == mode;
+  bundleAssertions = [
+    {
+      name = "bundle-plan-files";
+      assertion = builtins.all (rel: builtins.hasAttr rel plan.files) bundleRels;
+      message = "bundle-plan-files: the plan misses a coverage bundle path or the surface declaration";
+    }
+    {
+      name = "bundle-plan-mode";
+      assertion = builtins.all (rel: bundleHasMode rel "managed") bundleRels;
+      message = "bundle-plan-mode: a coverage bundle file or the surface declaration holds a copy mode other than managed";
+    }
+    {
+      name = "bundle-plan-once";
+      assertion = builtins.all (
+        rel: builtins.length (builtins.filter (e: e.rel == rel) bundleExtraFiles) == 1
+      ) bundleRels;
+      message = "bundle-plan-once: the plan holds a coverage bundle path or the surface declaration more than one time";
+    }
+    {
+      name = "bundle-script-source";
+      assertion =
+        builtins.hasAttr bundleScriptRel plan.files
+        && plan.files.${bundleScriptRel}.source == coverage.scriptSource;
+      message = "bundle-script-source: the scan script source is not the `builtins.toFile` render of the run";
+    }
+    {
+      name = "bundle-capability-sources";
+      assertion = builtins.all (
+        rel:
+        builtins.hasAttr rel plan.files
+        && builtins.elem (toString plan.files.${rel}.source) (
+          builtins.map toString capabilityOut.renderedSources
+        )
+      ) bundleCapabilityRels;
+      message = "bundle-capability-sources: a coverage capability source is not a rendered path of the capability render";
+    }
+    {
+      name = "bundle-declaration-source";
+      assertion =
+        builtins.hasAttr bundleDeclarationRel plan.files
+        && builtins.elem (toString plan.files.${bundleDeclarationRel}.source) (
+          builtins.map toString declarationOut.renderedSources
+        );
+      message = "bundle-declaration-source: the surface declaration source is not a rendered path of the run";
+    }
+    {
+      name = "bundle-grant-skill";
+      assertion = builtins.elem scanSkillRule artifactMasterPermissions;
+      message = "bundle-grant-skill: the rendered permission array of the scan agent misses the `skill` allow rule `coverage-audit`";
+    }
+    {
+      name = "bundle-grant-shell";
+      assertion = builtins.elem scanShellRule artifactMasterPermissions;
+      message = "bundle-grant-shell: the rendered permission array of the scan agent misses the shell allow rule of the scan script";
+    }
+    {
+      name = "bundle-no-edit";
+      assertion = builtins.all (
+        r: !(r.action == "edit" && r.effect == "allow")
+      ) artifactMasterPermissions;
+      message = "bundle-no-edit: the bundle adds an `edit` allow rule to the scan agent";
+    }
+    {
+      name = "bundle-command-agent";
+      assertion =
+        builtins.elem scanAgent (builtins.attrNames permDoc.agents)
+        && contains commandText "agent: artifact-master";
+      message = "bundle-command-agent: the command frontmatter does not hold `agent: artifact-master`";
+    }
+    {
+      name = "bundle-command-exact";
+      assertion = contains commandText "sh .opencode/scripts/coverage-audit.sh";
+      message = "bundle-command-exact: the command body does not invoke the exact scan string";
+    }
+    {
+      name = "bundle-skill-sections";
+      assertion =
+        contains instructionSkillText "## When to use"
+        && contains instructionSkillText "## When not to use"
+        && contains instructionSkillText "## How to call";
+      message = "bundle-skill-sections: the instruction skill misses one of the three sections";
+    }
+    {
+      name = "bundle-skill-no-permission";
+      assertion = !(contains instructionSkillText "permissions");
+      message = "bundle-skill-no-permission: the instruction skill holds a permission list";
+    }
+  ];
+  bundleFailing = builtins.filter (a: !a.assertion) bundleAssertions;
+  bundleMatch =
+    if bundleFailing == [ ] then
+      true
+    else
+      throw "seed check: the coverage bundle fixture of `${arch}` fails ${(builtins.head bundleFailing).message}";
 
   # The design files and the skill file join the one transaction that
   # holds the base files, the overlay files, the role files, the MCP
@@ -3042,6 +3253,7 @@ assert assetMatch;
 assert uxMatch;
 assert mcpV2Match;
 assert capabilityMatch;
+assert bundleMatch;
 assert planPathMatch;
 assert logFixturePermissions;
 assert evalAssertions;
