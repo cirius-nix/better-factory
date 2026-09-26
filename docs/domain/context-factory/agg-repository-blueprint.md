@@ -48,6 +48,15 @@ holds the ownership of the seven standard surface classes, the class `factory-co
 files: the harness tree and the home of the capability of the generated project. The shipped role
 set holds seven roles, so the union of the shipped agents covers the standard surface.
 
+The blueprint also renders the artifact cleanup bundle of the release role
+(spec-cleanup-bundle). The bundle holds the cleanup script, the command, and the instruction
+skill. It also records the artifact cleanup of a feature: the keep window of the three most
+recent version folders and the three most recent change folders, and the cleanup plan
+(spec-artifact-cleanup). The plan names the paths to delete and the paths to keep. The cleanup
+reads the feature folders and the feature README, so it changes no blueprint fact. The release
+role owns the version folders, the feature README, and the change folders of the cleanup
+(spec-release-gate).
+
 ## State transitions
 
 | From | Command | To |
@@ -170,6 +179,27 @@ set holds seven roles, so the union of the shipped agents covers the standard su
 - The coverage scan ships with its script, its command, and its instruction skill. The agent
   `artifact-master` runs the scan. It holds the local read tools, the `skill` allow rule of the
   instruction skill, and the shell rule of the script (spec-coverage-bundle).
+- The artifact cleanup ships with its script, its command, and its instruction skill. The role
+  `artifact-release-expert` runs the cleanup. It holds the `skill` allow rule of the instruction
+  skill, the shell rule of the script, and the change-folder write and the narrow delete grant
+  (spec-cleanup-bundle).
+- The cleanup keeps the three most recent version folders of a feature and the three most recent
+  change folders of a feature. The cleanup deletes the older folders (spec-artifact-cleanup).
+- A feature with three or fewer folders of one kind deletes no folder of that kind. The current
+  version of a feature stays in each cleanup.
+- The keep window derives from the version order and from the change order of the feature. The
+  version order is the order of the version numbers. The change order is the release order in the
+  `## Versions` table of the feature README. An unreleased change folder is newer than each
+  released change (adr-cleanup-order-keys).
+- The cleanup plan names the paths to delete and the paths to keep. The plan is deterministic: the
+  same feature state gives the same plan.
+- The cleanup deletes only a path under `docs/artifact/*/versions/` and
+  `docs/artifact/*/changes/`. The cleanup changes no line of the feature README. The owner of the
+  README applies the reported edit (adr-cleanup-readme-edit).
+- The cleanup presents its plan and deletes only after the confirmation of the human. The cleanup
+  script holds the plan form and the apply form (adr-cleanup-plan-gate).
+- The feature README names the kept versions only, and the `## Versions` table stays consistent
+  with the cleanup.
 - The `home` axis of the capability model stays unchanged. The coverage is about the write
   permission of an agent, not about the origin of a capability.
 - Each rendered role holds a default permission set derived from its ownership axis and its
@@ -236,6 +266,11 @@ The coverage workflow policies (a proposal starts the role creation, a new role 
 scan) belong to the coverage workflow, not to the blueprint transaction. The scan is read-only, so
 it needs no corrective policy.
 
+The cleanup workflow policy: the confirmation of the human starts the delete. The delete starts
+the feature README edit by the owner. The policy belongs to the cleanup workflow, not to the
+blueprint transaction. The cleanup reads the blueprint facts and the feature folders, so the
+blueprint emits no cleanup event itself.
+
 ## Handled commands
 
 | Command | Result | Emits |
@@ -260,6 +295,7 @@ it needs no corrective policy.
 | Check seed | The blueprint materializes the tree and runs the seed check. | Seed checked |
 | Import factory | The blueprint records the pinned factory source and validates the consumer declaration. An invalid declaration is an error. | Factory imported |
 | Emit repository | The blueprint composes the plan from the consumer declaration and the repository root, and emits the tree below the scratch directory. | Repository emitted, Surface declared |
+| Run artifact cleanup | The blueprint renders the cleanup bundle. The cleanup computes the plan of the feature folders and deletes the plan paths after the confirmation of the human. The cleanup changes no blueprint fact. | Cleanup planned, Artifacts cleaned |
 
 ## Created events
 
@@ -290,6 +326,8 @@ it needs no corrective policy.
 | Seed checked | The result and the layers. |
 | Factory imported | The pinned factory source and the input declaration. |
 | Repository emitted | The consumer settings, the repository root, and the emitted tree. |
+| Cleanup planned | The feature, the kind, the paths to delete, the paths to keep, and the feature README rows to remove. |
+| Artifacts cleaned | The feature and the deleted folder paths. |
 
 ## References by identity
 
@@ -319,6 +357,10 @@ None. The blueprint holds every fact of one repository and references no other a
   surface declaration and the scan bundle, and it holds the coverage invariants. The scan is a
   read of the blueprint facts and of the agent set; it changes no state, so the blueprint emits no
   coverage event itself.
+- The cleanup workflow messages (Cleanup planned, Artifacts cleaned) belong to the cleanup
+  workflow. The blueprint renders the cleanup bundle and holds the cleanup invariants. The
+  cleanup is a read of the feature folders and a delete of the plan paths; it changes no blueprint
+  fact, so the blueprint emits no cleanup event itself.
 - No second aggregate exists. The coordination holds no factory data that one transaction must
   keep consistent.
 - The reference semantics in `../repofactory` stay reference-only.
