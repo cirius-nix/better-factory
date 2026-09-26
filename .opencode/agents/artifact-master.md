@@ -20,8 +20,10 @@ research tools `webfetch` and `websearch`.
 
 - skill: artifact-master (shipped)
 - skill: expert-role (shipped)
+- skill: coverage-audit (shipped)
 - command: plan-pn (shipped)
 - command: interview (shipped)
+- command: coverage-audit (shipped)
 - reference: opencode-v2 (shipped)
 - model: artifact-master (repo-local)
 - worktree: phase4 (shipped)
