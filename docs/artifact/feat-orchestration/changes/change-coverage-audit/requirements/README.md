@@ -20,8 +20,10 @@ must ship the seventh role, `repository-expert`. The role must own the seven sta
 classes. At version 5.0.0 the union of the shipped write scope covers the standard surface. A scan
 must find each unowned author path, name the nearest role of the path, and propose a role with the
 role name and the ownership path patterns that cover the path or the class. The scan proposes a
-role for a project-specific gap only. The user creates each proposed role for a project-specific gap
-with the `expert-role` skill. The scan must prove the coverage. The `home` axis of the capability model stays unchanged.
+role for a project-specific gap only. The user creates each proposed role for a project-specific
+gap with the `expert-role` skill. The scan must prove the coverage. The generated consumer tree is
+the clean gate. The factory repository is a report target. The `home` axis of the capability model
+stays unchanged.
 
 ## Scope
 
@@ -39,7 +41,8 @@ with the `expert-role` skill. The scan must prove the coverage. The `home` axis 
 - In scope: the coverage scan, the report, the nearest role, and the proposed role.
 - In scope: the deterministic result of the scan.
 - In scope: the bundle of the scan: the script, the command, and the instruction skill.
-- In scope: the scan as the proof of the coverage rule.
+- In scope: the scan as the proof of the coverage rule: the clean gate of the generated consumer
+  tree and the report target of the factory repository root.
 - Out of scope: the `home` axis of the capability model; it stays unchanged.
 - Out of scope: the assignment of each surface path to one role; it belongs to phase 2.
 - Out of scope: the exact classification rule and the render shape of the bundle; they belong to
@@ -47,6 +50,15 @@ with the `expert-role` skill. The scan must prove the coverage. The `home` axis 
 - Out of scope: the specifications, the decisions, the tasks, and the code; they belong to later
   phases.
 - Out of scope: any edit to `AGENTS.md`.
+
+## Open items
+
+- The factory repository holds three repository-level index files with no owner: `services/README.md`,
+  `libs/README.md`, and `deployment/README.md`. The factory does not emit them. A later change
+  closes them or makes them emitted `managed` files.
+- The report names the class pattern of the class (`services/*`, `libs/*`, and `deployment/*`), not
+  the concrete unowned path. The coverage test compares the class pattern with the write patterns
+  of the agents. A later change may switch the test to the concrete path.
 
 ## Domain
 
@@ -77,12 +89,14 @@ with the `expert-role` skill. The scan must prove the coverage. The `home` axis 
 
 ## Acceptance
 
-Every path of the project surface has an owner: the shipped role `repository-expert` for a standard
-class, or a project-local role for a project-specific gap. A class is covered when every path of
-the class is covered. Each project of the model holds its own surface declaration, including the
-factory repository. The factory ships the seventh role, `repository-expert`. The role owns the
-seven standard surface classes. The union of the write scope of the shipped agents covers the
-standard surface at version 5.0.0. The `home` axis of the capability model stays unchanged.
+Every path of the surface of a generated project has an owner: the shipped role
+`repository-expert` for a standard class, or a project-local role for a project-specific gap. A
+class is covered when every path of the class is covered. Each project of the model holds its own
+surface declaration, including the factory repository. The factory ships the seventh role,
+`repository-expert`. The role owns the seven standard surface classes. The union of the write scope
+of the shipped agents covers the standard surface at version 5.0.0. The factory repository holds
+three open paths; the open items list them. The `home` axis of the capability model stays
+unchanged.
 
 The coverage scan reads the surface declaration of the project under scan and the rendered
 permission file of the project. The scan reads the shipped agents and the agents the user defined.
@@ -93,5 +107,8 @@ proposed role. The scan returns the same result for the same surface and the sam
 scan ships with its instruction skill and its command. The user creates each proposed role for a
 project-specific gap with the `expert-role` skill.
 
-The phase 4 scan of the factory repository and of the consumer example reports no unowned author
-path.
+The phase 4 proof has two targets. The first target is the generated consumer tree
+`services/factory/examples/consumer`. Its scan exits `0`, and it is the clean gate. The second
+target is the factory repository root. Its scan runs and is deterministic, and it exits `1` with
+the three recorded rows of the open items. That scan is a report target, not a gate. A clean scan
+of the factory repository root is not an acceptance item of this change.

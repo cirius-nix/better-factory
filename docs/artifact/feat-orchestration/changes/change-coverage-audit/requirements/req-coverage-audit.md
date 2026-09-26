@@ -91,9 +91,18 @@ The agent must hold the `skill` rule that allows the load of the instruction ski
 - The exact script, the exact command name, the exact skill content, the exact render shape, and
   the exact name of the proposed role belong to phase 2. The proposal covers a project-specific gap
   and never names `repository-expert`.
-- The scan is the proof of [req-write-coverage](req-write-coverage.md).
-- Phase 4 runs the scan on the factory repository and on an example generated project, and expects
-  no unowned author path.
+- The scan is the proof of [req-write-coverage](req-write-coverage.md). The proof has two targets.
+  The generated consumer tree `services/factory/examples/consumer` is the clean gate; its scan
+  exits `0`. The factory repository root is a report target; its scan runs and is deterministic, and
+  it exits `1` with the three recorded rows.
+- A clean scan of the factory repository root is not an acceptance item of this change.
+- The factory repository holds three repository-level index files with no owner:
+  `services/README.md`, `libs/README.md`, and `deployment/README.md`. The factory does not emit
+  them. A later change closes them or makes them emitted `managed` files. See the `## Open items`
+  section of the requirement [README](README.md).
+- The report names the class pattern of the class (`services/*`, `libs/*`, and `deployment/*`), not
+  the concrete unowned path. The coverage test compares the class pattern with the write patterns
+  of the agents. A later change may switch the test to the concrete path.
 - The capability bundle follows the bundle rule of `change-capability-layer`: a capability ships
   with its instruction skill.
 - Each project of the model holds its own surface declaration. The scan reads the surface
