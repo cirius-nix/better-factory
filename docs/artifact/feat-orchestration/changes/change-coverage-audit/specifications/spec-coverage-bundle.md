@@ -136,12 +136,14 @@ The ordered rules of the two grants:
    (C-FCA-07-03).
 4. The scan cannot run inside `nix flake check`. The phase-4 run executes the script as a separate
    shell run (C-FCA-07-04).
-5. A clean factory scan needs the regenerated harness of the factory repository and the roles
-   present (C-FCA-07-06).
+5. The factory repository scan needs the regenerated harness of the factory repository and the roles
+   present. The target is a report, not a gate (C-FCA-07-06, C-FCA-08-02).
 6. The phase-4 scan targets are the factory repository root and the materialized consumer tree. The
-   entrypoint materializes the consumer tree below a scratch directory from
+   generated consumer tree is the clean target and exits `0`. The factory repository root is the
+   report target and exits `1` with the three recorded rows. The entrypoint materializes the
+   consumer tree below a scratch directory from
    `services/factory/examples/consumer/factory.nix`. The consumer source tree is not a scan target,
-   because it holds no `surface.tsv` and no `.opencode/` tree (C-FCA-07-08).
+   because it holds no `surface.tsv` and no `.opencode/` tree (C-FCA-07-08, C-FCA-08-02).
 7. The global-config precondition applies to the factory repository run and to the consumer run
    (C-FCA-07-09).
 
@@ -200,7 +202,9 @@ The capability render does not exist at version 4.0.0. The render (`capabilities
 the phase 4 of this change (C-FCA-05-04).
 
 The bundle is the proof of the write coverage. The phase-4 run executes the scan on the factory
-repository root and on the materialized consumer tree. The report must hold no unowned author path.
+repository root and on the materialized consumer tree. The generated consumer tree is the clean
+target: the report holds no unowned author path. The factory repository root is the report target:
+the report holds the three recorded rows (adr-scan-proof-scope).
 
 ## Errors
 
@@ -226,9 +230,10 @@ repository root and on the materialized consumer tree. The report must hold no u
 - A seed-check composed plan without one of the three emitted paths fails the check.
 - A scan run inside `nix flake check` fails the rule.
 - A consumer source tree used as a scan target fails the rule. The target is the materialized tree.
-- A clean factory scan without the regenerated harness or without a role fails the proof.
-- A scan on the factory repository or the consumer tree that reports an unowned author path fails
-  the phase-4 check.
+- A factory repository scan without the regenerated harness or without a role fails the proof.
+- A scan on the consumer tree that reports an unowned author path fails the phase-4 gate.
+- A scan on the factory repository root that exits `0` or `2` fails the report rule. The target
+  gives the exit code `1` with the three recorded rows (C-FCA-08-02).
 
 ## Resolved constraints
 
@@ -254,8 +259,8 @@ repository root and on the materialized consumer tree. The report must hold no u
 | C-FCA-07-02 | The bundle proof and the grant proof are eval-time `assert`s. The result file of the seed check stays exactly five lines. | services/factory |
 | C-FCA-07-03 | The seed-check composed plan adds the three emitted paths and their rendered sources. | services/factory |
 | C-FCA-07-04 | The scan cannot run inside `nix flake check`. The phase-4 run executes the script as a separate shell run. | services/factory |
-| C-FCA-07-06 | A clean factory scan needs the regenerated harness of the factory repository and the roles present. | services/factory |
-| C-FCA-07-08 | The phase-4 scan targets are the factory repository root and the materialized consumer tree. The entrypoint materializes the consumer tree below a scratch directory. The consumer source tree is not a scan target, because it holds no `surface.tsv` and no `.opencode/` tree. | services/factory |
+| C-FCA-07-06 | The factory repository scan needs the regenerated harness of the factory repository and the roles present. The target is a report, not a gate (adr-scan-proof-scope). | services/factory |
+| C-FCA-07-08 | The phase-4 scan targets are the factory repository root and the materialized consumer tree. The consumer tree is the clean target and exits `0`. The factory repository root is the report target and exits `1` with the three recorded rows. The entrypoint materializes the consumer tree below a scratch directory. The consumer source tree is not a scan target, because it holds no `surface.tsv` and no `.opencode/` tree. | services/factory |
 | C-FCA-07-09 | The global-config precondition applies to the factory repository run and to the consumer run (spec-agent-read). | services/factory |
 
 ## Notes
@@ -273,7 +278,7 @@ repository root and on the materialized consumer tree. The report must hold no u
   root needs no change to the file-plan check (C-FCL-06-01 of change-capability-layer).
 - The factory repository holds the same bundle. The regeneration of the factory repository tree is
   a follow-up, like the regeneration of `.opencode/opencode.jsonc`
-  (spec-harness-merge of change-capability-layer). A clean factory scan needs the regeneration
-  (C-FCA-07-06).
+  (spec-harness-merge of change-capability-layer). The factory repository scan needs the
+  regeneration (C-FCA-07-06).
 - Open item for finalization: the exact grant list of the scan agent. The contract fixes the three
   grants; the exact shell pattern belongs to phase 4. The scan agent adds no `edit` rule.

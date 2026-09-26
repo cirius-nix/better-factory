@@ -133,8 +133,12 @@ The role `repository-expert` is a shipped role (spec-repository-role). The other
 agents or a project-local role.
 
 The surface of the factory repository. The declaration lives at `surface.tsv` at the repository
-root. The factory repository holds the factory source. The factory declaration holds the factory
-classes. The component classes are not factory classes: the factory repository lists the specific
+root. The factory repository holds the factory source. The declaration of every project holds the
+five `component-*` classes with the scope `conditional` (C-CA31). A `component-*` class is an author
+path of a project when the class pattern matches at least one path in the project
+(adr-author-path-rule). The factory repository holds the component directories `apps/`, `services/`,
+`libs/`, `deployment/`, and `e2e/`, so the classes apply there. A generated project without a
+component directory holds no such author path. The factory declaration also lists the specific
 factory source trees that it owns.
 
 | Class | Pattern | Scope | Owner |
@@ -164,6 +168,17 @@ factory source trees that it owns.
 | `artifact-version` | `docs/artifact/*/versions/*` | `model` | `factory` |
 | `artifact-feature` | `docs/artifact/*/README.md` | `model` | `factory` |
 | `domain` | `docs/domain/*` | `model` | `requirement-expert`, `solution-expert` |
+| `component-app` | `apps/*` | `conditional` | `factory` |
+| `component-service` | `services/*` | `conditional` | a per-component expert |
+| `component-library` | `libs/*` | `conditional` | a per-component expert |
+| `component-deployment` | `deployment/*` | `conditional` | a per-component expert |
+| `component-e2e` | `e2e/*` | `conditional` | `factory` |
+
+In the factory repository the classes `component-app` and `component-e2e` have the copy mode
+`managed`, so the factory owns the files. The classes `component-service`, `component-library`, and
+`component-deployment` are author-writable and need a per-component expert. The factory scan reports
+the class pattern of a component class that no per-component expert owns. The class pattern of the
+class decides the row, not the concrete path (C-CA31, adr-scan-proof-scope).
 
 The `factory-expert` is repo-local to the factory repository. It is not a shipped agent. The
 factory source tree `services/factory/*` holds the `services/factory` component.
@@ -203,6 +218,9 @@ factory source tree `services/factory/*` holds the `services/factory` component.
 18. The standard table holds a class for each author-writable planned file. The class
     `factory-config` holds the planned file `factory.config.yaml`.
 19. A generated project without the `surface.tsv` file fails the seed check.
+20. The declaration of every project holds the five `component-*` classes with the scope
+    `conditional`. The factory repository holds the component directories, so the classes apply
+    there. A generated project without a component directory holds no such author path (C-CA31).
 
 ### The module and the library
 
@@ -311,7 +329,7 @@ per-component expert (C-CA31).
 | C-FCA-01-04 | The copy-mode value set is `seed \| managed \| template \| none`. A class with the value `none` stays in the declaration and never passes through `mkFileDecl`. | services/factory |
 | C-FCA-01-05 | The factory repository root `surface.tsv` is owned by the shipped `repository-expert`. A standard class names a shipped role, because the role ships (spec-repository-role). | services/factory |
 | C-FCA-01-06 | `lib/surface.nix` stays pure Nix and out of the module import list of `default.nix`. A new `modules/coverage.nix` joins the list. No module imports an asset path; a module reads an asset with `builtins.readFile`. | services/factory |
-| C-FCA-08-01 | The completeness defect: (1) the planned file `factory.config.yaml` had no class, and (2) the `component-*` classes were author paths of a project with no component. The resolution is the author-path rule (C-CA29), the class `factory-config` (C-CA30), and the conditional scope (C-CA31). The two clean scans give the exit code `0` (adr-author-path-rule). | services/factory |
+| C-FCA-08-01 | The completeness defect: (1) the planned file `factory.config.yaml` had no class, and (2) the `component-*` classes were author paths of a project with no component. The resolution is the author-path rule (C-CA29), the class `factory-config` (C-CA30), and the conditional scope (C-CA31). The resolution gives the clean generated consumer tree. The factory repository root stays a report target with the three recorded rows (adr-author-path-rule, adr-scan-proof-scope). | services/factory |
 
 ## Notes
 
@@ -326,8 +344,9 @@ per-component expert (C-CA31).
   two documents cannot drift. The exact render code belongs to phase 4.
 - The author-path rule and the conditional scope belong to phase 4. The exact scan code belongs to
   the `task-coverage-script` task.
-- The factory repository declaration holds the factory source classes. The factory repository's
-  `apps/`, `libs/`, `deployment/`, and `e2e/` roots hold no factory class. A later factory source
-  tree adds a class to the factory declaration.
+- The factory repository declaration holds the factory source classes and the five `component-*`
+  classes with the scope `conditional`. The factory repository holds the component directories
+  `apps/`, `services/`, `libs/`, `deployment/`, and `e2e/`, so the classes apply. A later factory
+  source tree adds a class to the factory declaration.
 - The file plan accepts a rendered source of the run (C-03 of spec-harness-merge of
   change-capability-layer). The declaration and the scan script route through `renderedSources`.

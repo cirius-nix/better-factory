@@ -122,6 +122,26 @@ The exit code:
 | `1` | The report holds at least one unowned author path. |
 | `2` | An input error. The declaration or a document is absent or invalid. |
 
+The exit code `1` is the expected result of the factory repository root target. That target is a
+report, not a gate (adr-scan-proof-scope).
+
+### The proof targets
+
+1. The scan proof holds two targets: the generated consumer tree and the factory repository root.
+2. The generated consumer tree is the clean target. The target holds no unowned author path. The
+   scan exits `0`.
+3. The factory repository root is a report target. The target holds three unowned author paths:
+   `services/README.md`, `libs/README.md`, and `deployment/README.md`. The scan exits `1` and
+   reports the three rows. The target is a report, not a gate.
+4. Each target holds its own `surface.tsv`. The global-config precondition applies to both targets
+   (spec-agent-read).
+5. The three paths stay open. The change adds no owner for them and changes no coverage test. A
+   later change closes them or makes them emitted `managed` files (adr-scan-proof-scope).
+6. The report names the class pattern of the class (`services/*`, `libs/*`, and `deployment/*`), not
+   the concrete unowned path. The coverage test compares the class pattern with the write patterns
+   of the agents. A per-path test would name the three concrete paths. This limit is known. A later
+   change may switch the test to the concrete path (adr-scan-proof-scope).
+
 ### The determinism
 
 1. The script sets `LC_ALL=C`, so the sort order and the character classes do not depend on the
@@ -149,8 +169,9 @@ The exit code:
 8. The scan holds no state. Two runs on the same project give the same bytes.
 9. The scan reads the declaration of the project under scan. The scan reads no declaration of
    another project and holds no hard-coded standard class list.
-10. The scan is the proof of the write coverage. A project with a covered surface gives the exit
-    code `0`.
+10. The scan is the proof of the write coverage. The generated consumer tree is the clean target
+    and gives the exit code `0`. The factory repository root is the report target and gives the exit
+    code `1` with the three recorded rows (adr-scan-proof-scope).
 11. The exit code `2` is reserved for an input error. A command failure gives the exit code `2`.
 12. The coverage relation uses the POSIX `case` construct. The relation is deterministic under
     `LC_ALL=C`.
@@ -161,6 +182,11 @@ The exit code:
 16. The scan applies the author-path rule from the declaration. The scan holds no hard-coded
     class list. The rule is deterministic: the same declaration, the same project path list, and
     the same agent set give the same rows.
+17. The scan proof holds two targets. The clean target is the generated consumer tree. The report
+    target is the factory repository root. The exit-code rule (`0`, `1`, `2`) and the determinism
+    rule stay the same (adr-scan-proof-scope).
+18. The report names the class pattern of the class (`services/*`, `libs/*`, and `deployment/*`),
+    not the concrete unowned path. The limit is known and recorded (adr-scan-proof-scope).
 
 ## Description
 
@@ -196,9 +222,16 @@ The scan reads the whole agent set, so the read includes the shipped agents and 
 user defines (spec-agent-read). The shipped role `repository-expert` covers the seven standard
 classes, so a generated project with the shipped roles covers the standard surface.
 
-The scan is the proof of the change. The phase-4 run executes the script as a separate shell run,
-outside `nix flake check` (C-FCA-07-04). Each target holds a `surface.tsv`; an absent declaration
-gives the exit code `2` (C-FCA-07-05).
+The scan is the proof of the change. The proof holds two targets. The generated consumer tree is
+the clean target and gives the exit code `0`. The factory repository root is the report target and
+gives the exit code `1` with the three recorded rows (adr-scan-proof-scope). The phase-4 run
+executes the script as a separate shell run, outside `nix flake check` (C-FCA-07-04). Each target
+holds a `surface.tsv`; an absent declaration gives the exit code `2` (C-FCA-07-05).
+
+The report names the class pattern of the class (`services/*`, `libs/*`, and `deployment/*`), not
+the concrete unowned path. The coverage test compares the class pattern with the write patterns of
+the agents. This limit is known. A later change may switch the test to the concrete path
+(C-FCA-08-03).
 
 ## Errors
 
@@ -239,6 +272,8 @@ gives the exit code `2` (C-FCA-07-05).
 | C-FCA-07-05 | Each scan target holds a `surface.tsv`. A target without the declaration gives the exit code `2`. | services/factory |
 | C-FCA-07-07 | The scan reads only the declaration of the project under scan. The scan holds no hard-coded standard class list. | services/factory |
 | C-FCA-07-09 | The global-config precondition applies to the factory repository run and to the consumer run. The script sets a deterministic locale and the run pins the global document (spec-agent-read). | services/factory |
+| C-FCA-08-02 | The scan proof holds two targets. The generated consumer tree is the clean target and gives the exit code `0`. The factory repository root is the report target and gives the exit code `1` with the three recorded rows. The target is a report, not a gate. The change adds no owner for the three paths (adr-scan-proof-scope). | services/factory |
+| C-FCA-08-03 | The report names the class pattern of the class (`services/*`, `libs/*`, and `deployment/*`), not the concrete unowned path. The coverage test compares the class pattern with the write patterns of the agents. A per-path test would name the concrete path. This limit is known; a later change may switch the test (adr-scan-proof-scope). | services/factory |
 
 ## Notes
 
@@ -255,5 +290,8 @@ gives the exit code `2` (C-FCA-07-05).
   (spec-human-interaction of change-capability-layer).
 - The scan cannot run inside `nix flake check`. The phase-4 run executes the script as a separate
   shell run (C-FCA-07-04).
+- The factory repository root holds three repository-level index files with no owner:
+  `services/README.md`, `libs/README.md`, and `deployment/README.md`. The three paths stay open. A
+  later change closes them or makes them emitted `managed` files (adr-scan-proof-scope).
 - Open item for finalization: the exact report wording. The contract fixes the four row fields, the
   sort order, the exit codes, and the locale; the byte shape belongs to phase 4.

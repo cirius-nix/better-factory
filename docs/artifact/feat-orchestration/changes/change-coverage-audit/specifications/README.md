@@ -30,6 +30,13 @@ mode, the nearest role, and the proposed role. The same input gives the same rep
 exits `0` when the report holds no unowned author path, `1` when the report holds at least one, and
 `2` on an input error.
 
+The change fixes the scope of the scan proof. The proof holds two targets. The generated consumer
+tree is the clean target: the scan exits `0`. The factory repository root is the report target: the
+scan runs, is deterministic, and exits `1` with three recorded rows. The three rows name the class
+pattern of the class (`services/*`, `libs/*`, and `deployment/*`), not the concrete path. The three
+paths `services/README.md`, `libs/README.md`, and `deployment/README.md` stay open
+(adr-scan-proof-scope).
+
 The change adds the proposal. The scan groups the unowned author paths by the proposed role. The
 proposal names the role name, the ownership path patterns that cover each path or class, and the
 capability set of the role. The proposal does not create the role. The user creates the role with
@@ -51,7 +58,9 @@ version 5.0.0, so the criterion of req-write-coverage is true as written.
 The change closes a completeness defect in the standard surface. The class `factory-config` owns the
 planned file `factory.config.yaml` with the copy mode `template` and the scope `model`. The owner of
 the class is `repository-expert`. The `design` class and the five `component-*` classes hold the
-scope `conditional`.
+scope `conditional`. The declaration of every project holds the five `component-*` classes. The
+factory repository holds the component directories, so the classes apply there. A generated project
+without a component directory holds no such author path.
 
 The change adds the author-path rule. A class is an author path of a project only when the class
 pattern matches a path of the project, or when the class is a model class that every generated
@@ -142,7 +151,7 @@ The bundle renders into the opencode targets below.
 | --- | --- | --- |
 | [spec-coverage-surface](spec-coverage-surface.md) | The shape and the home of the surface declaration, the declaration of a generated project, the declaration of the factory repository, the standard surface classes, the author-path rule, the scope, the class `factory-config`, and the owner of the declaration. | req-write-coverage, req-coverage-audit |
 | [spec-agent-read](spec-agent-read.md) | The read of the agent set: the configuration merge order, the file frontmatter, the last-match rule, the union of the `edit` allow rules, and the agents that the user defines. | req-coverage-audit |
-| [spec-coverage-scan](spec-coverage-scan.md) | The deterministic scan: the inputs, the classification of each surface entry, the report rows, the exit condition, and the determinism invariant. | req-write-coverage, req-coverage-audit |
+| [spec-coverage-scan](spec-coverage-scan.md) | The deterministic scan: the inputs, the classification of each surface entry, the report rows, the exit condition, the two-target proof, the known class-pattern limit, and the determinism invariant. | req-write-coverage, req-coverage-audit |
 | [spec-proposed-role](spec-proposed-role.md) | The shape of the proposal: the role name, the ownership path patterns, the capability set, and the handoff to the `expert-role` skill. | req-write-coverage, req-coverage-audit |
 | [spec-coverage-bundle](spec-coverage-bundle.md) | The scan capability bundle: the script, the command, the instruction skill, the asset paths, the grants of the scan agent, and the seed check of the bundle. | req-coverage-audit |
 | [spec-repository-role](spec-repository-role.md) | The seventh shipped role `repository-expert`: its role source, its `roleContracts` row, its capability entries, its ownership of the standard surface classes, and the growth of the shipped role set. | req-write-coverage, req-coverage-audit |
@@ -203,6 +212,8 @@ The change adds these decisions:
   `repository-expert` and the growth of the shipped role set.
 - [adr-author-path-rule](../decisions/adr-author-path-rule.md) selects the author-path rule, the
   scope of each class, and the class `factory-config`.
+- [adr-scan-proof-scope](../decisions/adr-scan-proof-scope.md) selects the two-target scan proof and
+  the known class-pattern limit.
 
 ## Feasibility review
 
@@ -246,14 +257,16 @@ factory-expert supplies the constraints. Each constraint has a resolution row in
 | FCA-07 | spec-coverage-bundle | The seed check and the proof | context-factory | agg-repository-blueprint | The composed plan | C-FCA-07-03 | C-FCA-07-03 |
 | FCA-07 | spec-coverage-bundle | The seed check and the proof | context-factory | agg-repository-blueprint | The scan run | C-FCA-07-04 | C-FCA-07-04 |
 | FCA-07 | spec-coverage-scan | The scan algorithm | context-factory | agg-repository-blueprint | The declaration of the target | C-FCA-07-05 | C-FCA-07-05 |
-| FCA-07 | spec-coverage-bundle | The seed check and the proof | context-factory | agg-repository-blueprint | The clean factory scan | C-FCA-07-06 | C-FCA-07-06 |
+| FCA-07 | spec-coverage-bundle | The seed check and the proof | context-factory | agg-repository-blueprint | The factory repository report target | C-FCA-07-06 | C-FCA-07-06 |
 | FCA-07 | spec-coverage-scan | The scan algorithm | context-factory | agg-repository-blueprint | The declaration read | C-FCA-07-07 | C-FCA-07-07 |
 | FCA-07 | spec-coverage-bundle | The seed check and the proof | context-factory | agg-repository-blueprint | The consumer target | C-FCA-07-08 | C-FCA-07-08 |
 | FCA-07 | spec-agent-read, spec-coverage-scan | The scan algorithm | context-factory | agg-repository-blueprint | The global-config precondition | C-FCA-07-09 | C-FCA-07-09 |
 | FCA-08 | spec-coverage-surface, spec-coverage-scan, spec-repository-role | The completeness fix | context-factory | agg-repository-blueprint | The author-path rule and the scope | C-CA29 | C-CA29 |
 | FCA-08 | spec-coverage-surface | The completeness fix | context-factory | agg-repository-blueprint | The class `factory-config` and its owner | C-CA30 | C-CA30 |
 | FCA-08 | spec-coverage-surface, spec-coverage-scan | The completeness fix | context-factory | agg-repository-blueprint | The conditional scope | C-CA31 | C-CA31 |
-| FCA-08 | spec-coverage-surface, spec-coverage-scan | The completeness fix | context-factory | agg-repository-blueprint | The two clean scans | C-FCA-08-01 | C-FCA-08-01 |
+| FCA-08 | spec-coverage-surface, spec-coverage-scan | The completeness fix | context-factory | agg-repository-blueprint | The clean consumer tree | C-FCA-08-01 | C-FCA-08-01 |
+| FCA-08 | spec-coverage-scan, spec-coverage-bundle | The scan proof | context-factory | agg-repository-blueprint | The two-target proof | C-FCA-08-02 | C-FCA-08-02 |
+| FCA-08 | spec-coverage-scan | The scan proof | context-factory | agg-repository-blueprint | The class-pattern limit | C-FCA-08-03 | C-FCA-08-03 |
 
 The resolution row C-FCA-04-01 of the earlier review is superseded by the user decision. The owner
 of the seven standard surface classes is the shipped role `repository-expert`

@@ -16,17 +16,19 @@ of the project. Version 4.0.0 left two completeness defects.
    classified each class as an author path of every project. A generated project with no component
    held no such expert, so the class was an unowned author path.
 
-The two defects gave a scan exit code that was not `0`. The definition of done demands two clean
-scans with the exit code `0`. The review FCA-08 asks for the rule that decides the author paths of a
-project. The change must select the rule.
+The two defects gave a scan exit code that was not `0`. The definition of done demands a clean
+generated consumer tree. The factory repository root stays a report target (adr-scan-proof-scope).
+The review FCA-08 asks for the rule that decides the author paths of a project. The change must
+select the rule.
 
 ## Options
 
 1. The scope rule. The declaration carries the scope of each class. A class is an author path of a
    project when the class pattern matches a path of the project, or when the class is a model class
    that every generated project must hold. A class whose pattern matches no path of the project, and
-   that is not a model class, is not an author path. Pro: the two clean scans give the exit code `0`;
-   a project with no component reports no component row; the scan stays generic and reads the scope
+   that is not a model class, is not an author path. Pro: the clean consumer scan gives the exit
+   code `0`; a project with no component reports no component row; the scan stays generic and reads
+   the scope
    from the declaration. Con: the declaration gains one field; the standard table, the role
    ownership, and the scan advance.
 2. The explicit owner rule. Every class names an owner, and a missing owner fails the check. Keep
@@ -69,9 +71,9 @@ classes. The scan holds no hard-coded standard class list.
 
 ## Consequences
 
-Easier: the two clean scans give the exit code `0`; a generated project with no component reports no
-component row and no proposal; a project with a component reports the component class and proposes a
-per-component expert; the scan reads the scope from the declaration and stays generic.
+Easier: the clean consumer scan gives the exit code `0`; a generated project with no component
+reports no component row and no proposal; a project with a component reports the component class and
+proposes a per-component expert; the scan reads the scope from the declaration and stays generic.
 
 Harder: the declaration line gains one field, so the render, the factory declaration, and the scan
 advance; the standard table gains the class `factory-config`, so the `roleContracts` row of
