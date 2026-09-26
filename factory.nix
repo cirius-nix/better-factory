@@ -9,6 +9,9 @@
         context7 = {
           enabled = true;
         };
+        codegraph = {
+          enabled = true;
+        };
       };
       opencode.extraAgents.artifact-master.model = "opencode-go/deepseek-v4.1-flash";
       roles = {

@@ -1,4 +1,8 @@
 { pkgs, ... }: {
+  packages = with pkgs; [
+    go-task
+    codegraph
+  ];
   git-hooks = {
     package = pkgs.prek;
     hooks.convco = {
