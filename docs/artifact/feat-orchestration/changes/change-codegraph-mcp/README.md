@@ -15,8 +15,7 @@ dependencies.
 The change adds one teardown requirement, `req-code-intelligence`. The requirement fixes the
 codegraph MCP server for the roles `solution-expert` and `factory-expert`. The server is one
 canonical entry in the one MCP source under `agents.mcp`. The entry `codegraph` holds the
-canonical values `command = "npx"`,
-`args = [ "-y" "@colbymchenry/codegraph" "serve" "--mcp" ]`, and `env = { }`. The preset `full`
+canonical values `command = "codegraph"`, `args = [ "serve" "--mcp" ]`, and `env = { }`. The preset `full`
 declares the entry for each generated project. The canonical default is `enabled = false`, so the
 rendered entry holds `disabled = true` until the author enables it. The entry is a tool bundle:
 the `mcp` capability `codegraph` and its instruction skill `codegraph`. The two using roles grant
@@ -24,8 +23,10 @@ the instruction skill. The activation is `when = "always"`.
 
 The server identity is from the official documentation of the codegraph project, read
 2026-09-26: `https://colbymchenry.github.io/codegraph/reference/integrations`. The documentation
-names the `opencode` client. The documented server command is `codegraph serve --mcp`. The `npx`
-form of the command is not confirmed. Phase 2 must confirm the `npx` form.
+names the `opencode` client. The confirmed documented form is the command `codegraph` with the
+argument list `serve` `--mcp`. The server is the package `@colbymchenry/codegraph` version 1.6.0;
+the binary is `codegraph`. The prerequisite is `codegraph init`, the command that builds the
+`.codegraph/` index.
 
 The change keeps the Context7 requirement as it is. The change adds no second MCP source and no
 new facade group.

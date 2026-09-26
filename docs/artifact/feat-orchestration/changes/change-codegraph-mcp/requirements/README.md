@@ -29,10 +29,11 @@ The factory gives the solution expert external curated documentation through the
 server. The repository author also needs external code intelligence. The change adds the
 requirement `req-code-intelligence`. The requirement fixes the codegraph MCP server for the roles
 `solution-expert` and `factory-expert`. The server is one canonical entry in the one MCP source
-under `agents.mcp`. The preset `full` declares the entry for each generated project. The canonical
-default is `enabled = false`, so the rendered entry holds `disabled = true` until the author
-enables it. The entry is a tool bundle with its instruction skill. The activation is
-`when = "always"`.
+under `agents.mcp`. The entry holds the canonical values `command = "codegraph"`,
+`args = [ "serve" "--mcp" ]`, and `env = { }`. The preset `full` declares the entry for each
+generated project. The canonical default is `enabled = false`, so the rendered entry holds
+`disabled = true` until the author enables it. The entry is a tool bundle with its instruction
+skill. The activation is `when = "always"`.
 
 ## Scope
 
@@ -84,9 +85,6 @@ enables it. The entry is a tool bundle with its instruction skill. The activatio
 - The report names the class pattern of the class (`services/*`, `libs/*`, and `deployment/*`), not
   the concrete unowned path. The coverage test compares the class pattern with the write patterns
   of the agents. A later change may switch the test to the concrete path.
-- The codegraph server identity is from the official documentation, read 2026-09-26. The
-  documented server command is `codegraph serve --mcp`. The `npx` form is not confirmed. Phase 2
-  must confirm the `npx` form.
 
 ## Domain
 
@@ -147,5 +145,6 @@ codegraph MCP server. The server is one canonical entry `codegraph` in the one M
 `agents.mcp`. The preset `full` declares the entry for each generated project. The entry renders
 `disabled = true` until the author enables it. The two roles grant the instruction skill
 `codegraph`. The server identity is from the official documentation of the codegraph project, read
-2026-09-26: `https://colbymchenry.github.io/codegraph/reference/integrations`. The `npx` form of
-the command is unconfirmed; phase 2 confirms it.
+2026-09-26: `https://colbymchenry.github.io/codegraph/reference/integrations`. The confirmed
+documented form is the command `codegraph` with the argument list `serve` `--mcp`. The prerequisite
+is `codegraph init`, the command that builds the `.codegraph/` index.

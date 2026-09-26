@@ -34,12 +34,14 @@ knowledge facade layer. The MCP server is part of the capability axis of the two
 - The remote MCP dialect (`type = "remote"`, `url`, `headers`) is out of scope of this change.
 - The exact MCP entry shape, the command, the argument list, and the instruction skill content
   belong to phase 2.
-- The canonical values are `command = "npx"`,
-  `args = [ "-y" "@colbymchenry/codegraph" "serve" "--mcp" ]`, and `env = { }`. The value comes
-  from the official documentation of the codegraph project, read 2026-09-26:
-  `https://colbymchenry.github.io/codegraph/reference/integrations`. The documentation names the
-  `opencode` client. The documented server command is `codegraph serve --mcp`.
-- Open item: the `npx` form of the command is not confirmed. Phase 2 must confirm the form.
+- The canonical values are `command = "codegraph"`, `args = [ "serve" "--mcp" ]`, and
+  `env = { }`. The value comes from the official documentation of the codegraph project, read
+  2026-09-26: `https://colbymchenry.github.io/codegraph/reference/integrations`. The documentation
+  names the `opencode` client. The confirmed documented form is the command `codegraph` with the
+  argument list `serve` `--mcp`. The server is the package `@colbymchenry/codegraph` version 1.6.0;
+  the binary is `codegraph`.
+- The prerequisite is `codegraph init`. The command builds the `.codegraph/` index of the project.
+  The instruction skill states the prerequisite. Without the index, the server cannot answer.
 - The entry `codegraph` is a tool bundle: the `mcp` capability and its instruction skill. The
   instruction skill id equals the tool name, so the skill id is `codegraph`.
 - The activation is `when = "always"`, the same activation as the entry `context7`.
