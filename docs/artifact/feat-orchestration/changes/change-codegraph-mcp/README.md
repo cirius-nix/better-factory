@@ -63,6 +63,22 @@ canonical entry `context7`. This change uses the same model for the entry `codeg
 ## Artifacts
 
 - [Requirements](requirements/README.md)
+- [Specifications](specifications/README.md)
+- [Decisions](decisions/)
+- [Tasks](tasks/README.md)
+
+## Follow-ups
+
+1. **Adoption after phase 5 (required).** The factory repository must declare and enable `codegraph`
+   in its own `factory.nix`. It must regenerate `.opencode/opencode.jsonc`,
+   `.opencode/agents/*.md`, and `.agents/skills/codegraph/SKILL.md` after phase 5. This is the
+   RC02-C5 precedent.
+2. **The feat-delivery `spec-presets` statement (open).** The feat-delivery 1.1.0 statement of the
+   `full` bundle still says `agents.mcp = { }`. The delivery owner updates it to
+   `{ context7 = { }; codegraph = { }; }`.
+3. **The `.codegraph/` directory (open).** A generated project that enables `codegraph` makes
+   `.codegraph/`. The `.gitignore` and the surface declaration do not cover it. A later change owns
+   it.
 
 ## Code paths
 
