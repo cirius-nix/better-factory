@@ -71,11 +71,11 @@ carries.
 | --- | --- | --- |
 | req-write-coverage | spec-repository-role | task-repository-role (the seventh role, the ownership of the seven classes and the class `factory-config`, C-CA26 to C-CA28, C-CA30, C-FCA-04-01) |
 | req-write-coverage | spec-coverage-surface | task-surface (the standard table, the scope, the class `factory-config`, the conditional classes, the generated declaration, the owner column, C-CA01 to C-CA05, C-CA29 to C-CA31, C-FCA-01-01 to C-FCA-01-06, C-FCA-08-01) |
-| req-write-coverage | spec-coverage-scan | task-coverage-script (the author-path rule, the classification, and the report, C-CA11 to C-CA15, C-CA29, C-CA31, C-FCA-03-01 to C-FCA-03-06, C-FCA-08-01) |
+| req-write-coverage | spec-coverage-scan | task-coverage-script (the author-path rule, the classification, the report, and the exit codes, C-CA11 to C-CA15, C-CA29, C-CA31, C-FCA-03-01 to C-FCA-03-06, C-FCA-08-01, C-FCA-08-02, C-FCA-08-03) |
 | req-write-coverage | spec-proposed-role | task-coverage-script (the proposal computation, C-CA16 to C-CA19) |
 | req-coverage-audit | spec-agent-read | task-coverage-script (the merge order, the frontmatter, the last-match rule, the parse, C-CA06 to C-CA10, C-FCA-02-01 to C-FCA-02-06, C-FCA-07-09) |
 | req-coverage-audit | spec-coverage-scan | task-coverage-script (the inputs, the determinism, the exit codes, C-FCA-07-05, C-FCA-07-07) |
-| req-coverage-audit | spec-coverage-bundle | task-coverage-bundle (the command, the skill, the capability entries, the shell rule, C-CA20 to C-CA24, C-FCA-05-01 to C-FCA-05-05, C-FCA-06-02 to C-FCA-06-07); task-seed-advance (the plan entries, the grants, C-CA25, C-FCA-07-02 to C-FCA-07-04); task-scan-proof (the clean scans, C-FCA-07-05 to C-FCA-07-09) |
+| req-coverage-audit | spec-coverage-bundle | task-coverage-bundle (the command, the skill, the capability entries, the shell rule, C-CA20 to C-CA24, C-FCA-05-01 to C-FCA-05-05, C-FCA-06-02 to C-FCA-06-07); task-seed-advance (the plan entries, the grants, C-CA25, C-FCA-07-02 to C-FCA-07-04); task-scan-proof (the two-target proof, C-FCA-07-05 to C-FCA-07-09, C-FCA-08-02, C-FCA-08-03) |
 | req-coverage-audit | spec-repository-role | task-repository-role (the seventh role and its capability axis, C-FCA-04-05) |
 | req-write-coverage, req-coverage-audit | spec-proposed-role | task-scan-proof (the proposal for a project-specific gap, C-CA16 to C-CA19) |
 
@@ -91,6 +91,7 @@ of its own:
 | adr-agent-definition-read | task-coverage-script |
 | adr-author-path-rule | task-surface (the scope, the class `factory-config`, and the conditional classes), task-repository-role (the owner of `factory.config.yaml`), task-coverage-script (the classification) |
 | adr-coverage-bundle-shape | task-coverage-script (the script asset), task-coverage-bundle (the command, the skill, the grants) |
+| adr-scan-proof-scope | task-scan-proof (the two-target proof and the known limit) |
 
 ## Constraints
 
@@ -113,6 +114,9 @@ of its own:
   or when the class is a model class that every generated project must hold. A class with no matching
   path that is not a model class gets no report row and no proposal (C-CA29, C-CA31,
   C-FCA-08-01).
+- The scan proof holds two targets. The generated consumer tree is the clean gate and exits `0`.
+  The factory repository root is a report target and exits `1` with the three recorded rows. The
+  factory repository root target is a report, not a gate (C-FCA-08-02).
 - The scan cannot run inside `nix flake check`. The scan is a separate shell run. Each target holds
   its own `surface.tsv` (C-FCA-07-04, C-FCA-07-05).
 - The new seed-check proofs are eval-time `assert`s. The result file stays exactly five lines
@@ -139,6 +143,15 @@ and the render source in phase 4. The repository root is outside the `factory-ex
 so the owner of the root `surface.tsv` is the shipped role `repository-expert` (C-FCA-01-05). The
 `task-scan-proof` task reads the regenerated tree and the declaration.
 
+## Open follow-ups
+
+- The factory repository root holds three repository-level index files with no owner:
+  `services/README.md`, `libs/README.md`, and `deployment/README.md`. The three paths stay open. A
+  later change closes them or makes them emitted `managed` files (C-FCA-08-02).
+- The report names the class pattern of the class (`services/*`, `libs/*`, and `deployment/*`), not
+  the concrete unowned path. A later change may switch the coverage test to the concrete path
+  (C-FCA-08-03).
+
 ## Definition of done
 
 - The check of each task passes.
@@ -153,5 +166,7 @@ so the owner of the root `surface.tsv` is the shipped role `repository-expert` (
 - The generated declaration `surface.tsv` joins the plan with the copy mode `managed` and a
   rendered source of the run.
 - The scan writes the report to the standard output and exits `0`, `1`, or `2`.
-- The two clean scans give the exit code `0`.
+- The generated consumer tree scan gives the exit code `0`. The factory repository root scan runs,
+  is deterministic, and exits `1` with the three recorded rows. The factory repository root target
+  is a report, not a gate (C-FCA-08-02).
 - The acceptance criteria of each changed requirement pass.
