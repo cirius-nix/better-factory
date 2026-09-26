@@ -221,6 +221,7 @@ notifier, one publish target, and named presets.
 | Select harnesses | command | repository author |
 | Declare MCP entry | command | repository author |
 | Declare knowledge access | command | repository author |
+| Declare code intelligence | command | repository author |
 | Declare role | command | repository author |
 | Declare capability | command | role author |
 | State role contract | command | role author |
@@ -257,6 +258,8 @@ notifier, one publish target, and named presets.
 | Harness merged | event | repository author |
 | MCP entry translated | event | repository author |
 | Knowledge access declared | event | repository author |
+| Code intelligence declared | event | repository author |
+| Code intelligence resolved | event | repository author |
 | Role rendered | event | repository author |
 | Role contract stated | event | role author |
 | Capability declared | event | role author |

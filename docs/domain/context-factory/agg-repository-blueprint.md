@@ -19,8 +19,11 @@ The rules are simple, so the implementation uses a transaction script.
 One aggregate instance covers one emitted repository.
 The blueprint also renders the role files that carry the phase protocol, the release gate, and
 the design work (spec-protocol, spec-release-gate, spec-designer-role). It also renders the
-default permission set of each rendered role and the canonical `context7` MCP entry
-(spec-role-permissions, spec-mcp-knowledge).
+default permission set of each rendered role, the canonical `context7` MCP entry, and the
+canonical `codegraph` MCP entry (spec-role-permissions, spec-mcp-knowledge,
+spec-code-intelligence). The entry `codegraph` is a tool bundle: the `mcp` capability `codegraph`
+and its instruction skill `codegraph`. The roles `solution-expert` and `factory-expert` grant the
+instruction skill (spec-code-intelligence).
 
 The blueprint also records the capability set of each built-in role over the seven option kinds
 (spec-capability-kinds). Each capability holds one home: shipped to every generated project, or
@@ -56,6 +59,7 @@ set holds seven roles, so the union of the shipped agents covers the standard su
 | declared | Select harnesses | declared |
 | declared | Declare MCP entry | declared |
 | declared | Declare knowledge access | declared |
+| declared | Declare code intelligence | declared |
 | declared | Declare role | declared |
 | declared | Declare capability | declared |
 | declared | State role contract | declared |
@@ -181,8 +185,13 @@ set holds seven roles, so the union of the shipped agents covers the standard su
   broad `shell` rule before each specific shell rule. The last matching rule wins.
 - Only `artifact-master` holds the `subagent` allow and the `question` allow. Each other role
   holds the deny. The `artifact-master` shell rules deny `git push`.
-- The one MCP source holds the canonical entries `figma`, `pencil`, and `context7`. The preset
-  `full` declares the entry `context7`; the entry holds `disabled = true` by default.
+- The one MCP source holds the canonical entries `figma`, `pencil`, `context7`, and `codegraph`.
+  The preset `full` declares the entries `context7` and `codegraph`; each entry holds
+  `disabled = true` by default.
+- The `codegraph` entry is a tool bundle: the `mcp` capability `codegraph` and the instruction
+  skill `codegraph`. The two entries hold the same activation `always`. The roles
+  `solution-expert` and `factory-expert` grant the instruction skill
+  (spec-code-intelligence).
 - The one MCP source holds no remote entry: no `type` value `remote`, no `url`, and no
   `headers`.
 - The design method is one of `unset` and `ddd`. The ux flag is a bool. The design tool is one
@@ -237,6 +246,7 @@ it needs no corrective policy.
 | Select harnesses | The blueprint records the selected harness `opencode`. A value other than `opencode` is an error. | Harness merged |
 | Declare MCP entry | The blueprint records one MCP source entry. | MCP entry translated |
 | Declare knowledge access | The blueprint records the canonical `context7` entry in the one MCP source. | Knowledge access declared |
+| Declare code intelligence | The blueprint records the canonical `codegraph` entry in the one MCP source. | Code intelligence declared, Code intelligence resolved |
 | Declare role | The blueprint records one role source, its declaration, and its two-axis contract. | Role rendered, Permission set rendered |
 | Declare capability | The blueprint records one capability of a role, its kind, and its home. A shipped capability joins the plan. | Capability declared, Capability bundled, Capability shipped, Capability resolved |
 | State role contract | The blueprint records the ownership axis and the capability axis of the role. | Role contract stated |
@@ -261,6 +271,8 @@ it needs no corrective policy.
 | Harness merged | The selected harness and the merged key groups. |
 | MCP entry translated | The entry name and the rendered path in the opencode file. |
 | Knowledge access declared | The `context7` entry name, the canonical command, and the rendered path in the opencode file. |
+| Code intelligence declared | The `codegraph` entry name, the canonical command, and the rendered path in the opencode file. |
+| Code intelligence resolved | The entry name, the opencode target `mcp.servers.codegraph`, and the instruction skill path `.agents/skills/codegraph/SKILL.md`. |
 | Role rendered | The role name and the rendered path in the opencode file. |
 | Role contract stated | The role name, the ownership axis, and the capability axis. |
 | Capability declared | The role name, the capability kind, the capability name, and the home. |
