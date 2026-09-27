@@ -35,8 +35,8 @@
     site = {
       enable = true;
       title = "Better Factory Documentation";
-      url = "https://cirius-nix.github.io/better-factory";
-      baseUrl = "/";
+      url = "https://cirius-nix.github.io";
+      baseUrl = "/better-factory/";
       staticDirectories = [ ];
     };
     publish = {
