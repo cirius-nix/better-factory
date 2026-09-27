@@ -82,7 +82,7 @@ let
     text:
     let
       lines = builtins.map trimCarriage (splitLines text);
-      afterHeading = builtins.tail (
+      found =
         let
           find =
             xs:
@@ -93,8 +93,8 @@ let
             else
               find (builtins.tail xs);
         in
-        find lines
-      );
+        find lines;
+      afterHeading = if found == [ ] then [ ] else builtins.tail found;
       pipeLines = builtins.filter (l: startsWith "|" l) afterHeading;
       nameOf = l: builtins.match ".*(feat-[A-Za-z0-9-]+).*" l;
       names = builtins.filter (n: n != null) (

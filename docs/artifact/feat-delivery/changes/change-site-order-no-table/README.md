@@ -36,4 +36,4 @@ and does not change another feature. The check needs a fixture index without a
 
 ## Artifacts
 
-- [Implementation plan](tasks/README.md) (follows in phase 3)
+- [Implementation plan](tasks/README.md)
