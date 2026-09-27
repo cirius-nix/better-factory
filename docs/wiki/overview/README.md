@@ -1,8 +1,85 @@
 # Understand Better Factory
 
 The factory helps repository authors start and grow repositories from one
-standard setup. This page tells you what the factory is, what it gives, and how
-it works. Read it before you read the artifacts or change the factory code.
+standard setup. This page tells you why to use the factory and which pains it
+removes. It shows the shape of an adopted project. Then it tells you what the
+factory is, what it gives, and how it works. Read it before you read the
+artifacts or change the factory code.
+
+## Why use the factory
+
+- **One declaration gives the whole setup.** You write one file, `factory.nix`.
+  The factory derives the layout, the checks, and the harness files from this
+  file.
+- **One standard setup serves every repository.** Every repository uses the
+  same layout, the same checks, and the same rules. Each rule lives in one
+  place, and you learn it once.
+- **A green check proves the setup before the copy.** The seed check proves the
+  emitted tree before the copy step runs. A broken setup fails the check, and
+  you fix the setup before the copy.
+- **Each generated file names its owner.** The copy mode of a file tells you
+  who owns it. You know which files you own and which files the factory owns.
+- **You keep the seed files.** The factory creates a seed file when the file is
+  absent. After that, the factory never replaces the bytes of your seed file.
+
+## The pains it removes
+
+| Pain without the factory | How the factory removes the pain |
+| --- | --- |
+| Repositories use different rules, and the rules drift apart. | One standard setup serves every repository, and each rule lives in one factory source. |
+| A person copies the setup by hand, and no check proves the copy. | The seed check proves the emitted tree, and the check prints one green line for each layer. |
+| A person edits a generated file by hand, and the next copy overwrites the edit. | Each file declares its owner. The adopt step replaces a factory-owned file and keeps a seed file. |
+| Repository knowledge lands in a different place each time. | The standard layout puts artifacts in `docs/artifact/`, wiki pages in `docs/wiki/`, and the domain model in `docs/domain/`. |
+
+## What an adopted project looks like
+
+A consumer imports the factory and runs `factory-adopt`. The command copies the
+planned files into the consumer repository. The adopted repository then has the
+shape below.
+
+Root files:
+
+- `factory.nix`: the declaration of the project. The copy mode is `seed`, so
+  you own this file.
+- `README.md`: the repository README. The copy mode is `seed`.
+- `factory.config.yaml`: the settings that the factory reads from the
+  declaration. The copy mode is `template`.
+- `.gitignore`, `.markdownlint.yaml`, and `surface.tsv`: the factory owns these
+  files.
+- `devenv.yaml` and `devenv.nix`, or `flake.nix`: you declare the factory input
+  in one of the two paths. The factory copies no file of this class.
+
+Directories:
+
+- `docs/artifact/`: the artifacts of each feature. The starter tree holds the
+  feature `feat-example`.
+- `docs/wiki/`: the wiki pages.
+- `docs/domain/`: the domain model, when the design method is `ddd`.
+- `.opencode/`: the harness tree. It holds `opencode.jsonc`, the folder
+  `agents/`, the folder `commands/`, and the folder `scripts/`.
+- `.agents/skills/`: the project skills.
+- `apps/documentation/`: the docs site, when the site is enabled.
+- `.github/` and `scripts/`: the CI file and the notifier, when those keys are
+  set.
+
+The standard surface also names the component directories `apps/`,
+`services/`, `libs/`, `deployment/`, and `e2e/`. These classes are
+conditional, and the factory copies no file into them. A directory appears
+when the project needs it. With `arch = "multiple"`, the emitted tree also
+holds `e2e/README.md`.
+
+The devenv path gives three commands:
+
+| Command | What it does |
+| --- | --- |
+| `factory-check` | Runs the seed check. Prints five green lines, one for each layer: layout, arch, facade, copy-mode, and emit. |
+| `factory-emit` | Prints the path of the emitted tree. |
+| `factory-adopt` | Copies the planned files into the repository. Run `factory-adopt --dry-run` first to print the action of each file without a write. |
+
+The flake path runs the same work through `nix flake check`, `nix build .#emit`,
+and `nix build .#manifest`. Read the
+[Consumer Guide](../repo-arch/consumer-guide.md) for the two paths and for the
+keys of the declaration.
 
 ## What the factory is
 
