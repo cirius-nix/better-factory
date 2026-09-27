@@ -969,6 +969,22 @@ let
           resource = ".opencode/scripts/*";
           effect = "allow";
         }
+        {
+          resource = "docs/wiki/README.md";
+          effect = "allow";
+        }
+        {
+          resource = "docs/wiki/overview/*";
+          effect = "allow";
+        }
+        {
+          resource = "docs/wiki/repo-arch/consumer-guide.md";
+          effect = "allow";
+        }
+        {
+          resource = "docs/wiki/development/*";
+          effect = "allow";
+        }
       ];
       research = "allow";
       capabilities = validateCapabilities "repository-expert" [

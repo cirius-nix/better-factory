@@ -558,6 +558,10 @@ let
       { action = "edit"; resource = "factory.config.yaml"; effect = "allow"; }
       { action = "edit"; resource = ".opencode/opencode.jsonc"; effect = "allow"; }
       { action = "edit"; resource = ".opencode/scripts/*"; effect = "allow"; }
+      { action = "edit"; resource = "docs/wiki/README.md"; effect = "allow"; }
+      { action = "edit"; resource = "docs/wiki/overview/*"; effect = "allow"; }
+      { action = "edit"; resource = "docs/wiki/repo-arch/consumer-guide.md"; effect = "allow"; }
+      { action = "edit"; resource = "docs/wiki/development/*"; effect = "allow"; }
       { action = "read"; resource = "*"; effect = "allow"; }
       { action = "glob"; resource = "*"; effect = "allow"; }
       { action = "grep"; resource = "*"; effect = "allow"; }
@@ -823,6 +827,10 @@ let
       "factory.config.yaml"
       ".opencode/opencode.jsonc"
       ".opencode/scripts/*"
+      "docs/wiki/README.md"
+      "docs/wiki/overview/*"
+      "docs/wiki/repo-arch/consumer-guide.md"
+      "docs/wiki/development/*"
     ];
   };
   permContractRoles = builtins.listToAttrs (

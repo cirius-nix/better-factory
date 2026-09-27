@@ -24,6 +24,10 @@ write outside the set fails.
 - `factory.config.yaml`
 - `.opencode/opencode.jsonc`
 - `.opencode/scripts/*`
+- `docs/wiki/README.md`
+- `docs/wiki/overview/*`
+- `docs/wiki/repo-arch/consumer-guide.md`
+- `docs/wiki/development/*`
 
 ## Capability
 
