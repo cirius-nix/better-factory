@@ -178,12 +178,16 @@ function compareEntries(a, b, parent) {
   return compareLabels(a.label || a.name, b.label || b.name, a.name, b.name);
 }
 
-function withGeneratedIndex(items) {
+// Each category without a link gets a generated index at its own folder route.
+// The route is the path of the folder, so two categories of the same name in
+// two features never share a route.
+function withGeneratedIndex(items, basePath) {
   return items.map((item) => {
     if (item.type !== 'category') return item;
-    const next = { ...item, items: withGeneratedIndex(item.items || []) };
+    const path = basePath + '/' + sourceNameOf(item);
+    const next = { ...item, items: withGeneratedIndex(item.items || [], path) };
     if (!next.link) {
-      next.link = { type: 'generated-index', title: next.label, slug: '/' + next.label };
+      next.link = { type: 'generated-index', title: next.label, slug: path };
     }
     return next;
   });
@@ -206,7 +210,7 @@ function sortLevel(items, parent) {
 
 async function sidebarItemsGenerator({ defaultSidebarItemsGenerator, ...args }) {
   const items = await defaultSidebarItemsGenerator(args);
-  return withCapitalizedLabels(sortLevel(withGeneratedIndex(items), null), docLabelMap(args.docs));
+  return withCapitalizedLabels(sortLevel(withGeneratedIndex(items, ''), null), docLabelMap(args.docs));
 }
 
 /** @type {import('@docusaurus/types').Config} */
