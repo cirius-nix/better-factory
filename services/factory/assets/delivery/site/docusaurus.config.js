@@ -34,6 +34,26 @@ function isIndexDocument(name) {
   return base === 'index' || base === 'readme';
 }
 
+// The structural name of an item: the folder name of a category, or the file
+// base of a document. A category that links an index document carries that
+// document title as its label and the index document id as its link, so the
+// ordering rules never read the label; only the final case-insensitive compare
+// does.
+function sourceNameOf(item) {
+  if (item.type === 'doc') return baseOf(item.id || '');
+  const link = item.link;
+  if (link && link.type === 'doc' && link.id) {
+    const parts = String(link.id).split('/');
+    const last = parts[parts.length - 1].toLowerCase();
+    if ((last === 'readme' || last === 'index') && parts.length >= 2) {
+      return parts[parts.length - 2];
+    }
+    return last;
+  }
+  if (item.source) return item.source;
+  return item.label || '';
+}
+
 // The artifact phase rank: requirements, specifications, decisions, tasks.
 const phaseRankOf = {
   requirements: 0,
@@ -128,16 +148,15 @@ function withGeneratedIndex(items) {
 }
 
 function sortLevel(items, parent) {
-  const sorted = items.slice().sort((a, b) =>
-    compareEntries(
-      { name: a.label || '', kind: a.type === 'doc' ? 'doc' : 'dir', label: a.label || '' },
-      { name: b.label || '', kind: b.type === 'doc' ? 'doc' : 'dir', label: b.label || '' },
-      parent,
-    ),
-  );
+  const entry = (item) => ({
+    name: sourceNameOf(item),
+    kind: item.type === 'doc' ? 'doc' : 'dir',
+    label: item.label || '',
+  });
+  const sorted = items.slice().sort((a, b) => compareEntries(entry(a), entry(b), parent));
   return sorted.map((item) => {
     if (item.type === 'category' && item.items) {
-      return { ...item, items: sortLevel(item.items, item.label) };
+      return { ...item, items: sortLevel(item.items, sourceNameOf(item)) };
     }
     return item;
   });
