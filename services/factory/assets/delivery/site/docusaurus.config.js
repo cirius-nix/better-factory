@@ -54,6 +54,48 @@ function sourceNameOf(item) {
   return item.label || '';
 }
 
+// Every navigation label shows a capital first letter. A label that already
+// starts with a capital or with no letter stays as written.
+function capitalizeLabel(label) {
+  const text = String(label || '');
+  if (!text) return text;
+  const first = text.charAt(0);
+  const upper = first.toUpperCase();
+  return upper === first ? text : upper + text.slice(1);
+}
+
+// The label source of each document: the sidebar label, then the title. The
+// generator holds the document metadata, so a document item carries its label
+// before the plugin resolves it.
+function docLabelMap(docs) {
+  const map = new Map();
+  for (const doc of docs || []) {
+    const meta = doc.frontMatter || {};
+    map.set(doc.id, meta.sidebar_label !== undefined ? meta.sidebar_label : doc.title);
+  }
+  return map;
+}
+
+// The whole tree carries the capital first letter. An item with no label keeps
+// no label. The title of a generated index follows its label; the slug stays
+// as planned so no route changes.
+function withCapitalizedLabels(items, docLabels) {
+  return items.map((item) => {
+    const next = { ...item };
+    const label = item.type === 'doc' ? docLabels.get(item.id) : item.label;
+    if (typeof label === 'string' && label !== '') {
+      next.label = capitalizeLabel(label);
+    }
+    if (next.link && next.link.type === 'generated-index' && next.link.title !== undefined) {
+      next.link = { ...next.link, title: capitalizeLabel(next.link.title) };
+    }
+    if (item.type === 'category' && item.items) {
+      next.items = withCapitalizedLabels(item.items, docLabels);
+    }
+    return next;
+  });
+}
+
 // The artifact phase rank: requirements, specifications, decisions, tasks.
 const phaseRankOf = {
   requirements: 0,
@@ -164,7 +206,7 @@ function sortLevel(items, parent) {
 
 async function sidebarItemsGenerator({ defaultSidebarItemsGenerator, ...args }) {
   const items = await defaultSidebarItemsGenerator(args);
-  return sortLevel(withGeneratedIndex(items), null);
+  return withCapitalizedLabels(sortLevel(withGeneratedIndex(items), null), docLabelMap(args.docs));
 }
 
 /** @type {import('@docusaurus/types').Config} */
