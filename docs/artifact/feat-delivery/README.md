@@ -1,6 +1,6 @@
 # Feature: delivery
 
-**Current version:** 1.1.0
+**Current version:** 1.1.1
 
 ## Summary
 
@@ -10,9 +10,9 @@ select the keys of F1 through F4.
 
 ## Current artifacts
 
-- [Requirements](versions/1.1.0/requirements/README.md)
-- [Specifications](versions/1.1.0/specifications/README.md)
-- [Decisions](versions/1.1.0/decisions/)
+- [Requirements](versions/1.1.1/requirements/README.md)
+- [Specifications](versions/1.1.1/specifications/README.md)
+- [Decisions](versions/1.1.1/decisions/)
 
 ## Versions
 
@@ -20,6 +20,7 @@ select the keys of F1 through F4.
 | --- | --- | --- |
 | 1.0.0 | [Initial](changes/change-initial/README.md) | Requirements |
 | 1.1.0 | [opencode-only](changes/change-opencode-only/README.md) | Specifications |
+| 1.1.1 | [site-order-no-table](changes/change-site-order-no-table/README.md) | Correction |
 
 ## Artifacts
 

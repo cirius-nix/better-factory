@@ -2168,6 +2168,7 @@ let
   siteIndexRoot = factoryDir + "/assets/delivery/fixtures/index";
   siteNoIndexRoot = factoryDir + "/assets/delivery/fixtures/no-index";
   sitePartialRoot = factoryDir + "/assets/delivery/fixtures/partial";
+  siteNoTableRoot = factoryDir + "/assets/delivery/fixtures/no-table";
   siteEnabledSettings = {
     site = {
       enable = true;
@@ -2300,6 +2301,15 @@ let
           "feat-beta"
         ];
       message = "site-no-index-order: the order without an index is not the alphabetical order of the feature folders";
+    }
+    {
+      name = "site-no-table-order";
+      assertion =
+        siteLib.featureOrder siteNoTableRoot == [
+          "feat-alpha"
+          "feat-beta"
+        ];
+      message = "site-no-table-order: an index without a `## Features` heading does not give the alphabetical order of the feature folders";
     }
     {
       name = "site-config-markers";
