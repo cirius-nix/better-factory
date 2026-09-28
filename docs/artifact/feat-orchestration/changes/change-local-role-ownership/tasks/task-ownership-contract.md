@@ -14,8 +14,9 @@ shape of the field `ownership`.
 
 ## Goal
 
-Extend the derive `permissionRulesFor` of `services/factory/lib/harness.nix` with the optional
-declaration map. Resolve the contract of a rendered role name in the order table, declaration,
+Extend the derive `permissionRulesFor` of `services/factory/lib/harness.nix` with the
+declaration-aware call form `permissionRulesFor { roleName; tool; decls; }`. Resolve the contract
+of a rendered role name in the order table, declaration,
 restrictive default. Build the rendered-name to declaration map in `mergeAgents`, write the
 shipped-role precedence line `managed-wins: roles.<name>.ownership from <layer>`, and return the
 trace list. The managed key `agents.<role>.permissions` of a declared role absent from the table
@@ -46,16 +47,19 @@ holds the declaration contract.
 
 ## Steps
 
-1. Extend the derive: `permissionRulesFor roleName tool decls ? { }`. Keep the render order. Resolve
-   the contract `c` in this order:
+1. Give the derive two call forms. The legacy form `permissionRulesFor roleName tool` keeps the
+   table-or-default look-up and defaults the declaration map to `{ }`. The declaration-aware form
+   `permissionRulesFor { roleName; tool; decls; }` defaults `tool` to `"unset"` and `decls` to
+   `{ }`. `mergeAgents` calls the attribute-set form. Keep the render order. Resolve the contract
+   `c` in this order:
    - the table `roleContracts.<roleName>`, when the name is in the table;
    - the declaration contract `defaultRoleContract // { ownership = decls.<roleName>.ownership; }`,
      when the name is absent from the table and `decls.<roleName>.ownership` is non-empty;
    - the restrictive default `defaultRoleContract`, otherwise (C-LRO-04, C-LRO-05).
-2. Keep each existing two-argument call valid. The default `{ }` gives the table-or-default
-   look-up (FAC-03-01, C-LRO-05).
-3. Give `managedOpencodeSettings` the declaration map. The function passes the map to
-   `permissionRulesFor` for each rendered role name (C-LRO-05).
+2. Keep each existing two-argument call valid. The legacy form gives the table-or-default look-up
+   (FAC-03-01, C-LRO-05).
+3. Give `managedOpencodeSettings` the declaration map. The function calls the declaration-aware
+   form `permissionRulesFor { roleName; tool; decls; }` for each rendered role name (C-LRO-05).
 4. Build the declaration map in `mergeAgents` from `mergedRoles`. The key is the rendered role
    name: the field `name` of the declaration, or the attribute name when the field is absent
    (RC01-C3). Pass the map to `managedOpencodeSettings` (C-LRO-05).
@@ -91,8 +95,9 @@ holds the declaration contract.
   declared ownership of a shipped role name (C-LRO-06).
 - `mergeAgents` returns the trace list. The field `traces` holds the opencode managed-key traces
   (C-LRO-07).
-- The entrypoint passes no new argument. The two-argument call of `permissionRulesFor` keeps the
-  table-or-default look-up (C-LRO-05).
+- The entrypoint passes no new argument. The legacy call `permissionRulesFor roleName tool` keeps
+  the table-or-default look-up. `mergeAgents` calls the declaration-aware form
+  `permissionRulesFor { roleName; tool; decls; }` (C-LRO-05).
 - The managed key path stays `agents.<role>.permissions`. The key uses the rendered role name.
 - No shipped ownership widens. The `default.nix` import list stays `modules/` only.
 
@@ -101,7 +106,7 @@ holds the declaration contract.
 Read the derived array of a declared role:
 
 ```sh
-nix eval --impure --expr 'let h = import ./services/factory/lib/harness.nix; in h.permissionRulesFor "game-expert" "unset" { game-expert = { ownership = [ { resource = "docs/game/*"; effect = "allow"; } ]; }; }'
+nix eval --impure --expr 'let h = import ./services/factory/lib/harness.nix; in h.permissionRulesFor { roleName = "game-expert"; tool = "unset"; decls = { game-expert = { ownership = [ { resource = "docs/game/*"; effect = "allow"; } ]; }; }; }'
 ```
 
 The output holds the broad `edit` deny rule, then
@@ -110,7 +115,7 @@ The output holds the broad `edit` deny rule, then
 Read the shipped precedence:
 
 ```sh
-nix eval --impure --expr 'let h = import ./services/factory/lib/harness.nix; in h.permissionRulesFor "repository-expert" "unset" { repository-expert = { ownership = [ { resource = "docs/game/*"; effect = "allow"; } ]; }; }'
+nix eval --impure --expr 'let h = import ./services/factory/lib/harness.nix; in h.permissionRulesFor { roleName = "repository-expert"; tool = "unset"; decls = { repository-expert = { ownership = [ { resource = "docs/game/*"; effect = "allow"; } ]; }; }; }'
 ```
 
 The output equals the shipped array of `repository-expert`. The declared ownership adds no rule.

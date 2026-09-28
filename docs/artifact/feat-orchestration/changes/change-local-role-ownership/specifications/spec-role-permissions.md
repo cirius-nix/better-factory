@@ -17,10 +17,13 @@
    `agents.<role>.permissions` (spec-harness-merge).
 4. The permission key `agents.<role>` and the rendered role file name use the rendered role name
    (RC01-C3).
-5. The function `permissionRulesFor roleName tool decls` holds the optional third argument
-   `decls`, the rendered-name to declaration map. The resolution order is the table
-   `roleContracts`, then the declaration `ownership`, then `defaultRoleContract`
-   (spec-local-role-ownership).
+5. The function `permissionRulesFor` accepts two call forms. The legacy form
+   `permissionRulesFor roleName tool` keeps the table-or-default look-up and defaults the
+   declaration map to `{ }`. The declaration-aware form
+   `permissionRulesFor { roleName; tool; decls; }` takes the rendered-name to declaration map
+   `decls` and defaults `tool` to `"unset"` and `decls` to `{ }`. The resolution order is the
+   table `roleContracts`, then the declaration `ownership`, then `defaultRoleContract`
+   (spec-local-role-ownership, C-LRO-05).
 6. The function `mergeAgents` builds the map `decls` from the merged role declarations and passes
    the map to `managedOpencodeSettings` and to `permissionRulesFor`. The function returns the
    trace list of the opencode managed key paths (spec-harness-merge).
@@ -302,11 +305,13 @@ spec-capability-kinds. A capability never grants a write outside the ownership s
    table gives the data of the rules. The table is not the source of the order (RC01-C2).
 7. The table and the derive function stay in `lib/harness.nix`. The library holds no nixpkgs
    dependency.
-8. The function `permissionRulesFor roleName tool decls` holds the optional third argument
-   `decls`, the rendered-name to declaration map. The resolution order is the table
-   `roleContracts`, then the declaration `ownership`, then `defaultRoleContract`. The function
-   `mergeAgents` builds the map from the merged role declarations and passes the map to the
-   derive (spec-local-role-ownership).
+8. The function `permissionRulesFor` accepts the legacy form `permissionRulesFor roleName tool`
+   and the declaration-aware form `permissionRulesFor { roleName; tool; decls; }`. The
+   declaration-aware form takes the rendered-name to declaration map `decls` and defaults `tool`
+   to `"unset"` and `decls` to `{ }`. The resolution order is the table `roleContracts`, then
+   the declaration `ownership`, then `defaultRoleContract`. The function `mergeAgents` builds the
+   map from the merged role declarations and calls the attribute-set form
+   (spec-local-role-ownership).
 9. The function `mergeAgents` returns the trace list of the opencode managed key paths. The
    check reads the list (spec-local-role-ownership, spec-harness-merge).
 
@@ -501,7 +506,7 @@ contract belong to spec-local-role-ownership.
 | C-FAC-01-07 | The shell rules of `artifact-release-expert` replace `rm docs/artifact/*` with the two narrow rules `rm -rf docs/artifact/*/versions/*` and `rm -rf docs/artifact/*/changes/change-*`, and add the rule `sh .opencode/scripts/artifact-cleanup.sh *`. The broad `deny` rule stays first. | services/factory |
 | C-FAC-01-08 | The capability set of `artifact-release-expert` gains the `skill` capability `artifact-cleanup` and the `command` capability `artifact-cleanup`. The permission derive adds the `skill` allow rule `artifact-cleanup` after the `asd-ste-100` rule. The fixture `permExpected.artifact-release-expert` advances with the rule (spec-capability-kinds, spec-cleanup-bundle). | services/factory |
 | C-LRO-04 | The declaration contract of a rendered role name absent from the table holds the declared ownership plus the restrictive research `deny`, the empty capability set, and the restrictive governance rules and shell rules of `defaultRoleContract`. A declaration without `ownership` keeps `defaultRoleContract` (spec-local-role-ownership). | services/factory |
-| C-LRO-05 | The function `permissionRulesFor` holds the optional third argument `decls`. The function `mergeAgents` builds the rendered-name to declaration map and passes it. The resolution order is the table, then the declaration `ownership`, then `defaultRoleContract` (spec-local-role-ownership). | services/factory |
+| C-LRO-05 | The function `permissionRulesFor` accepts the legacy form `permissionRulesFor roleName tool` and the declaration-aware form `permissionRulesFor { roleName; tool; decls; }`. The declaration-aware form takes the rendered-name to declaration map `decls` and defaults `tool` to `"unset"` and `decls` to `{ }`. The function `mergeAgents` builds the map and calls the attribute-set form. The resolution order is the table, then the declaration `ownership`, then `defaultRoleContract` (spec-local-role-ownership). | services/factory |
 | C-LRO-06 | The table wins for a shipped role name. The factory writes one line `managed-wins: roles.<name>.ownership from <layer>` when a declaration of a shipped role name carries `ownership`. Evaluation stays green (spec-local-role-ownership). | services/factory |
 | C-LRO-07 | The check proves the four declared-ownership fixtures. The function `mergeAgents` returns the trace list. The result file of the seed check stays exactly five lines (spec-local-role-ownership). | services/factory |
 

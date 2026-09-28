@@ -62,10 +62,11 @@ attribute set, and the plain string only. The change selects the plain string or
 The change selects the escape rule. The options are the minimal rule, the strict rule, and the
 whitelist rule. The change selects the strict rule (adr-local-ownership-escape-rule).
 
-The change selects the path of the declaration to the derive. The options are the optional
-argument of `permissionRulesFor`, the new function `contractFor`, and the contract map of the
-entrypoint. The change selects the optional argument of `permissionRulesFor`
-(adr-local-ownership-contract-derive).
+The change selects the path of the declaration to the derive. The options are the declaration
+input of `permissionRulesFor`, the new function `contractFor`, and the contract map of the
+entrypoint. The change selects the declaration input of `permissionRulesFor`: the legacy form
+`permissionRulesFor roleName tool` stays, and `mergeAgents` calls the declaration-aware form
+`permissionRulesFor { roleName; tool; decls; }` (adr-local-ownership-contract-derive).
 
 The change selects the shipped-role behavior. The options are the silent ignore, the table wins
 with one log line, and the failed evaluation. The change selects the table wins with one log line

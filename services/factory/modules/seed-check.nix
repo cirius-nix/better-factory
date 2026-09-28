@@ -848,6 +848,108 @@ let
     chapterMap = { };
   };
   permContractBody = n: builtins.readFile (fileByRel permContractRender.fileDecls ".opencode/agents/${n}.md").source;
+
+  # The four declared-ownership fixtures (spec-local-role-ownership, C-LRO-04
+  # to C-LRO-07). Each proof is an eval-time `assert`, so the result file of
+  # the seed check stays exactly five lines.
+  localOwnedProject = orchestration.evalAgents {
+    uses = [ "opencode" ];
+    roles = {
+      game-expert = {
+        description = "declared ownership fixture";
+        source = permSource;
+        ownership = [ "docs/game/*" ];
+      };
+      plain-expert = {
+        description = "declared default fixture";
+        source = permSource;
+      };
+    };
+  };
+  localOwnedNames = [
+    "game-expert"
+    "plain-expert"
+  ];
+  localOwnedMerged = harnessLib.mergeAgents {
+    project = localOwnedProject;
+    roleNames = localOwnedNames;
+    tool = "unset";
+  };
+  localOwnedSelected = harnessLib.renderSelected {
+    merged = localOwnedMerged;
+    uses = [ "opencode" ];
+  };
+  localOwnedDoc = builtins.fromJSON (
+    builtins.readFile (fileByRel localOwnedSelected.fileDecls ".opencode/opencode.jsonc").source
+  );
+  # The declaration contract of `game-expert`: the declared ownership plus
+  # the restrictive research `deny`, the empty capability set, and the
+  # restrictive governance and shell defaults (C-LRO-04). The array is a
+  # literal and independent of the role-contract table (RC01-C5).
+  permLocalOwned = [
+    { action = "edit"; resource = "*"; effect = "deny"; }
+    { action = "edit"; resource = "docs/game/*"; effect = "allow"; }
+    { action = "read"; resource = "*"; effect = "allow"; }
+    { action = "glob"; resource = "*"; effect = "allow"; }
+    { action = "grep"; resource = "*"; effect = "allow"; }
+    { action = "webfetch"; resource = "*"; effect = "deny"; }
+    { action = "websearch"; resource = "*"; effect = "deny"; }
+    { action = "skill"; resource = "*"; effect = "ask"; }
+    { action = "subagent"; resource = "*"; effect = "deny"; }
+    { action = "question"; resource = "*"; effect = "deny"; }
+    { action = "shell"; resource = "*"; effect = "deny"; }
+  ];
+  # The declared role path `agents.game-expert.permissions` writes no
+  # `managed-wins` trace line (C-LRO-07).
+  localOwnedNoPermissionTrace = builtins.all (
+    t: builtins.match ".*agents\\.game-expert\\.permissions.*" t == null
+  ) localOwnedMerged.traces;
+  # The shipped-role precedence fixture (C-LRO-06). The declaration of the
+  # shipped name `repository-expert` carries `ownership`; the table wins and
+  # the declared ownership adds no rule.
+  shippedOwningProject = orchestration.evalAgents {
+    uses = [ "opencode" ];
+    roles = {
+      repository-expert = {
+        description = "shipped precedence fixture";
+        source = factoryDir + "/assets/roles/repository-expert/ROLE.md";
+        ownership = [ "docs/game/*" ];
+      };
+    };
+  };
+  shippedOwningMerged = harnessLib.mergeAgents {
+    project = shippedOwningProject;
+    roleNames = [ "repository-expert" ];
+    tool = "unset";
+  };
+  shippedOwningSelected = harnessLib.renderSelected {
+    merged = shippedOwningMerged;
+    uses = [ "opencode" ];
+  };
+  shippedOwningDoc = builtins.fromJSON (
+    builtins.readFile (fileByRel shippedOwningSelected.fileDecls ".opencode/opencode.jsonc").source
+  );
+  shippedOwningTrace = builtins.elem "managed-wins: roles.repository-expert.ownership from project" (
+    shippedOwningMerged.traces
+  );
+  # The escape fixture (C-LRO-03). The declaration with an ownership path
+  # outside the project root fails evaluation.
+  escapeRejected =
+    (builtins.tryEval (
+      builtins.deepSeq (
+        orchestration.evalAgents {
+          uses = [ ];
+          roles = {
+            outside-expert = {
+              description = "escape fixture";
+              source = permSource;
+              ownership = [ "../outside/*" ];
+            };
+          };
+        }
+      ) true
+    )).success == false;
+
   permissionAssertions =
     builtins.map (role: {
       name = "permission-array-${role}";
@@ -895,6 +997,30 @@ let
         name = "permission-designer-pencil";
         assertion = permDocPencil.agents."designer-expert".permissions == permDesignerPencil;
         message = "permission-designer-pencil: the `pencil` fixture misses the `pencil` rule or holds a `figma` rule";
+      }
+      {
+        name = "permission-local-ownership";
+        assertion =
+          localOwnedDoc.agents."game-expert".permissions == permLocalOwned
+          && localOwnedNoPermissionTrace;
+        message = "permission-local-ownership: the declared role `game-expert` differs from the declaration contract or the trace list holds an `agents.game-expert.permissions` line";
+      }
+      {
+        name = "permission-local-default";
+        assertion = localOwnedDoc.agents."plain-expert".permissions == permExpected.unknown-role;
+        message = "permission-local-default: a declaration without `ownership` differs from the restrictive default";
+      }
+      {
+        name = "permission-shipped-precedence";
+        assertion =
+          shippedOwningDoc.agents."repository-expert".permissions == permExpected.repository-expert
+          && shippedOwningTrace;
+        message = "permission-shipped-precedence: the shipped role `repository-expert` differs from the shipped array or the precedence line is absent";
+      }
+      {
+        name = "permission-escape-rejected";
+        assertion = escapeRejected;
+        message = "permission-escape-rejected: an ownership path outside the project root passes evaluation";
       }
     ]
     ++ builtins.map (n: {

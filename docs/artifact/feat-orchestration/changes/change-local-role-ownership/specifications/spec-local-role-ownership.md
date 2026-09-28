@@ -28,8 +28,12 @@
 10. The derive resolves the contract of a rendered role name. The resolution order is the
     role-contract table `roleContracts`, then the declaration `ownership`, then the restrictive
     default `defaultRoleContract`.
-11. The function `permissionRulesFor` of `lib/harness.nix` holds the optional third argument
-    `decls`. The map `decls` gives the declaration of a rendered role name.
+11. The function `permissionRulesFor` of `lib/harness.nix` accepts two call forms. The legacy
+    form `permissionRulesFor roleName tool` keeps the table-or-default look-up and defaults the
+    declaration map to `{ }`. The declaration-aware form
+    `permissionRulesFor { roleName; tool; decls; }` takes the map `decls` and defaults `tool` to
+    `"unset"` and `decls` to `{ }`. The map `decls` gives the declaration of a rendered role
+    name.
 12. The function `mergeAgents` builds the map `decls` from the merged role declarations. The
     function passes the map to `managedOpencodeSettings` and to `permissionRulesFor`.
 13. The declaration contract holds the declared ownership plus the restrictive research `deny`,
@@ -190,7 +194,7 @@ shipped ownership.
 | C-LRO-02 | An ownership entry is a plain string or an attribute set. A string means the entry `{ resource = s; effect = "allow"; }`. An attribute set holds the required field `resource` and the optional field `effect` with the value `allow`, `deny`, or `ask` and the default `allow`. The builder normalizes each entry to `{ resource; effect; }`. The named errors are `role-ownership-type`, `role-ownership-entry`, `role-ownership-field`, and `role-ownership-effect`. | services/factory |
 | C-LRO-03 | The builder `checkRoleWith` rejects an ownership pattern that starts with `/`, an ownership pattern that starts with `~`, an empty ownership pattern, and an ownership pattern with a path segment `..`. Each failure gives the named message `role-ownership-escape`. The rule is syntactic, because the derive reads no project root. | services/factory |
 | C-LRO-04 | The declaration contract of a rendered role name absent from the table holds the declared ownership plus the restrictive research `deny`, the empty capability set, and the restrictive governance rules and shell rules of `defaultRoleContract`. A declaration without `ownership` keeps `defaultRoleContract`. | services/factory |
-| C-LRO-05 | The resolution order is the table `roleContracts`, then the declaration `ownership`, then `defaultRoleContract`. The function `permissionRulesFor` holds the optional third argument `decls`, the rendered-name to declaration map. The function `mergeAgents` builds the map and passes it to `managedOpencodeSettings` and to `permissionRulesFor`. | services/factory |
+| C-LRO-05 | The resolution order is the table `roleContracts`, then the declaration `ownership`, then `defaultRoleContract`. The function `permissionRulesFor` accepts the legacy form `permissionRulesFor roleName tool` and the declaration-aware form `permissionRulesFor { roleName; tool; decls; }`. The declaration-aware form takes the rendered-name to declaration map `decls` and defaults `tool` to `"unset"` and `decls` to `{ }`. The function `mergeAgents` builds the map and calls the attribute-set form. | services/factory |
 | C-LRO-06 | The table wins for a shipped role name. A declaration of a shipped role name with an `ownership` adds no rule. The factory writes one line `managed-wins: roles.<name>.ownership from <layer>`. Evaluation stays green. | services/factory |
 | C-LRO-07 | The function `mergeAgents` returns the trace list of the opencode managed key paths. The four fixtures prove the rules: `permission-local-ownership`, `permission-local-default`, `permission-shipped-precedence`, and `permission-escape-rejected`. The result file of the seed check stays exactly five lines. | services/factory |
 | C-LRO-08 | The role-builder reference states the consumer path, the fields `source` and `ownership`, the `extraAgents` pattern for a config-only agent and its limit, and the opencode version 2 mapping `agents`, `description`, `mode`, `system`, and `permissions` (spec-role-builder-reference). | services/factory |

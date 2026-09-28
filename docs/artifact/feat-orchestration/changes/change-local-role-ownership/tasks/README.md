@@ -104,7 +104,7 @@ of its own:
 | --- | --- |
 | adr-local-ownership-entry-shape | task-ownership-declaration (the two entry shapes and the normalize in `checkRoleWith`) |
 | adr-local-ownership-escape-rule | task-ownership-declaration (the syntactic rule and the named message `role-ownership-escape`) |
-| adr-local-ownership-contract-derive | task-ownership-contract (the optional argument `decls`, the rendered-name map of `mergeAgents`, and the three-way selection) |
+| adr-local-ownership-contract-derive | task-ownership-contract (the declaration-aware call form `permissionRulesFor { roleName; tool; decls; }`, the rendered-name map of `mergeAgents`, and the three-way selection) |
 | adr-shipped-role-precedence-log | task-ownership-contract (the table wins and the line `managed-wins: roles.<name>.ownership from <layer>`); task-seed-fixtures (the precedence fixture) |
 | adr-local-ownership-layer | task-ownership-declaration (the shared builder of both layers) |
 | adr-local-ownership-fixture-proof | task-ownership-contract (the returned trace list); task-seed-fixtures (the four fixtures) |
@@ -121,7 +121,7 @@ resolution in the change specification. The task carries the constraint.
 
 | # | Constraint | Resolution | Task |
 | --- | --- | --- | --- |
-| FAC-03-01 | The derive `permissionRulesFor` is called with two arguments at each existing site, namely `capabilitySkillAllows` of the seed check and the permission fixtures. A required third argument returns a partial application and breaks those calls. | The third argument `decls` is optional with the default `{ }`. A two-argument call keeps the table-or-default look-up; a three-argument call reads the declaration (C-LRO-05). | task-ownership-contract |
+| FAC-03-01 | The derive `permissionRulesFor` is called with two positional arguments at each existing site, namely `capabilitySkillAllows` of the seed check and the permission fixtures. Nix cannot express an optional positional third argument, so a third positional argument returns a partial application and breaks those calls. | The derive accepts two call forms. The legacy form `permissionRulesFor roleName tool` keeps the table-or-default look-up. The declaration-aware form `permissionRulesFor { roleName; tool; decls; }` reads the declaration and defaults `tool` to `"unset"` and `decls` to `{ }` (C-LRO-05). | task-ownership-contract |
 | FAC-03-02 | The result of `mergeAgents` gains the trace field. Each caller reads a field by name. | The result gains the field `traces` with the opencode managed-key trace list. No existing field changes its name or its value (C-LRO-07). | task-ownership-contract |
 | FAC-03-03 | The discovered shipped declarations of `modules/entrypoint.nix` hold no `ownership` field. A required field rejects them and breaks the shipped role set. | The field is optional. An absent field gives the empty list in `checkRoleWith`, so each existing declaration passes (C-LRO-01). | task-ownership-declaration |
 | FAC-03-04 | The derive reads no project root, so the escape rule cannot resolve a pattern against the root. | The escape rule is syntactic: the builder rejects a leading `/`, a leading `~`, an empty pattern, and a `..` segment (C-LRO-03). | task-ownership-declaration |

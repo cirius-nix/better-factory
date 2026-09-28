@@ -25,9 +25,11 @@
    spec-capability-ship).
 8. The factory renders no claude output and no codex output.
 9. The function `mergeAgents` builds the map from a rendered role name to its declaration. The
-   function passes the map to the derive `permissionRulesFor` and to `managedOpencodeSettings`.
-   The managed key `agents.<role>.permissions` of a declared role name absent from the table holds
-   the declaration contract (spec-local-role-ownership).
+   function passes the map to the derive through the declaration-aware form
+   `permissionRulesFor { roleName; tool; decls; }` and to `managedOpencodeSettings`. The legacy
+   form `permissionRulesFor roleName tool` stays. The managed key `agents.<role>.permissions` of
+   a declared role name absent from the table holds the declaration contract
+   (spec-local-role-ownership).
 
 ### Events
 
@@ -365,7 +367,7 @@ modeled-key list gain the group `agents` (spec-facade-root of feat-foundation 1.
 | C-CL21 | The field `skills` of the version 3.0.0 role-contract table folds into the `capabilities` list in the same order and with the same set. The version 3.0.0 skill chain keeps its bytes. The fixture gains the instruction skill rules of the bundle (FCL-04-03, req-capability-bundle). The legacy chain maps unconditionally, so the `ddd-review` rule stays under the design method `unset` (C-FCL-06-05). | services/factory |
 | C-FCL-06-04 | The seed-check grant assertion is an eval-time `assert`. The result file stays exactly five lines. The assertion reads the `agents.<role>.permissions` value of the `uxMergedTrue` document at `tool = "unset"` and of the main fixture at `figma`; the two expected arrays agree (C-FCL-06-03). The permission set stays one managed leaf. | services/factory |
 | C-CL36 | The seed check receives the `factory-expert` body through the optional argument `factoryExpertBody` of `mkSeedCheck`. The value null asserts the five shipped role bodies only. A path value asserts the four literal ownership patterns and the `## Capability` lines of `factory-expert` against the role-contract table. The factory repository runner passes the local path `utils/agent/role/factory-expert/ROLE.md` through the flake `nix flake check ./services/factory/examples/self`. The check keeps the pure-Nix rule and the five-line result rule (adr-seed-check-body-input). | services/factory |
-| C-LRO-05 | The function `mergeAgents` builds the rendered-name to declaration map and passes it to `permissionRulesFor` and `managedOpencodeSettings`. The resolution order is the table `roleContracts`, then the declaration `ownership`, then `defaultRoleContract` (spec-local-role-ownership). | services/factory |
+| C-LRO-05 | The function `mergeAgents` builds the rendered-name to declaration map, calls the declaration-aware form `permissionRulesFor { roleName; tool; decls; }`, and passes the map to `managedOpencodeSettings`. The function `permissionRulesFor` keeps the legacy form `permissionRulesFor roleName tool`. The resolution order is the table `roleContracts`, then the declaration `ownership`, then `defaultRoleContract` (spec-local-role-ownership). | services/factory |
 | C-LRO-06 | The table wins for a shipped role name. The factory writes one line `managed-wins: roles.<name>.ownership from <layer>` when a declaration of a shipped role name carries `ownership`. Evaluation stays green (spec-local-role-ownership). | services/factory |
 | C-LRO-07 | The function `mergeAgents` returns the trace list of the opencode managed key paths. The check reads the list to prove the absent `managed-wins` line of a declared role path. The result file stays exactly five lines (spec-local-role-ownership). | services/factory |
 
