@@ -20,7 +20,7 @@ entries, and expert roles for each harness that they select.
 | --- | --- | --- |
 | 6.0.0 | [codegraph-mcp](changes/change-codegraph-mcp/README.md) | Requirements |
 | 7.0.0 | [artifact-cleanup](changes/change-artifact-cleanup/README.md) | Requirements |
-| 8.0.0 | [mcp-author-env](changes/change-mcp-author-env/README.md) | Requirements |
+| 8.0.0 | [local-role-ownership](changes/change-local-role-ownership/README.md) | Requirements |
 
 ## Artifacts
 

@@ -62,6 +62,17 @@ reads the feature folders and the feature README, so it changes no blueprint fac
 role owns the version folders, the feature README, and the change folders of the cleanup
 (spec-release-gate).
 
+The blueprint also records the declared ownership of a local expert role
+(spec-local-role-ownership). A role declaration may carry the optional field `ownership`. One
+entry is a plain string or an attribute set with the optional field `effect`. The builder
+normalizes each entry to the rule shape `{ resource; effect; }`. A declared role whose rendered
+name is absent from the role-contract table derives its contract from the declaration: the
+declared ownership plus the restrictive research `deny`, the empty capability set, and the
+restrictive governance rules and shell rules. A declaration without `ownership` keeps the
+restrictive default. The managed layer keeps precedence for each shipped role. The derive rejects
+an ownership path that escapes the project root. The blueprint also records the role-builder
+reference of the `expert-role` skill (spec-role-builder-reference).
+
 ## State transitions
 
 | From | Command | To |
@@ -76,6 +87,7 @@ role owns the version folders, the feature README, and the change folders of the
 | declared | Declare knowledge access | declared |
 | declared | Declare code intelligence | declared |
 | declared | Declare role | declared |
+| declared | Declare local role | declared |
 | declared | Declare capability | declared |
 | declared | State role contract | declared |
 | declared | Select design option | declared |
@@ -227,6 +239,31 @@ role owns the version folders, the feature README, and the change folders of the
   carries the same literal path patterns.
 - The permission array holds the broad `edit` deny rule before each ownership allow, and the
   broad `shell` rule before each specific shell rule. The last matching rule wins.
+- The role declaration may carry the optional field `ownership`. One entry is a plain string with
+  the meaning `{ resource = s; effect = "allow"; }` or an attribute set with the required field
+  `resource` and the optional field `effect`. The builder `checkRoleWith` normalizes each entry to
+  the shape `{ resource; effect; }` before the derive (spec-local-role-ownership).
+- The builder rejects an ownership path that escapes the project root. The rule rejects a pattern
+  that starts with `/`, a pattern that starts with `~`, an empty pattern, and a pattern with a
+  path segment `..`. The rule is syntactic (spec-local-role-ownership).
+- A declared role whose rendered name is absent from the role-contract table derives from the
+  declaration: the declared ownership plus the restrictive research `deny`, the empty capability
+  set, and the restrictive governance rules and shell rules. A declaration without `ownership`
+  keeps the restrictive default (spec-local-role-ownership).
+- A shipped role name keeps the shipped contract. The declared ownership adds no rule, and the
+  blueprint writes one line `managed-wins: roles.<name>.ownership from <layer>` to the standard
+  error. Evaluation stays green (spec-local-role-ownership).
+- The local layer holds the same key space as the project layer, so a local role declaration may
+  carry `ownership`.
+- The function `mergeAgents` builds the rendered-name to declaration map and returns the trace
+  list of the opencode managed key paths. The resolution order is the table, then the declaration
+  `ownership`, then the restrictive default (spec-local-role-ownership).
+- The four local-role fixtures `permission-local-ownership`, `permission-local-default`,
+  `permission-shipped-precedence`, and `permission-escape-rejected` prove the rules. Each proof is
+  an eval-time `assert`, so the result file of the seed check stays exactly five lines.
+- The role-builder reference states the consumer path, the fields `source` and `ownership`, the
+  `extraAgents` pattern for a config-only agent and its limit, and the opencode version 2 mapping
+  (spec-role-builder-reference).
 - Only `artifact-master` holds the `subagent` allow and the `question` allow. Each other role
   holds the deny. The `artifact-master` shell rules deny `git push`.
 - The one MCP source holds the canonical entries `figma`, `pencil`, `context7`, and `codegraph`.
@@ -298,6 +335,7 @@ blueprint emits no cleanup event itself.
 | Declare knowledge access | The blueprint records the canonical `context7` entry in the one MCP source. | Knowledge access declared |
 | Declare code intelligence | The blueprint records the canonical `codegraph` entry in the one MCP source. | Code intelligence declared, Code intelligence resolved |
 | Declare role | The blueprint records one role source, its declaration, and its two-axis contract. | Role rendered, Permission set rendered |
+| Declare local role | The blueprint records the declared ownership of a local role, the two entry forms, and the declaration contract. A declared role name absent from the table receives the declaration contract. | Local role declared, Ownership declared, Permission set rendered |
 | Declare capability | The blueprint records one capability of a role, its kind, and its home. A shipped capability joins the plan. | Capability declared, Capability bundled, Capability shipped, Capability resolved |
 | State role contract | The blueprint records the ownership axis and the capability axis of the role. | Role contract stated |
 | Select design option | The blueprint records the design method and the ux flag, and computes the design files and chapters. An unknown value is an error. | Design option selected |
@@ -328,6 +366,8 @@ blueprint emits no cleanup event itself.
 | Code intelligence resolved | The entry name, the opencode target `mcp.servers.codegraph`, and the instruction skill path `.agents/skills/codegraph/SKILL.md`. |
 | Role rendered | The role name and the rendered path in the opencode file. |
 | Role contract stated | The role name, the ownership axis, and the capability axis. |
+| Local role declared | The role name, the declared ownership, and the declaration contract. |
+| Ownership declared | The role name and the normalized ownership path patterns. |
 | Capability declared | The role name, the capability kind, the capability name, and the home. |
 | Capability bundled | The tool name and the instruction skill name. |
 | Capability shipped | The capability kind and the emitted path of the generated project. |

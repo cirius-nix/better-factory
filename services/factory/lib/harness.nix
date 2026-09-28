@@ -1133,18 +1133,28 @@ let
   # ownership deny, the local reads, the external research, the skill set,
   # the governance, the broad `shell` rule, and the specific shell rules.
   # The table gives the data of each rule; it is not the source of the order
-  # (RC01-C2). A rendered role name outside the table receives the
-  # restrictive default. The skill allow rules hold the unconditional
+  # (RC01-C2). The contract of a rendered role name resolves in the order
+  # table `roleContracts`, then the declaration `ownership`, then the
+  # restrictive default `defaultRoleContract` (C-LRO-04, C-LRO-05). The map
+  # `decls` gives the declaration of a rendered role name. The skill allow
+  # rules hold the unconditional
   # version 3.0.0 chain and the active instruction skill of each tool bundle,
   # in the order of the capability list (C-CL33, C-CL34). The design tool
   # arrives as an input (C-FCL-06-02). A `design-tool` instruction skill is
   # active only when the design tool equals its name; the chain maps
   # unconditionally (C-FCL-06-05).
-  permissionRulesFor =
-    roleName: tool:
+  derivePermissionRules =
+    roleName: tool: decls:
     let
+      declaration = decls.${roleName} or { };
+      declaredOwnership = declaration.ownership or [ ];
       c =
-        if builtins.hasAttr roleName roleContracts then roleContracts.${roleName} else defaultRoleContract;
+        if builtins.hasAttr roleName roleContracts then
+          roleContracts.${roleName}
+        else if declaredOwnership != [ ] then
+          defaultRoleContract // { ownership = declaredOwnership; }
+        else
+          defaultRoleContract;
       skillActive =
         cap:
         let
@@ -1221,6 +1231,20 @@ let
     ]
     ++ builtins.map (s: { action = "shell"; inherit (s) resource effect; }) c.shell.specific;
 
+  # The public derive of one rendered role name. The optional declaration
+  # map `decls` gives the declaration of a rendered role name, so a declared
+  # role name absent from the table receives the declaration contract
+  # (C-LRO-04, C-LRO-05). The two-argument form
+  # `permissionRulesFor roleName tool` keeps the table-or-default look-up,
+  # with the map defaulted to `{ }` (FAC-03-01). The attribute-set form
+  # `permissionRulesFor { roleName; tool; decls; }` reads the declaration map.
+  permissionRulesFor =
+    first:
+    if builtins.isAttrs first then
+      derivePermissionRules (first.roleName or null) (first.tool or "unset") (first.decls or { })
+    else
+      tool: derivePermissionRules first tool { };
+
   # The shipped config-key entries of the rendered role set
   # (spec-harness-merge C-CL18, spec-capability-ship C-CL07). One entry per
   # shipped config capability: `references.<name>`, `agents.<role>.model`,
@@ -1292,11 +1316,15 @@ let
     let
       roleNames = if builtins.isList args then args else args.roleNames;
       tool = if builtins.isAttrs args then args.tool or "unset" else "unset";
+      decls = if builtins.isAttrs args then args.decls or { } else { };
       permissions = builtins.listToAttrs (
         builtins.map (r: {
           name = r;
           value = {
-            permissions = permissionRulesFor r tool;
+            permissions = permissionRulesFor {
+              roleName = r;
+              inherit tool decls;
+            };
           };
         }) roleNames
       );
@@ -1599,9 +1627,48 @@ let
       # holds no designer-expert declaration.
       mergedRoles =
         if ux then mergedUserRoles // { designer-expert = designerBuiltIn; } else mergedUserRoles;
+      # The rendered-name to declaration map (C-LRO-05). The key is the
+      # rendered role name: the field `name` of the declaration, or the
+      # attribute name when the field is absent (RC01-C3).
+      decls = builtins.listToAttrs (
+        builtins.map (n: {
+          name =
+            if builtins.isAttrs mergedRoles.${n} && mergedRoles.${n} ? name then
+              mergedRoles.${n}.name
+            else
+              n;
+          value = mergedRoles.${n};
+        }) (builtins.attrNames mergedRoles)
+      );
+      # The shipped-role precedence trace (C-LRO-06). When the project layer
+      # or the local layer sets a non-empty `ownership` of a rendered name in
+      # the table `roleContracts`, the table wins and the factory writes one
+      # line `managed-wins: roles.<name>.ownership from <layer>`. The
+      # evaluation stays green.
+      ownershipTrace =
+        layer: layerRoles:
+        builtins.concatLists (
+          builtins.map (
+            n:
+            let
+              d = layerRoles.${n};
+              own = if builtins.isAttrs d then d.ownership or [ ] else [ ];
+              rendered =
+                if builtins.isAttrs d && d ? name && builtins.isString d.name then d.name else n;
+            in
+            if builtins.hasAttr rendered roleContracts && own != [ ] then
+              [ "managed-wins: roles.${rendered}.ownership from ${layer}" ]
+            else
+              [ ]
+          ) (builtins.attrNames layerRoles)
+        );
+      shippedOwnershipTraces =
+        ownershipTrace "project" (p.roles or { }) ++ ownershipTrace "local" (l.roles or { });
       mergedHarness = h: deepUserWins (p.${h} or { }) (l.${h} or { });
       baseOpencode = mergedHarness "opencode";
-      managed = managedOpencodeSettings { inherit roleNames tool; };
+      managed = managedOpencodeSettings {
+        inherit roleNames tool decls;
+      };
       managedPaths = managedOpencodePathLists roleNames;
       withManaged = builtins.foldl' (
         acc: path: setPath acc path (getPath managed path)
@@ -1619,12 +1686,14 @@ let
           )
         else
           [ ];
-      force = builtins.map (msg: builtins.trace msg true) (opencodeTraces ++ mcpTraces);
+      traces = opencodeTraces ++ mcpTraces ++ shippedOwnershipTraces;
+      force = builtins.map (msg: builtins.trace msg true) traces;
       result = {
         uses = mergedUses;
         mcp = mergedMcp;
         roles = mergedRoles;
         opencode = withManaged;
+        inherit traces;
       };
     in
     builtins.deepSeq force result;

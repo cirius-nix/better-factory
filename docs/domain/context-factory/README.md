@@ -11,7 +11,8 @@ It decides the layout of changes and versions, the architecture choice, the seed
 the facade root for settings, the harness delivery, the phase protocol, and the copy mode
 of each generated file. It decides the design method with its domain model, its review,
 and its designer role. It also decides the two-axis role contract and the default
-permission set of each shipped expert role. It decides the capability set of each built-in expert
+permission set of each shipped expert role. It decides the declared ownership of a local expert
+role that a project declares. It decides the capability set of each built-in expert
 role over seven option kinds, and the home of each capability: shipped to every generated project,
 or repo-local to the factory source repository. It decides the interaction points of the
 requirement expert and the solution expert with the human. It decides the contract-first rule for
@@ -50,6 +51,8 @@ notifier, one publish target, and named presets.
 | MCP source | The one declaration of the MCP entries that the factory renders into the opencode dialect. |
 | role source | The one body file of a role that the factory renders for opencode. |
 | ownership | The content and the write area that a role owns. |
+| local role | A role that the project declares in `factory.project.agents.roles.<name>` with an `ownership`; the factory role-contract table does not hold the role name. |
+| declared ownership | The ownership path patterns that a role declaration carries. |
 | capability | The items that a role uses to do its job: a skill, a command, an MCP server, a reference, a plugin, a model, or a worktree. |
 | write scope | The hard, per-role boundary of the files that a role may write. |
 | default permission set | The permission rules that the factory renders for a role from its ownership and its capability. |
@@ -143,6 +146,16 @@ notifier, one publish target, and named presets.
 - Each canonical role body states its ownership and its capability in one consistent shape.
 - The ownership axis is hard and per-role, and a capability never widens it.
 - The factory renders a default permission set for each rendered content role from the two axes.
+- A role declaration may carry the field `ownership`.
+- A declared role whose name is absent from the role-contract table derives its write scope from the declaration.
+- The contract of a declared role holds the declared ownership, the restrictive research `deny`, the empty capability set, and the restrictive governance and shell defaults.
+- A declaration without `ownership` keeps the restrictive default.
+- The managed layer keeps precedence for each shipped role, so a project overrides no shipped role contract.
+- The derive rejects an `edit` allow outside the declared ownership and an ownership path that escapes the project root.
+- The broad `edit` deny comes before the ownership allows.
+- An `ownership` entry is a plain string with the default effect `allow` or an attribute set with an optional `effect`, and the builder normalizes the entry to the shape `{ resource; effect; }`.
+- The local layer holds the same key space as the project layer, so a local role declaration may carry `ownership`.
+- The factory writes one line `managed-wins: roles.<name>.ownership from <layer>` for a discarded declared ownership of a shipped role name.
 - A capability holds one of the seven option kinds: skill, command, MCP server, reference, plugin, model, or worktree.
 - A tool capability is a bundle: the server entry and its instruction skill.
 - Each role that uses a tool grants the instruction skill of the tool.
@@ -251,6 +264,7 @@ notifier, one publish target, and named presets.
 | Declare knowledge access | command | repository author |
 | Declare code intelligence | command | repository author |
 | Declare role | command | repository author |
+| Declare local role | command | repository author |
 | Declare capability | command | role author |
 | State role contract | command | role author |
 | Declare local settings | command | repository author |
@@ -292,6 +306,8 @@ notifier, one publish target, and named presets.
 | Code intelligence declared | event | repository author |
 | Code intelligence resolved | event | repository author |
 | Role rendered | event | repository author |
+| Local role declared | event | repository author |
+| Ownership declared | event | repository author |
 | Role contract stated | event | role author |
 | Capability declared | event | role author |
 | Capability bundled | event | role author |
