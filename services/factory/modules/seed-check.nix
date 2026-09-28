@@ -449,6 +449,24 @@ let
       { action = "shell"; resource = "git checkout -b *"; effect = "allow"; }
       { action = "shell"; resource = "git push *"; effect = "deny"; }
       { action = "shell"; resource = "sh .opencode/scripts/coverage-audit.sh *"; effect = "allow"; }
+      { action = "shell"; resource = "find *"; effect = "allow"; }
+      { action = "shell"; resource = "grep *"; effect = "allow"; }
+      { action = "shell"; resource = "head *"; effect = "allow"; }
+      { action = "shell"; resource = "tail *"; effect = "allow"; }
+      { action = "shell"; resource = "cat *"; effect = "allow"; }
+      { action = "shell"; resource = "ls *"; effect = "allow"; }
+      { action = "shell"; resource = "echo *"; effect = "allow"; }
+      { action = "shell"; resource = "dirname *"; effect = "allow"; }
+      { action = "shell"; resource = "basename *"; effect = "allow"; }
+      { action = "shell"; resource = "sort *"; effect = "allow"; }
+      { action = "shell"; resource = "uniq *"; effect = "allow"; }
+      { action = "shell"; resource = "wc *"; effect = "allow"; }
+      { action = "shell"; resource = "diff *"; effect = "allow"; }
+      { action = "shell"; resource = "tr *"; effect = "allow"; }
+      { action = "shell"; resource = "readlink *"; effect = "allow"; }
+      { action = "shell"; resource = "printf *"; effect = "allow"; }
+      { action = "shell"; resource = "cut *"; effect = "allow"; }
+      { action = "shell"; resource = ": *"; effect = "allow"; }
     ];
     requirement-expert = [
       { action = "edit"; resource = "*"; effect = "deny"; }

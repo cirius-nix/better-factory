@@ -476,6 +476,78 @@ let
             resource = "sh .opencode/scripts/coverage-audit.sh *";
             effect = "allow";
           }
+          {
+            resource = "find *";
+            effect = "allow";
+          }
+          {
+            resource = "grep *";
+            effect = "allow";
+          }
+          {
+            resource = "head *";
+            effect = "allow";
+          }
+          {
+            resource = "tail *";
+            effect = "allow";
+          }
+          {
+            resource = "cat *";
+            effect = "allow";
+          }
+          {
+            resource = "ls *";
+            effect = "allow";
+          }
+          {
+            resource = "echo *";
+            effect = "allow";
+          }
+          {
+            resource = "dirname *";
+            effect = "allow";
+          }
+          {
+            resource = "basename *";
+            effect = "allow";
+          }
+          {
+            resource = "sort *";
+            effect = "allow";
+          }
+          {
+            resource = "uniq *";
+            effect = "allow";
+          }
+          {
+            resource = "wc *";
+            effect = "allow";
+          }
+          {
+            resource = "diff *";
+            effect = "allow";
+          }
+          {
+            resource = "tr *";
+            effect = "allow";
+          }
+          {
+            resource = "readlink *";
+            effect = "allow";
+          }
+          {
+            resource = "printf *";
+            effect = "allow";
+          }
+          {
+            resource = "cut *";
+            effect = "allow";
+          }
+          {
+            resource = ": *";
+            effect = "allow";
+          }
         ];
       };
     };
