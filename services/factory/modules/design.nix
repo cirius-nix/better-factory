@@ -188,6 +188,11 @@ let
       copyMode = "managed";
     }
     {
+      rel = "docs/wiki/design/event-driven/README.md";
+      asset = ../assets/design/event-driven/README.md;
+      copyMode = "managed";
+    }
+    {
       rel = "docs/wiki/design/ddd/templates/domain/README.md";
       asset = ../assets/design/ddd/templates/domain/README.md;
       copyMode = "managed";

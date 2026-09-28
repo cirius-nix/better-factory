@@ -984,6 +984,7 @@ let
   skillText = builtins.readFile ../assets/design/ddd/skill/SKILL.md;
   designText = builtins.readFile ./design.nix;
   skillFlat = flatten skillText;
+  eventDrivenRel = "docs/wiki/design/event-driven/README.md";
   assetAssertions = [
     {
       name = "emitted-table";
@@ -996,6 +997,17 @@ let
         )
       ) design.emittedDesignFiles;
       message = "emitted-table: the `ddd` fixture misses a file of the emitted-files table with its content source and copy mode";
+    }
+    {
+      name = "event-driven-page";
+      assertion =
+        builtins.hasAttr eventDrivenRel assetPlan.files
+        && assetPlan.files.${eventDrivenRel}.copyMode == "managed"
+        && builtins.elem (toString assetPlan.files.${eventDrivenRel}.source) (
+          builtins.map toString assetDesignOut.renderedSources
+        )
+        && !(builtins.any (e: e.rel == eventDrivenRel) unsetDesignOut.extraFiles);
+      message = "event-driven-page: the `ddd` fixture misses the event-driven page with the copy mode `managed` and a rendered source, or the `unset` design output holds an entry with that path";
     }
     {
       name = "skill-agents-once";
