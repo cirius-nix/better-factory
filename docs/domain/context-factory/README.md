@@ -19,7 +19,9 @@ requirement expert and the solution expert with the human. It decides the contra
 each specification. It decides the surface declaration of a project, the write coverage, the owner
 of each surface path, and the coverage scan. It decides the external code intelligence of the
 roles `solution-expert` and `factory-expert` through the codegraph MCP server. It decides the
-artifact cleanup of the version folders and the change folders of a feature.
+declared author path for an environment variable of a canonical MCP entry, and it keeps the secret
+value out of the repository. It decides the artifact cleanup of the version folders and the change
+folders of a feature.
 
 It also fixes the delivery path with one docs site, one CI choice, one
 notifier, one publish target, and named presets.
@@ -127,6 +129,8 @@ notifier, one publish target, and named presets.
 | cleanup plan | The deterministic list of the paths to delete and the paths to keep of one feature. |
 | cleanup bundle | The artifact cleanup script, the command, and the instruction skill, shipped together. |
 | release role | The shipped role `artifact-release-expert` that owns the version folders, the feature README, and the artifact cleanup. |
+| author environment variable | The environment variable that an author adds to the `env` of a canonical MCP entry; the canonical keys stay factory-owned. |
+| environment substitution | The OpenCode `{env:NAME}` form that reads the value from the OpenCode process environment. |
 
 ## Business rules
 
@@ -167,6 +171,13 @@ notifier, one publish target, and named presets.
 - The repository declares external curated knowledge in the one MCP source under `agents.mcp`.
 - The factory declares the Context7 MCP server once in the one MCP source, and the preset full declares the entry for a generated project.
 - The factory declares the codegraph MCP server once in the one MCP source, and the roles `solution-expert` and `factory-expert` reach external code intelligence through it.
+- A canonical MCP entry exposes a declared author path for an environment variable.
+- The merge of the `env` of a canonical entry is per key.
+- The canonical key of the `env` of a canonical entry stays factory-owned and writes one log line for each ignored author value.
+- An author key that the canonical entry does not set joins the rendered `environment`.
+- The fields `command` and `args` of a canonical entry stay factory-owned, and the author path opens for `env` only.
+- The value form of an author environment variable is permissive: the value is any string, and a secret value uses the `{env:NAME}` substitution.
+- A secret author value stays out of the repository, and the value comes from the OpenCode process environment.
 - The factory expert owns the role-contract surface: the factory component, the mixture-of-experts page, the expert-role skill, and its own role body.
 - Each version is a copy that passes a readiness gate before release.
 - The project keeps the three most recent version folders of each feature and deletes the older version folders.
@@ -249,6 +260,7 @@ notifier, one publish target, and named presets.
 | Declare project | command | repository author |
 | Select harnesses | command | repository author |
 | Declare MCP entry | command | repository author |
+| Declare author environment | command | repository author |
 | Declare knowledge access | command | repository author |
 | Declare code intelligence | command | repository author |
 | Declare role | command | repository author |
@@ -288,6 +300,8 @@ notifier, one publish target, and named presets.
 | Project declared | event | repository author |
 | Harness merged | event | repository author |
 | MCP entry translated | event | repository author |
+| Author environment declared | event | repository author |
+| Entry environment merged | event | repository author |
 | Knowledge access declared | event | repository author |
 | Code intelligence declared | event | repository author |
 | Code intelligence resolved | event | repository author |
@@ -342,6 +356,8 @@ notifier, one publish target, and named presets.
 - The ownership axis and the capability axis stay separate, so a new capability grant cannot widen a write scope.
 - A repository author wants the built-in expert roles to hold the capability of the selected harness, so a generated project works without a hand edit.
 - A shipped capability is safe only when the generated project receives the asset that the capability points to.
+- A downstream author gives a canonical MCP server its credential through the declared `env` path, so the author never edits a managed field.
+- An author value that is a secret uses the `{env:NAME}` substitution, so the value stays out of the repository.
 - An expert uses a shipped tool only when an instruction skill states when to use the tool and how to call the tool.
 - A human chooses better when the option interview gives the situation, the impact, and one reasoned recommendation.
 - A contract that the human approves before the implementation prevents a late change of the interface.

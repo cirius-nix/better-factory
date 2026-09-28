@@ -1418,14 +1418,17 @@ let
 
   hasField = attrs: field: attrs != null && builtins.isAttrs attrs && builtins.hasAttr field attrs;
 
-  # Merge one MCP entry per leaf field (C-08). A canonical entry keeps the
-  # canonical `command`, `args`, and `env`; each ignored project or local
-  # value gives one log line. `enabled` takes the value of the last layer
-  # that sets it. A user entry takes the last layer that sets each field.
-  # proj and loc are validated entry sets or null when the layer holds no
-  # entry of this name. selected is true when the tool feed selects this
-  # entry (C-14): the default of `enabled` is then true, else false. The
-  # feed changes the entry set and the default of `enabled` only.
+  # Merge one MCP entry per leaf field (C-08, spec-mcp-dialect, the author
+  # environment path). A canonical entry keeps the canonical `command` and
+  # `args` as whole fields and the canonical keys of `env` per key; each
+  # ignored project or local value gives one log line. An author `env` key
+  # that the canonical entry does not set joins the merged `env` (local over
+  # project). `enabled` takes the value of the last layer that sets it. A
+  # user entry takes the last layer that sets each field. proj and loc are
+  # validated entry sets or null when the layer holds no entry of this name.
+  # selected is true when the tool feed selects this entry (C-14): the
+  # default of `enabled` is then true, else false. The feed changes the entry
+  # set and the default of `enabled` only.
   mergeMcpEntry =
     name: proj: loc: selected:
     let
@@ -1444,22 +1447,68 @@ let
           (if hasField proj field then "managed-wins: mcp.${name}.${field} from project" else null)
           (if hasField loc field then "managed-wins: mcp.${name}.${field} from local" else null)
         ];
+      # The canonical key set of the `env` of this entry, computed once at
+      # the entry name (spec-harness-merge managed keys 12, FAM-01-C3).
+      canonicalEnvKeys = builtins.attrNames canonical.env;
+      layerEnvKeys =
+        layer:
+        if hasField layer "env" && builtins.isAttrs layer.env then
+          builtins.attrNames layer.env
+        else
+          [ ];
+      layerSetsEnvKey =
+        layer: key:
+        hasField layer "env" && builtins.isAttrs layer.env && builtins.hasAttr key layer.env;
+      # One trace line for each canonical `env` key that a raw layer entry
+      # sets (spec-harness-merge managed keys 13, FAM-01-C10). The line names
+      # the ignored key: `managed-wins: mcp.<name>.env.<KEY> from <layer>`.
+      envKeyTraces =
+        key:
+        builtins.filter (t: t != null) [
+          (
+            if layerSetsEnvKey proj key then
+              "managed-wins: mcp.${name}.env.${key} from project"
+            else
+              null
+          )
+          (
+            if layerSetsEnvKey loc key then
+              "managed-wins: mcp.${name}.env.${key} from local"
+            else
+              null
+          )
+        ];
+      # The author environment keys: the union of the project and local `env`
+      # keys, minus the canonical keys. A key that only the project layer sets
+      # takes the project value; a key that the local layer sets takes the
+      # local value (spec-mcp-dialect author environment path 6 and 7).
+      projectEnvKeys = layerEnvKeys proj;
+      authorEnvKeys = builtins.filter (k: !(builtins.elem k canonicalEnvKeys)) (
+        projectEnvKeys ++ builtins.filter (k: !(builtins.elem k projectEnvKeys)) (layerEnvKeys loc)
+      );
+      authorEnv = builtins.listToAttrs (
+        builtins.map (k: {
+          name = k;
+          value = if layerSetsEnvKey loc k then loc.env.${k} else proj.env.${k};
+        }) authorEnvKeys
+      );
     in
     if canonical != null then
       {
         entry = {
           command = canonical.command;
           args = canonical.args;
-          env = canonical.env;
+          env = canonical.env // authorEnv;
           enabled = pick "enabled" (if selected then true else false);
         };
-        traces = builtins.concatLists (
-          builtins.map managedFieldTraces [
-            "command"
-            "args"
-            "env"
-          ]
-        );
+        traces =
+          builtins.concatLists (
+            builtins.map managedFieldTraces [
+              "command"
+              "args"
+            ]
+          )
+          ++ builtins.concatLists (builtins.map envKeyTraces canonicalEnvKeys);
       }
     else
       {

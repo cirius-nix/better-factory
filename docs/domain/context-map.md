@@ -29,6 +29,10 @@ group `references`, the key `worktree.directory`, the commands under `.opencode/
 the skills under `.agents/skills`. The factory is a conformist to that published language. The
 factory holds no model of the harness internals.
 
+The author environment path uses the published language of the harness: the key `environment` and
+the `{env:NAME}` substitution. The value comes from the OpenCode process environment. The factory
+holds no model of the process environment and declares the variable name only.
+
 The Context7 MCP server is an external supplier of curated documentation. It is not a bounded
 context. The factory follows the published protocol of the server. The factory repository
 declares the canonical `context7` entry in its own one MCP source, and the preset `full`

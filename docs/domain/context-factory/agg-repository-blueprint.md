@@ -25,6 +25,11 @@ spec-code-intelligence). The entry `codegraph` is a tool bundle: the `mcp` capab
 and its instruction skill `codegraph`. The roles `solution-expert` and `factory-expert` grant the
 instruction skill (spec-code-intelligence).
 
+The blueprint also opens the declared author path for an environment variable of a canonical MCP
+entry. The merge of the `env` field is per key. A canonical key stays factory-owned, and an
+author key that the canonical entry does not set joins the rendered `environment`
+(spec-mcp-dialect, spec-harness-merge).
+
 The blueprint also records the capability set of each built-in role over the seven option kinds
 (spec-capability-kinds). Each capability holds one home: shipped to every generated project, or
 repo-local to the factory source repository (spec-capability-ship). The blueprint renders each
@@ -78,6 +83,7 @@ reference of the `expert-role` skill (spec-role-builder-reference).
 | declared | Declare project | declared |
 | declared | Select harnesses | declared |
 | declared | Declare MCP entry | declared |
+| declared | Declare author environment | declared |
 | declared | Declare knowledge access | declared |
 | declared | Declare code intelligence | declared |
 | declared | Declare role | declared |
@@ -113,6 +119,14 @@ reference of the `expert-role` skill (spec-role-builder-reference).
   `permissions` sets and the canonical MCP fields. The blueprint holds no `subagent_depth`.
 - One MCP source renders each enabled entry into the opencode version 2 dialect under
   `mcp.servers`.
+- The merge of the `env` of a canonical MCP entry is per key. Each canonical key keeps the
+  canonical value, and an author value at a canonical key writes one trace line with the key path
+  `mcp.<name>.env.<KEY>`. An author key that the canonical entry does not set joins the rendered
+  `environment` (spec-mcp-dialect, spec-harness-merge).
+- The fields `command` and `args` of a canonical MCP entry stay factory-owned and immutable. The
+  value form of an author environment variable is permissive: the value is any string, and a
+  secret value uses the `{env:NAME}` substitution. The value comes from the OpenCode process
+  environment, so the secret value stays out of the repository (spec-mcp-dialect).
 - One role source renders each enabled role for opencode. The body is the role source plus the
   ordered chapter appends.
 - The effective role set is the merge of the project layer roles and the local layer roles.
@@ -317,6 +331,7 @@ blueprint emits no cleanup event itself.
 | Declare project | The blueprint records every setting under `factory.project`. | Project declared |
 | Select harnesses | The blueprint records the selected harness `opencode`. A value other than `opencode` is an error. | Harness merged |
 | Declare MCP entry | The blueprint records one MCP source entry. | MCP entry translated |
+| Declare author environment | The blueprint records one author `env` key on a canonical MCP entry. The merge is per key. | Author environment declared, Entry environment merged |
 | Declare knowledge access | The blueprint records the canonical `context7` entry in the one MCP source. | Knowledge access declared |
 | Declare code intelligence | The blueprint records the canonical `codegraph` entry in the one MCP source. | Code intelligence declared, Code intelligence resolved |
 | Declare role | The blueprint records one role source, its declaration, and its two-axis contract. | Role rendered, Permission set rendered |
@@ -344,6 +359,8 @@ blueprint emits no cleanup event itself.
 | Project declared | The facade root and the setting groups. |
 | Harness merged | The selected harness and the merged key groups. |
 | MCP entry translated | The entry name and the rendered path in the opencode file. |
+| Author environment declared | The entry name, the author key, and the layer of the declaration. |
+| Entry environment merged | The entry name, the merged `environment` map, and the trace lines. |
 | Knowledge access declared | The `context7` entry name, the canonical command, and the rendered path in the opencode file. |
 | Code intelligence declared | The `codegraph` entry name, the canonical command, and the rendered path in the opencode file. |
 | Code intelligence resolved | The entry name, the opencode target `mcp.servers.codegraph`, and the instruction skill path `.agents/skills/codegraph/SKILL.md`. |
@@ -401,6 +418,10 @@ None. The blueprint holds every fact of one repository and references no other a
   workflow. The blueprint renders the cleanup bundle and holds the cleanup invariants. The
   cleanup is a read of the feature folders and a delete of the plan paths; it changes no blueprint
   fact, so the blueprint emits no cleanup event itself.
+- The author environment merge is part of the MCP declaration and the harness merge. The
+  blueprint holds the per-key `env` rule and the trace path `mcp.<name>.env.<KEY>`. The blueprint
+  emits `Entry environment merged` when the merge joins the canonical keys and the author keys
+  (adr-author-env-merge, spec-mcp-dialect, spec-harness-merge).
 - No second aggregate exists. The coordination holds no factory data that one transaction must
   keep consistent.
 - The reference semantics in `../repofactory` stay reference-only.
