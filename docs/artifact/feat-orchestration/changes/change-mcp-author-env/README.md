@@ -2,7 +2,7 @@
 
 **Feature:** [feat-orchestration](../../README.md)
 **From:** 7.0.0
-**To:** 8.0.0
+**To:** 9.0.0
 **Type:** Requirements
 
 ## Reason
@@ -69,9 +69,11 @@ holds string variables that the server process adds to the inherited process env
 
 This change depends on the capability layer, the change `change-capability-layer`, and on
 [change-codegraph-mcp](../change-codegraph-mcp/README.md). Version 7.0.0 is the `**To:**` of
-[change-artifact-cleanup](../change-artifact-cleanup/README.md). The capability layer gives the one
-MCP source, the canonical entries, and the managed layer. The codegraph change gives the canonical
-`env` of the entry `codegraph`. This change opens one author path on the same `env` field.
+[change-artifact-cleanup](../change-artifact-cleanup/README.md). Version 8.0.0 is the `**To:**` of
+[change-local-role-ownership](../change-local-role-ownership/README.md). The capability layer gives
+the one MCP source, the canonical entries, and the managed layer. The codegraph change gives the
+canonical `env` of the entry `codegraph`. This change opens one author path on the same `env`
+field.
 
 ## Artifacts
 
