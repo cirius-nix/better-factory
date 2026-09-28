@@ -1510,6 +1510,86 @@ let
     else
       throw "seed check: the MCP fixture of `${arch}` fails ${(builtins.head mcpV2Failing).message}";
 
+  # Author environment fixture (spec-harness-merge check 14 to 17, FAM-01-C1,
+  # FAM-01-C8). The fixture is separate from the dialect fixture and from the
+  # tool fixtures. It proves the canonical-wins case on the entry `figma` and
+  # the added-key case on the entry `context7`, on two distinct entries. The
+  # proof reads the `traces` data list and captures no standard error.
+  mcpEnvProject = orchestration.evalAgents {
+    uses = [ "opencode" ];
+    mcp = {
+      figma = {
+        env = {
+          FIGMA_UI_MCP_TARGET = "Author Override";
+        };
+      };
+      context7 = {
+        env = {
+          CONTEXT7_API_KEY = "{env:CONTEXT7_API_KEY}";
+        };
+      };
+    };
+  };
+  mcpEnvMerged = harnessLib.mergeMcp mcpEnvProject.mcp null "unset";
+  mcpEnvMergedAgents = harnessLib.mergeAgents {
+    project = mcpEnvProject;
+    roleNames = [ ];
+    tool = "unset";
+  };
+  mcpEnvRendered = harnessLib.renderSelected {
+    merged = mcpEnvMergedAgents;
+    uses = [ "opencode" ];
+  };
+  mcpEnvDoc = builtins.fromJSON (
+    builtins.readFile (fileByRel mcpEnvRendered.fileDecls ".opencode/opencode.jsonc").source
+  );
+  mcpEnvAssertions = [
+    {
+      name = "mcp-env-canonical-wins";
+      assertion =
+        mcpEnvDoc.mcp.servers.figma.environment == {
+          FIGMA_UI_MCP_TARGET = "Figma Desktop";
+        };
+      message = "mcp-env-canonical-wins: the rendered `figma` entry does not keep the canonical `FIGMA_UI_MCP_TARGET` value, or it holds the ignored author value";
+    }
+    {
+      name = "mcp-env-added-key";
+      assertion =
+        mcpEnvDoc.mcp.servers.context7.environment == {
+          CONTEXT7_API_KEY = "{env:CONTEXT7_API_KEY}";
+        };
+      message = "mcp-env-added-key: the rendered `context7` entry does not hold the joined author key `CONTEXT7_API_KEY`";
+    }
+    {
+      name = "mcp-env-trace-order";
+      assertion =
+        mcpEnvMerged.traces == [
+          "managed-wins: mcp.figma.env.FIGMA_UI_MCP_TARGET from project"
+        ];
+      message = "mcp-env-trace-order: the `traces` list of the author environment fixture differs from the pinned per-key list";
+    }
+    {
+      name = "mcp-env-context7-no-trace";
+      assertion = builtins.all (
+        t: builtins.match ".*mcp\\.context7.*" t == null
+      ) mcpEnvMerged.traces;
+      message = "mcp-env-context7-no-trace: the `traces` list holds a line for the added author key of `context7`";
+    }
+    {
+      name = "mcp-env-no-whole-field";
+      assertion =
+        !(builtins.elem "managed-wins: mcp.figma.env from project" mcpEnvMerged.traces)
+        && !(builtins.elem "managed-wins: mcp.figma.env from local" mcpEnvMerged.traces);
+      message = "mcp-env-no-whole-field: the `traces` list holds the superseded whole-field `env` line";
+    }
+  ];
+  mcpEnvFailing = builtins.filter (a: !a.assertion) mcpEnvAssertions;
+  mcpEnvMatch =
+    if mcpEnvFailing == [ ] then
+      true
+    else
+      throw "seed check: the author environment fixture of `${arch}` fails ${(builtins.head mcpEnvFailing).message}";
+
   modes = filePlan.foundationModes;
 
   # The coverage scan script joins the plan as a managed extra file whose
@@ -3477,6 +3557,7 @@ assert permissionMatch;
 assert assetMatch;
 assert uxMatch;
 assert mcpV2Match;
+assert mcpEnvMatch;
 assert capabilityMatch;
 assert bundleMatch;
 assert cleanupMatch;
