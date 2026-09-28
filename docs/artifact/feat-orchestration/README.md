@@ -1,6 +1,6 @@
 # Feature: orchestration
 
-**Current version:** 7.0.0
+**Current version:** 8.0.0
 
 ## Summary
 
@@ -10,9 +10,9 @@ entries, and expert roles for each harness that they select.
 
 ## Current artifacts
 
-- [Requirements](versions/7.0.0/requirements/README.md)
-- [Specifications](versions/7.0.0/specifications/README.md)
-- [Decisions](versions/7.0.0/decisions/)
+- [Requirements](versions/8.0.0/requirements/README.md)
+- [Specifications](versions/8.0.0/specifications/README.md)
+- [Decisions](versions/8.0.0/decisions/)
 
 ## Versions
 
@@ -21,6 +21,7 @@ entries, and expert roles for each harness that they select.
 | 5.0.0 | [coverage-audit](changes/change-coverage-audit/README.md) | Requirements |
 | 6.0.0 | [codegraph-mcp](changes/change-codegraph-mcp/README.md) | Requirements |
 | 7.0.0 | [artifact-cleanup](changes/change-artifact-cleanup/README.md) | Requirements |
+| 8.0.0 | [local-role-ownership](changes/change-local-role-ownership/README.md) | Requirements |
 
 ## Artifacts
 

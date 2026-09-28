@@ -23,11 +23,88 @@ let
     "description"
     "source"
     "harness"
+    "ownership"
   ];
 
   harnessFields = [
     "opencode"
   ];
+
+  ownershipEffectValues = [
+    "allow"
+    "deny"
+    "ask"
+  ];
+
+  # The escape rule of one ownership pattern (spec-local-role-ownership,
+  # C-LRO-03). The pattern MUST NOT start with `/`, MUST NOT start with
+  # `~`, MUST NOT be empty, and MUST NOT hold a path segment that equals
+  # `..`. The rule is syntactic, because the derive reads no project root.
+  ownershipPatternOk =
+    p:
+    builtins.isString p
+    && p != ""
+    && builtins.substring 0 1 p != "/"
+    && builtins.substring 0 1 p != "~"
+    && !(builtins.elem ".." (builtins.filter builtins.isString (builtins.split "/" p)));
+
+  # Normalize one ownership entry to the shape `{ resource; effect; }`
+  # (spec-local-role-ownership, C-LRO-02). A plain string entry `s` means
+  # `{ resource = s; effect = "allow"; }`. An attribute-set entry holds the
+  # required field `resource` and the optional field `effect`. Each failure
+  # gives the named message of the field.
+  normalizeOwnershipEntry =
+    roleName: entry:
+    if builtins.isString entry then
+      if entry == "" then
+        throw "role-ownership-entry: an ownership entry of the role `${roleName}` needs a non-empty string `resource`"
+      else
+        {
+          resource = entry;
+          effect = "allow";
+        }
+    else if builtins.isAttrs entry then
+      let
+        unknown = builtins.filter (
+          f:
+          !(builtins.elem f [
+            "resource"
+            "effect"
+          ])
+        ) (builtins.attrNames entry);
+      in
+      if unknown != [ ] then
+        throw "role-ownership-field: an ownership entry of the role `${roleName}` holds the unknown field `${builtins.head unknown}`"
+      else if !(entry ? resource) || !(builtins.isString entry.resource) || entry.resource == "" then
+        throw "role-ownership-entry: an ownership entry of the role `${roleName}` needs a non-empty string `resource`"
+      else if (entry ? effect) && !(builtins.elem entry.effect ownershipEffectValues) then
+        throw "role-ownership-effect: the `effect` of an ownership entry of the role `${roleName}` must be allow, deny, or ask"
+      else
+        {
+          resource = entry.resource;
+          effect = if entry ? effect then entry.effect else "allow";
+        }
+    else
+      throw "role-ownership-entry: an ownership entry of the role `${roleName}` must be a string or an attribute set, got `${builtins.typeOf entry}`";
+
+  # Validate one ownership value and normalize each entry (C-LRO-02,
+  # C-LRO-03). The value MUST be a list. Each normalized entry reaches the
+  # escape rule. A failing pattern gives the named message
+  # `role-ownership-escape`.
+  normalizeOwnership =
+    roleName: value:
+    if !(builtins.isList value) then
+      throw "role-ownership-type: the `ownership` of the role `${roleName}` must be a list, got `${builtins.typeOf value}`"
+    else
+      let
+        normalize =
+          e:
+          if ownershipPatternOk e.resource then
+            e
+          else
+            throw "role-ownership-escape: the ownership path `${e.resource}` of the role `${roleName}` escapes the project root";
+      in
+      builtins.map (e: normalize (normalizeOwnershipEntry roleName e)) value;
 
   isPathLike = v: builtins.typeOf v == "path" || builtins.isString v;
 
@@ -41,7 +118,8 @@ let
   # render validates the merged set with allowReserved, so the
   # factory-injected built-in declaration passes. Returns the normalized
   # declaration: `enable` defaults to true, `name` to the attribute name,
-  # and each harness group to the empty set. The structural header keys
+  # `ownership` to the empty list, and each harness group to the empty set.
+  # The structural header keys
   # always win over a harness extra with the same name.
   checkRoleWith =
     {
@@ -100,11 +178,15 @@ let
             if bad != [ ] then
               throw "role-harness: the `harness.${builtins.head bad}` of the declaration `roles.${attrName}` must be an attribute set"
             else
+              let
+                ownership = if decl ? ownership then normalizeOwnership name decl.ownership else [ ];
+              in
               {
                 enable = if decl ? enable then decl.enable else true;
                 inherit name;
                 description = decl.description;
                 source = decl.source;
+                inherit ownership;
                 harness = {
                   opencode = if builtins.hasAttr "opencode" hg then hg.opencode else { };
                 };
