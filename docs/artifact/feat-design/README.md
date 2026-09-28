@@ -1,6 +1,6 @@
 # Feature: design
 
-**Current version:** 1.1.0
+**Current version:** 1.2.0
 
 ## Summary
 
@@ -10,9 +10,9 @@ boundaries for building new repositories.
 
 ## Current artifacts
 
-- [Requirements](versions/1.1.0/requirements/README.md)
-- [Specifications](versions/1.1.0/specifications/README.md)
-- [Decisions](versions/1.1.0/decisions/)
+- [Requirements](versions/1.2.0/requirements/README.md)
+- [Specifications](versions/1.2.0/specifications/README.md)
+- [Decisions](versions/1.2.0/decisions/)
 
 ## Versions
 
@@ -20,6 +20,7 @@ boundaries for building new repositories.
 | --- | --- | --- |
 | 1.0.0 | [Initial](changes/change-initial/README.md) | Requirements |
 | 1.1.0 | [opencode-only](changes/change-opencode-only/README.md) | Specifications |
+| 1.2.0 | [event-driven-wiki](changes/change-event-driven-wiki/README.md) | Specifications |
 
 ## Artifacts
 
