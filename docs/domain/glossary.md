@@ -26,6 +26,8 @@ write two rows.
 | MCP source | context-factory | The one declaration of the MCP entries that the factory renders into the opencode dialect. | - |
 | role source | context-factory | The one body file of a role that the factory renders for opencode. | - |
 | ownership | context-factory | The content and the write area that a role owns. | - |
+| local role | context-factory | A role that the project declares in `factory.project.agents.roles.<name>` with an `ownership`; the factory role-contract table does not hold the role name. | proposed role |
+| declared ownership | context-factory | The ownership path patterns that a role declaration carries. | ownership |
 | capability | context-factory | The items that a role uses to do its job: a skill, a command, an MCP server, a reference, a plugin, a model, or a worktree. | - |
 | write scope | context-factory | The hard, per-role boundary of the files that a role may write. | - |
 | default permission set | context-factory | The permission rules that the factory renders for a role from its ownership and its capability. | - |
