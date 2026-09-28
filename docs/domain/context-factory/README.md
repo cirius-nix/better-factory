@@ -149,6 +149,9 @@ notifier, one publish target, and named presets.
 - The managed layer keeps precedence for each shipped role, so a project overrides no shipped role contract.
 - The derive rejects an `edit` allow outside the declared ownership and an ownership path that escapes the project root.
 - The broad `edit` deny comes before the ownership allows.
+- An `ownership` entry is a plain string with the default effect `allow` or an attribute set with an optional `effect`, and the builder normalizes the entry to the shape `{ resource; effect; }`.
+- The local layer holds the same key space as the project layer, so a local role declaration may carry `ownership`.
+- The factory writes one line `managed-wins: roles.<name>.ownership from <layer>` for a discarded declared ownership of a shipped role name.
 - A capability holds one of the seven option kinds: skill, command, MCP server, reference, plugin, model, or worktree.
 - A tool capability is a bundle: the server entry and its instruction skill.
 - Each role that uses a tool grants the instruction skill of the tool.

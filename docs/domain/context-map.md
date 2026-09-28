@@ -17,6 +17,11 @@ set of each built-in role over the seven option kinds, the home of each capabili
 emitted target of each shipped capability (spec-capability-kinds, spec-capability-ship). The
 context holds the capability facts in its aggregate `agg-repository-blueprint`.
 
+The local-role ownership contract is internal to `context-factory`. The factory owns the declared
+ownership of a local expert role, the declaration contract of a role absent from the role-contract
+table, and the precedence of the shipped role contracts (spec-local-role-ownership). The context
+holds the local-role facts in its aggregate `agg-repository-blueprint`.
+
 The opencode harness is an external supplier of the harness protocol. The harness is not a
 bounded context. The factory follows the published language of the harness, namely the version 2
 shape: the plural key `agents`, the ordered array `permissions`, the group `mcp.servers`, the
