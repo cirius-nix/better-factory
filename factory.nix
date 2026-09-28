@@ -8,6 +8,7 @@
       mcp = {
         context7 = {
           enabled = true;
+          env = { CONTEXT7_API_KEY = "{env:CONTEXT7_API_KEY}"; };
         };
         codegraph = {
           enabled = true;
