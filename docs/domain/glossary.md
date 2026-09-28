@@ -105,3 +105,5 @@ write two rows.
 | coverage report | context-factory | The deterministic output of the coverage scan: one row for each unowned author path, with the path, the copy mode, the nearest role, and the proposed role. | - |
 | scan agent | context-factory | The shipped agent that runs the coverage scan, namely `artifact-master`. | - |
 | repository role | context-factory | The shipped role `repository-expert` that owns the seven standard surface classes and the class `factory-config`. | - |
+| author environment variable | context-factory | The environment variable that an author adds to the `env` of a canonical MCP entry; the canonical keys stay factory-owned. | - |
+| environment substitution | context-factory | The OpenCode `{env:NAME}` form that reads the value from the OpenCode process environment. | - |
