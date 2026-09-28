@@ -247,6 +247,7 @@ notifier, one publish target, and named presets.
 | Declare project | command | repository author |
 | Select harnesses | command | repository author |
 | Declare MCP entry | command | repository author |
+| Declare author environment | command | repository author |
 | Declare knowledge access | command | repository author |
 | Declare code intelligence | command | repository author |
 | Declare role | command | repository author |
@@ -285,6 +286,8 @@ notifier, one publish target, and named presets.
 | Project declared | event | repository author |
 | Harness merged | event | repository author |
 | MCP entry translated | event | repository author |
+| Author environment declared | event | repository author |
+| Entry environment merged | event | repository author |
 | Knowledge access declared | event | repository author |
 | Code intelligence declared | event | repository author |
 | Code intelligence resolved | event | repository author |
