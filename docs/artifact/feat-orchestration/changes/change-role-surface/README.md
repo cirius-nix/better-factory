@@ -3,7 +3,7 @@
 **Feature:** [feat-orchestration](../../README.md)
 **From:** 9.0.0
 **To:** 9.1.0
-**Type:** Specifications
+**Type:** Specifications, Decisions
 
 ## Reason
 
@@ -33,8 +33,8 @@ demands an owner for every surface path, and it names `utils/` as a factory sour
 sources that generate every agent have no owner, and the coverage scan reports each new role body
 as an unowned author path.
 
-The change fixes the contracts of two specifications: `spec-role-builder-reference` and
-`spec-coverage-surface`. No requirement changes. The requirement set already states the rules: a
+The change fixes the contracts of three specifications: `spec-role-builder-reference`,
+`spec-coverage-surface`, and `spec-coverage-scan`. No requirement changes. The requirement set already states the rules: a
 shipped capability points only to a capability that the generated project receives
 (`req-capability-ship`), and every surface path has an owner (`req-write-coverage`). The change
 keeps the rules and fixes the contracts, so the type is `Specifications` and the To version is
@@ -47,8 +47,9 @@ keeps the rules and fixes the contracts, so the type is `Specifications` and the
 - In scope: the conflict of the fix with `spec-role-builder-reference` interface 1 and with the
   repo-local rule of the released task `task-role-builder-reference`.
 - In scope: one surface class for the role source tree `utils/agent/role/*`.
-- In scope: the contracts of the two specifications `spec-role-builder-reference` and
-  `spec-coverage-surface`.
+- In scope: the contracts of the three specifications `spec-role-builder-reference`,
+  `spec-coverage-surface`, and `spec-coverage-scan` (the concrete-path test for the `role-source`
+  class and the updated factory-repository proof).
 - Out of scope: the fix shape: the home of the references, the render shape, the class name, the
   copy mode, and the scope of the class; they belong to phase 2.
 - Out of scope: the same defect shape in the shipped `asd-ste-100` skill. A later change applies
@@ -72,7 +73,7 @@ are released, so this change blocks no other change.
 
 ## Artifacts
 
-- [Specifications](specifications/README.md) (the fix of the two specification contracts)
+- [Specifications](specifications/README.md) (the fix of the three specification contracts)
 - [Decisions](decisions/) (present only if a decision changes)
 - [Implementation plan](tasks/README.md) (present only if the change needs code)
 - Requirements: absent. No requirement changes in this change.
