@@ -1,0 +1,9 @@
+{
+  "agents": {
+    "factory-expert": {"permissions": [
+      {"action":"edit","effect":"deny","resource":"*"},
+      {"action":"edit","effect":"allow","resource":"utils/agent/role/factory-expert/ROLE.md"},
+      {"action":"read","effect":"allow","resource":"*"}
+    ]}
+  }
+}

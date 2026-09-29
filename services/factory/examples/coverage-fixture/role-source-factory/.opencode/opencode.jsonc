@@ -1,0 +1,16 @@
+{
+  "agents": {
+    "factory-expert": {
+      "permissions": [
+        {"action":"edit","effect":"deny","resource":"*"},
+        {"action":"edit","effect":"allow","resource":"services/factory/*"},
+        {"action":"edit","effect":"allow","resource":"docs/wiki/documentation/*"},
+        {"action":"edit","effect":"allow","resource":".agents/skills/expert-role/*"},
+        {"action":"edit","effect":"allow","resource":"utils/agent/role/factory-expert/ROLE.md"},
+        {"action":"read","effect":"allow","resource":"*"},
+        {"action":"glob","effect":"allow","resource":"*"},
+        {"action":"grep","effect":"allow","resource":"*"}
+      ]
+    }
+  }
+}

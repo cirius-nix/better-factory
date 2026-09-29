@@ -1803,6 +1803,8 @@ let
     ".agents/skills/codegraph/SKILL.md"
     ".agents/skills/coverage-audit/SKILL.md"
     ".agents/skills/expert-role/SKILL.md"
+    ".agents/skills/expert-role/references/role-builder.md"
+    ".agents/skills/expert-role/references/role-template.md"
     ".opencode/commands/artifact-cleanup.md"
     ".opencode/commands/contract-review.md"
     ".opencode/commands/coverage-audit.md"
@@ -1810,6 +1812,85 @@ let
     ".opencode/commands/plan-pn.md"
     ".opencode/commands/release.md"
   ];
+
+  # Expert-role skill fixture (spec-role-builder-reference interface 2 to 4
+  # and 8, invariants 1 to 3, C-RS-01). The shipped `expert-role` capability
+  # emits `SKILL.md` and the two reference files. Each file occurs once in
+  # the render, holds the asset bytes, and joins the rendered-source list.
+  expertRoleFiles = [
+    {
+      rel = ".agents/skills/expert-role/SKILL.md";
+      asset = "SKILL.md";
+    }
+    {
+      rel = ".agents/skills/expert-role/references/role-template.md";
+      asset = "references/role-template.md";
+    }
+    {
+      rel = ".agents/skills/expert-role/references/role-builder.md";
+      asset = "references/role-builder.md";
+    }
+  ];
+  expertRoleAsset = f: factoryDir + "/assets/skills/expert-role/" + f.asset;
+  expertRoleSkillText = builtins.readFile plan.files.".agents/skills/expert-role/SKILL.md".source;
+  # A repeated shipped capability collapses to one entry per path, and a
+  # capability set without the `expert-role` skill emits no reference file
+  # (spec-role-builder-reference invariant 3 and interface 4).
+  expertRoleRepeatOut = harnessLib.capabilitySources {
+    roleNames = [
+      "artifact-master"
+      "artifact-master"
+    ];
+    tool = "unset";
+  };
+  expertRoleAbsentOut = harnessLib.capabilitySources {
+    roleNames = [ "requirement-expert" ];
+    tool = "unset";
+  };
+
+  # Factory declaration fixture (spec-coverage-surface interface 15 and 22,
+  # C-RS-02). The conditional `role-source` class replaces the concrete
+  # `factory-body` row. The narrow `factory-expert` permission of the
+  # role-contract table covers the concrete role body, so the class adds no
+  # factory report row.
+  factoryDeclarationFixture = [
+    {
+      class = "component-service";
+      pattern = "services/*";
+      copyMode = "none";
+      scope = "conditional";
+    }
+    {
+      class = "component-library";
+      pattern = "libs/*";
+      copyMode = "none";
+      scope = "conditional";
+    }
+    {
+      class = "component-deployment";
+      pattern = "deployment/*";
+      copyMode = "none";
+      scope = "conditional";
+    }
+    {
+      class = "role-source";
+      pattern = "utils/agent/role/*";
+      copyMode = "none";
+      scope = "conditional";
+    }
+  ];
+  factoryRoleBody = "utils/agent/role/factory-expert/ROLE.md";
+  factoryEditRules = builtins.filter (r: r.action == "edit") (
+    harnessLib.permissionRulesFor "factory-expert" "unset"
+  );
+  factoryLastMatch = builtins.foldl' (
+    acc: r: if coverage.globMatch r.resource factoryRoleBody then r else acc
+  ) null factoryEditRules;
+  factoryDeclarationOk =
+    builtins.any (e: e.class == "role-source") factoryDeclarationFixture
+    && !(builtins.any (e: e.class == "factory-body") factoryDeclarationFixture);
+  factoryRoleBodyCovered = factoryLastMatch != null && factoryLastMatch.effect == "allow";
+
   documentationRel = "docs/wiki/documentation/artifact-driven/README.md";
   documentationAsset = factoryDir + "/assets/documentation/artifact-driven/README.md";
   documentationSource = builtins.toFile "artifact-driven-README.md" (
@@ -2104,6 +2185,61 @@ let
       name = "capability-legacy-unset";
       assertion = capabilityLegacyUnset;
       message = "capability-legacy-unset: the legacy chain loses a `skill` allow rule under the design method unset";
+    }
+    {
+      name = "capability-expert-role-files";
+      assertion = builtins.all (
+        f:
+        builtins.hasAttr f.rel plan.files
+        && plan.files.${f.rel}.copyMode == "managed"
+        && builtins.length (builtins.filter (e: e.rel == f.rel) capabilityOut.fileDecls) == 1
+        && builtins.elem (toString plan.files.${f.rel}.source) (
+          builtins.map toString capabilityOut.renderedSources
+        )
+        && builtins.readFile plan.files.${f.rel}.source == builtins.readFile (expertRoleAsset f)
+      ) expertRoleFiles;
+      message = "capability-expert-role-files: the three `expert-role` files differ from the asset bytes, the copy mode, the occurrence count, or the rendered-source list";
+    }
+    {
+      name = "capability-expert-role-links";
+      assertion =
+        contains expertRoleSkillText "references/role-template.md"
+        && contains expertRoleSkillText "references/role-builder.md";
+      message = "capability-expert-role-links: the emitted `SKILL.md` does not name both delivered relative references";
+    }
+    {
+      name = "capability-expert-role-repeat";
+      assertion = builtins.all (
+        f: builtins.length (builtins.filter (e: e.rel == f.rel) expertRoleRepeatOut.fileDecls) == 1
+      ) expertRoleFiles;
+      message = "capability-expert-role-repeat: a repeated shipped capability duplicates an `expert-role` path";
+    }
+    {
+      name = "capability-expert-role-absent";
+      assertion = !(builtins.any (rel: builtins.match ".*expert-role.*" rel != null) (
+        builtins.map (e: e.rel) expertRoleAbsentOut.fileDecls
+      ));
+      message = "capability-expert-role-absent: a capability set without the shipped `expert-role` skill emits a reference file";
+    }
+    {
+      name = "surface-role-source-line";
+      assertion = contains declarationOut.text "role-source\tnone\tconditional\tutils/agent/role/*";
+      message = "surface-role-source-line: the generated declaration misses the conditional `role-source` line";
+    }
+    {
+      name = "surface-role-source-no-file";
+      assertion = !(builtins.any (rel: builtins.match "utils/agent/role/.*" rel != null) paths);
+      message = "surface-role-source-no-file: the starter plan holds a planned file under `utils/agent/role/`";
+    }
+    {
+      name = "factory-role-source-class";
+      assertion = factoryDeclarationOk;
+      message = "factory-role-source-class: the factory declaration fixture holds no `role-source` class or holds a `factory-body` row";
+    }
+    {
+      name = "factory-role-source-covered";
+      assertion = factoryRoleBodyCovered;
+      message = "factory-role-source-covered: the narrow `factory-expert` permission does not cover the concrete `factory-expert` role body";
     }
   ]
   ++ builtins.map (role: {
