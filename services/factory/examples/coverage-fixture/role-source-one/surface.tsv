@@ -1,0 +1,2 @@
+# role-source only: each matching file is a separate coverage item
+role-source	none	conditional	utils/agent/role/*

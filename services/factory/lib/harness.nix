@@ -1759,7 +1759,9 @@ let
   # file once; the field `instruction` is a validation link only. Two
   # capabilities with the same emitted path collapse to one entry when the
   # asset agrees; two different assets at one path fail evaluation
-  # (C-CL13). Every file routes through the rendered-source list. Returns
+  # (C-CL13). The shipped `expert-role` skill also emits its two reference
+  # files beside `SKILL.md` (spec-role-builder-reference interface 2 to 4,
+  # C-RS-01). Every file routes through the rendered-source list. Returns
   # the file declarations and the rendered-source list of the run.
   capabilitySources =
     { roleNames, tool ? "unset" }:
@@ -1779,27 +1781,49 @@ let
         && cap.home == "shipped"
         && (cap.emitter or "capability") == "capability"
         && active cap;
+      # The two shipped reference files of the `expert-role` skill
+      # (spec-role-builder-reference interface 2 to 4, C-RS-01). Each joins
+      # the plan as a managed extra file whose source is a rendered path of
+      # the run. A repo-local or inactive capability adds no entry.
+      skillReferences =
+        cap:
+        if cap.kind == "skill" && cap.name == "expert-role" && cap.home == "shipped" then
+          builtins.map (name: {
+            rel = ".agents/skills/expert-role/references/${name}";
+            source = builtins.toFile name (
+              builtins.readFile (../assets/skills/expert-role/references + "/${name}")
+            );
+            asset = ../assets/skills/expert-role/references + "/${name}";
+            copyMode = "managed";
+          }) [ "role-template.md" "role-builder.md" ]
+        else
+          [ ];
       entries = builtins.concatLists (
         builtins.map (
           r:
-          builtins.map (
-            cap:
-            let
-              rel =
-                if cap.kind == "skill" then
-                  ".agents/skills/${cap.name}/SKILL.md"
-                else
-                  ".opencode/commands/${cap.name}.md";
-              source = builtins.toFile (builtins.baseNameOf (toString cap.asset)) (
-                builtins.readFile cap.asset
-              );
-            in
-            {
-              inherit rel source;
-              asset = cap.asset;
-              copyMode = "managed";
-            }
-          ) (builtins.filter emit (capsOf r))
+          builtins.concatLists (
+            builtins.map (
+              cap:
+              let
+                rel =
+                  if cap.kind == "skill" then
+                    ".agents/skills/${cap.name}/SKILL.md"
+                  else
+                    ".opencode/commands/${cap.name}.md";
+                source = builtins.toFile (builtins.baseNameOf (toString cap.asset)) (
+                  builtins.readFile cap.asset
+                );
+              in
+              [
+                {
+                  inherit rel source;
+                  asset = cap.asset;
+                  copyMode = "managed";
+                }
+              ]
+              ++ skillReferences cap
+            ) (builtins.filter emit (capsOf r))
+          )
         ) roleNames
       );
       deduped = dedupeFileEntries entries;

@@ -1,0 +1,6 @@
+# The factory declaration fixture: role-source replaces the concrete
+# factory-body row (spec-coverage-surface interface 15 and 22, C-RS-02).
+component-service	none	conditional	services/*
+component-library	none	conditional	libs/*
+component-deployment	none	conditional	deployment/*
+role-source	none	conditional	utils/agent/role/*

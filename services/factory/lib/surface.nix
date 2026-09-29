@@ -30,8 +30,10 @@ let
   # effective copy mode of each class from the effective file plan. A class
   # whose pattern matches no planned file keeps the table copy mode
   # (spec-coverage-surface interface 9). The conditional classes are the
-  # `design` class and the five `component-*` classes (C-CA31). The class
-  # `factory-config` holds the planned file `factory.config.yaml` (C-CA30).
+  # `design` class, the five `component-*` classes (C-CA31), and the
+  # `role-source` class (C-RS-02). The class `factory-config` holds the
+  # planned file `factory.config.yaml` (C-CA30). The class `role-source`
+  # holds no planned file: a project author writes a role source.
   standardSurface = [
     {
       class = "surface-declaration";
@@ -92,6 +94,12 @@ let
       pattern = ".opencode/agents/*";
       copyMode = "none";
       scope = "model";
+    }
+    {
+      class = "role-source";
+      pattern = "utils/agent/role/*";
+      copyMode = "none";
+      scope = "conditional";
     }
     {
       class = "harness-config";
