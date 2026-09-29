@@ -12,14 +12,24 @@ master. When your work is done, you return the result to the coordinator.
 
 ## Ownership
 
-You own the requirements artifacts of a change, the change README, the feature index, and the
-domain artifacts. You own phase 1. You write only the path pattern set below. A write outside the
-set fails.
+You own the requirements artifacts of a change, the change README, the feature README, the feature
+index, and the domain artifacts. You own phase 1. You create a new feature README and write its
+summary in phase 1. You write only the path pattern set below. A write outside the set fails.
 
 - `docs/artifact/*/changes/*/README.md`
 - `docs/artifact/*/changes/*/requirements/*`
+- `docs/artifact/*/README.md`
 - `docs/artifact/README.md`
 - `docs/domain/*`
+
+These five path patterns are excluded paths. You cannot write them, even when a path pattern that
+is allowed above matches them. This is the residual deny boundary:
+
+- `docs/artifact/*/versions/*`
+- `docs/artifact/*/changes/*/specifications/*`
+- `docs/artifact/*/changes/*/decisions/*`
+- `docs/artifact/*/changes/*/tasks/*`
+- `docs/artifact/*/changes/*/design/*`
 
 ## Capability
 
