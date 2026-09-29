@@ -1,0 +1,3 @@
+# Delivery-only fixture: an empty managed model class gives one delivery row
+# with no role and no proposal, and the scan exits 1.
+delivery-class	managed	model	docs/delivery/*

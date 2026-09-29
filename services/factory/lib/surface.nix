@@ -164,13 +164,13 @@ let
     {
       class = "artifact-version";
       pattern = "docs/artifact/*/versions/*";
-      copyMode = "managed";
+      copyMode = "none";
       scope = "model";
     }
     {
       class = "artifact-feature";
       pattern = "docs/artifact/*/README.md";
-      copyMode = "managed";
+      copyMode = "seed";
       scope = "model";
     }
     {

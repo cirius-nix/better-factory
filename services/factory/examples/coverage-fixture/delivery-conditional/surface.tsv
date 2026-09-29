@@ -1,0 +1,4 @@
+# Unmatched-conditional fixture: a managed class of scope `conditional` whose
+# pattern matches no file produces no report row and no proposal, and the scan
+# exits 0.
+delivery-class	managed	conditional	docs/delivery/*

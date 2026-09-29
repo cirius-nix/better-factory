@@ -177,6 +177,34 @@ let
     builtins.readFile (factoryDir + "/assets/documentation/artifact-driven/README.md")
   );
 
+  # Managed artifact-driven template files (spec-contract-first interface 6
+  # to 9, invariants 2 to 4). One source asset emits one `managed` file per
+  # template path that the guide `Template` column names. Each rendered
+  # source joins the rendered-source list of the run. The source reads one
+  # asset under the template asset root; the emitter holds no second list of
+  # template text.
+  templateAssetDir = factoryDir + "/assets/documentation/artifact-driven/templates";
+  templateEntries = builtins.map (
+    rel:
+    {
+      inherit rel;
+      path = "docs/wiki/documentation/artifact-driven/templates/${rel}";
+      source = builtins.toFile (builtins.baseNameOf rel) (
+        builtins.readFile (templateAssetDir + "/${rel}")
+      );
+    }
+  ) [
+    "feature/README.md"
+    "change/README.md"
+    "change/requirements/README.md"
+    "change/requirements/req-name.md"
+    "change/specifications/README.md"
+    "change/specifications/spec-name.md"
+    "change/decisions/adr-name.md"
+    "change/tasks/README.md"
+    "change/tasks/task-name.md"
+  ];
+
   # Configuration file set (C-44): the entry factory.config.yaml with the
   # copy mode template. The source is the rendered YAML of advanced, arch,
   # and secrets of the effective settings. The source joins the
@@ -207,6 +235,7 @@ let
     configYaml
     documentationSource
   ]
+  ++ (builtins.map (e: e.source) templateEntries)
   ++ coverageScript.renderedSources
   ++ artifactCleanupScript.renderedSources
   ++ harnessRender.renderedSources
@@ -232,6 +261,11 @@ let
       copyMode = "managed";
     }
   ]
+  ++ (builtins.map (e: {
+    rel = e.path;
+    source = e.source;
+    copyMode = "managed";
+  }) templateEntries)
   ++ coverageScript.extraFiles
   ++ artifactCleanupScript.extraFiles
   ++ harnessRender.fileDecls

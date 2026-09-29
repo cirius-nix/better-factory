@@ -19,7 +19,7 @@ artifact-requirement	seed	model	docs/artifact/*/changes/*/requirements/*
 artifact-specification	seed	model	docs/artifact/*/changes/*/specifications/*
 artifact-decision	seed	model	docs/artifact/*/changes/*/decisions/*
 artifact-task	seed	model	docs/artifact/*/changes/*/tasks/*
-artifact-version	managed	model	docs/artifact/*/versions/*
+artifact-version	none	model	docs/artifact/*/versions/*
 artifact-feature	seed	model	docs/artifact/*/README.md
 domain	seed	model	docs/domain/*
 design	template	conditional	docs/artifact/*/changes/*/design/*

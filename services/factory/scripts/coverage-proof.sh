@@ -5,9 +5,12 @@
 # capability (C-FCA-07-04, C-FCA-08-02).
 #
 # The runner runs the deterministic coverage scan on two targets:
-#   1. the factory repository root, the report target. The expected exit code
-#      is 1. The report holds three rows for the class patterns `services/*`,
-#      `libs/*`, and `deployment/*`. The target is a report, not a gate.
+#   1. the factory repository root, the report target. The scan runs the
+#      script under test, services/factory/assets/scripts/coverage-audit.sh,
+#      because the adopted repository copy refreshes only after phase 5. The
+#      expected exit code is 1. The report holds three rows for the class
+#      patterns `services/*`, `libs/*`, and `deployment/*`, and zero delivery
+#      gaps. The target is a report, not a gate.
 #   2. the materialized consumer tree, the clean gate. The expected exit code
 #      is 0.
 #
@@ -27,6 +30,7 @@ SCRIPT_DIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
 REPO=$(CDPATH= cd -- "$SCRIPT_DIR/../../.." && pwd)
 CONSUMER=services/factory/examples/consumer
 AUDIT=.opencode/scripts/coverage-audit.sh
+AUDIT_ASSET=services/factory/assets/scripts/coverage-audit.sh
 EXPECTED_FACTORY=1
 EXPECTED_CONSUMER=0
 EXPECTED_MISSING=2
@@ -67,11 +71,14 @@ rows() {
 }
 
 # ---------------------------------------------------------------------------
-# Target 1: the factory repository root. The report target.
+# Target 1: the factory repository root. The report target. The scan runs the
+# script under test (`services/factory/assets/scripts/coverage-audit.sh`) for
+# the factory repository target, because the adopted repository copy refreshes
+# only after phase 5.
 # ---------------------------------------------------------------------------
 printf 'target: factory repository root (%s), expected exit %s\n' "$REPO" "$EXPECTED_FACTORY"
 factory_out=$WORK/factory.out
-factory_ec=$(scan "$REPO/$AUDIT" "$REPO" "$factory_out")
+factory_ec=$(scan "$REPO/$AUDIT_ASSET" "$REPO" "$factory_out")
 if [ "$factory_ec" -eq "$EXPECTED_FACTORY" ]; then
   ok "the factory root scan exits $EXPECTED_FACTORY"
 else
@@ -87,8 +94,14 @@ else
   bad "the factory root report rows are [$factory_rows], expected [$expected_rows]"
 fi
 
+if grep -q '^coverage: [0-9][0-9]* entries, 3 unowned author paths, 0 delivery gaps$' "$factory_out"; then
+  ok "the factory root report holds three unowned author paths and zero delivery gaps"
+else
+  bad "the factory root report header differs from three unowned author paths and zero delivery gaps"
+fi
+
 factory_out2=$WORK/factory2.out
-factory_ec2=$(scan "$REPO/$AUDIT" "$REPO" "$factory_out2")
+factory_ec2=$(scan "$REPO/$AUDIT_ASSET" "$REPO" "$factory_out2")
 if [ "$factory_ec2" -eq "$EXPECTED_FACTORY" ] && cmp -s "$factory_out" "$factory_out2"; then
   ok "the factory root scan is deterministic"
 else
@@ -136,10 +149,10 @@ else
 fi
 cat "$consumer_out"
 
-if grep -q '^coverage: [0-9][0-9]* entries, 0 unowned author paths$' "$consumer_out"; then
-  ok "the consumer report holds no unowned author path"
+if grep -q '^coverage: [0-9][0-9]* entries, 0 unowned author paths, 0 delivery gaps$' "$consumer_out"; then
+  ok "the consumer report holds no unowned author path and no delivery gap"
 else
-  bad "the consumer report holds an unowned author path"
+  bad "the consumer report holds an unowned author path or a delivery gap"
 fi
 
 if rows "$consumer_out" | grep -q '^component-'; then
@@ -154,6 +167,56 @@ if [ "$consumer_ec2" -eq "$EXPECTED_CONSUMER" ] && cmp -s "$consumer_out" "$cons
   ok "the consumer scan is deterministic"
 else
   bad "the consumer scan differs between two runs"
+fi
+
+# ---------------------------------------------------------------------------
+# The delivery rule (spec-coverage-scan interface 3 and 4,
+# spec-coverage-surface interface 11 and 12). The source asset proves the
+# rule before the phase-5 adoption of the factory repository copy.
+# ---------------------------------------------------------------------------
+FIXTURES=services/factory/examples/coverage-fixture
+EXPECTED_DELIVERY=1
+
+delivery_out=$WORK/delivery-missing.out
+delivery_ec=$(scan "$REPO/$AUDIT_ASSET" "$REPO/$FIXTURES/delivery-missing" "$delivery_out")
+if [ "$delivery_ec" -eq "$EXPECTED_DELIVERY" ]; then
+  ok "an empty managed model class exits $EXPECTED_DELIVERY"
+else
+  bad "an empty managed model class exits $delivery_ec, expected $EXPECTED_DELIVERY"
+fi
+cat "$delivery_out"
+
+if [ "$(rows "$delivery_out" | wc -l)" -eq 1 ] \
+  && grep -q "^docs/delivery/\*${TAB}managed${TAB}-${TAB}-$" "$delivery_out" \
+  && grep -q '^coverage: 0 entries, 0 unowned author paths, 1 delivery gaps$' "$delivery_out" \
+  && ! grep -q '^proposal:' "$delivery_out"; then
+  ok "the delivery gap holds one row, separate header counts, and no proposal"
+else
+  bad "the delivery gap report differs from one row, separate header counts, and no proposal"
+fi
+
+delivery_out2=$WORK/delivery-missing2.out
+delivery_ec2=$(scan "$REPO/$AUDIT_ASSET" "$REPO/$FIXTURES/delivery-missing" "$delivery_out2")
+if [ "$delivery_ec2" -eq "$EXPECTED_DELIVERY" ] && cmp -s "$delivery_out" "$delivery_out2"; then
+  ok "the delivery gap scan is deterministic"
+else
+  bad "the delivery gap scan differs between two runs"
+fi
+
+present_out=$WORK/delivery-present.out
+present_ec=$(scan "$REPO/$AUDIT_ASSET" "$REPO/$FIXTURES/delivery-present" "$present_out")
+if [ "$present_ec" -eq "$EXPECTED_CONSUMER" ] && ! grep -q "^docs/delivery/" "$present_out"; then
+  ok "a matching managed model class produces no delivery row"
+else
+  bad "a matching managed model class produces a delivery row or a wrong exit code"
+fi
+
+conditional_out=$WORK/delivery-conditional.out
+conditional_ec=$(scan "$REPO/$AUDIT_ASSET" "$REPO/$FIXTURES/delivery-conditional" "$conditional_out")
+if [ "$conditional_ec" -eq "$EXPECTED_CONSUMER" ] && ! grep -q "^docs/delivery/" "$conditional_out"; then
+  ok "an unmatched managed conditional class produces no row"
+else
+  bad "an unmatched managed conditional class produces a row or a wrong exit code"
 fi
 
 # ---------------------------------------------------------------------------
@@ -180,6 +243,13 @@ if grep -q "^factory-config${TAB}.*${TAB}factory\.config\.yaml$" "$REPO/surface.
   ok "the factory declaration holds the class factory-config for factory.config.yaml"
 else
   bad "the factory declaration misses the class factory-config for factory.config.yaml"
+fi
+
+if grep -q "^artifact-version${TAB}none${TAB}model${TAB}docs/artifact/\*/versions/\*$" "$REPO/surface.tsv" \
+  && grep -q "^artifact-feature${TAB}seed${TAB}model${TAB}docs/artifact/\*/README\.md$" "$REPO/surface.tsv"; then
+  ok "the factory declaration holds artifact-version none and artifact-feature seed"
+else
+  bad "the factory declaration differs from the version and feature modes"
 fi
 
 if [ "$status" -eq 0 ]; then
