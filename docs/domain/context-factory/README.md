@@ -128,7 +128,7 @@ notifier, one publish target, and named presets.
 | keep window | The three most recent version folders and the three most recent change folders of a feature. |
 | cleanup plan | The deterministic list of the paths to delete and the paths to keep of one feature. |
 | cleanup bundle | The artifact cleanup script, the command, and the instruction skill, shipped together. |
-| release role | The shipped role `artifact-release-expert` that owns the version folders, the feature README, and the artifact cleanup. |
+| release role | The shipped role `artifact-release-expert` that owns the version folders, the artifact cleanup, and the update of the feature README in phase 5. |
 | author environment variable | The environment variable that an author adds to the `env` of a canonical MCP entry; the canonical keys stay factory-owned. |
 | environment substitution | The OpenCode `{env:NAME}` form that reads the value from the OpenCode process environment. |
 
@@ -189,6 +189,10 @@ notifier, one publish target, and named presets.
 - The artifact cleanup is deterministic.
 - The artifact cleanup ships as a bundle: the cleanup script, the command, and the instruction skill.
 - The release role owns the artifact cleanup of the version folders and the change folders.
+- The requirement expert creates the feature README of a new feature and writes the summary in phase 1.
+- The release role updates the version data of the feature README in phase 5.
+- A surface class may hold two owners when the duties of the class fall in two phases.
+- The write scope of a role covers each file that the duties of the role name in the managed page.
 - The feature README names the kept versions only.
 - The project uses one design method selected with design.use.
 - Each context holds a context canvas, an aggregate canvas, and a glossary.
@@ -327,6 +331,9 @@ notifier, one publish target, and named presets.
 | Coverage proved | event | repository author |
 | Cleanup planned | event | repository author |
 | Artifacts cleaned | event | repository author |
+| Feature created | event | repository author |
+| Feature summary written | event | repository author |
+| Feature README updated | event | repository author |
 | Design option selected | event | repository author |
 | Design tool selected | event | repository author |
 | Domain model declared | event | solution expert |

@@ -59,8 +59,8 @@ skill. It also records the artifact cleanup of a feature: the keep window of the
 recent version folders and the three most recent change folders, and the cleanup plan
 (spec-artifact-cleanup). The plan names the paths to delete and the paths to keep. The cleanup
 reads the feature folders and the feature README, so it changes no blueprint fact. The release
-role owns the version folders, the feature README, and the change folders of the cleanup
-(spec-release-gate).
+role owns the version folders, the change folders of the cleanup, and the update of the feature
+README in phase 5 (spec-release-gate).
 
 The blueprint also records the declared ownership of a local expert role
 (spec-local-role-ownership). A role declaration may carry the optional field `ownership`. One
@@ -220,8 +220,8 @@ reference of the `expert-role` skill (spec-role-builder-reference).
 - The cleanup plan names the paths to delete and the paths to keep. The plan is deterministic: the
   same feature state gives the same plan.
 - The cleanup deletes only a path under `docs/artifact/*/versions/` and
-  `docs/artifact/*/changes/`. The cleanup changes no line of the feature README. The owner of the
-  README applies the reported edit (adr-cleanup-readme-edit).
+  `docs/artifact/*/changes/`. The cleanup changes no line of the feature README. The release role
+  applies the reported edit of the version data (adr-cleanup-readme-edit).
 - The cleanup presents its plan and deletes only after the confirmation of the human. The cleanup
   script holds the plan form and the apply form (adr-cleanup-plan-gate).
 - The feature README names the kept versions only, and the `## Versions` table stays consistent
@@ -318,9 +318,9 @@ scan) belong to the coverage workflow, not to the blueprint transaction. The sca
 it needs no corrective policy.
 
 The cleanup workflow policy: the confirmation of the human starts the delete. The delete starts
-the feature README edit by the owner. The policy belongs to the cleanup workflow, not to the
-blueprint transaction. The cleanup reads the blueprint facts and the feature folders, so the
-blueprint emits no cleanup event itself.
+the feature README edit of the version data by the release role. The policy belongs to the
+cleanup workflow, not to the blueprint transaction. The cleanup reads the blueprint facts and the
+feature folders, so the blueprint emits no cleanup event itself.
 
 ## Handled commands
 
