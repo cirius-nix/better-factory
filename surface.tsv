@@ -8,6 +8,7 @@ dev-flake	none	model	flake.nix
 project-skill	managed	model	.agents/skills/*
 project-command	managed	model	.opencode/commands/*
 project-agent	managed	model	.opencode/agents/*
+role-source	none	conditional	utils/agent/role/*
 harness-config	managed	model	.opencode/opencode.jsonc
 scan-script	managed	model	.opencode/scripts/*
 factory-config	template	model	factory.config.yaml

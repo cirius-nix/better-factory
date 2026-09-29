@@ -507,6 +507,56 @@ AGENT_IDS=$(printf '%s\n' "$RULES" | awk -F"$TAB" 'NF>=1 && $1!="" && $1!="*" { 
 # ---------------------------------------------------------------------------
 # The classification, the coverage, and the report.
 # ---------------------------------------------------------------------------
+# The coverage of one item by the agent set (spec-coverage-scan interface 6
+# and 7, C-CA12, C-FCA-03-01, C-FCA-03-02). The item is the concrete file
+# path for the class `role-source` and the class pattern for every other
+# class. The scan reads the `edit` rules of each agent in order and uses the
+# last matching rule. An agent covers the item when its last matching rule
+# has the effect `allow`.
+covered_by_any() {
+  cb_item=$1
+  while IFS= read -r aid; do
+    [ -n "$aid" ] || continue
+    cb_effect=""
+    while IFS="$TAB" read -r rid raction rresource reffect; do
+      [ -n "$rid" ] || continue
+      if [ "$rid" = "$aid" ] || [ "$rid" = "*" ]; then
+        if [ "$raction" = "edit" ]; then
+          if covers "$cb_item" "$rresource"; then
+            cb_effect="$reffect"
+          fi
+        fi
+      fi
+    done <<CB_RULES_EOF
+$RULES
+CB_RULES_EOF
+    if [ "$cb_effect" = "allow" ]; then
+      return 0
+    fi
+  done <<CB_IDS_EOF
+$AGENT_IDS
+CB_IDS_EOF
+  return 1
+}
+
+# Add one coverage item to the counts and the report (spec-coverage-scan,
+# the report, C-CA14). The item is the concrete file path for the class
+# `role-source` and the class pattern for every other class. A row names the
+# item, its copy mode, the nearest role, and the proposed role.
+process_item() {
+  pi_item=$1
+  pi_cm=$2
+  entries_total=$((entries_total + 1))
+  if covered_by_any "$pi_item"; then
+    return 0
+  fi
+  unowned_total=$((unowned_total + 1))
+  pi_nearest=$(nearest_role "$pi_item") || err "the nearest role failed"
+  pi_proposed=$(propose_name "$pi_item") || err "the proposed role failed"
+  row_lines="$row_lines
+$pi_item$TAB$pi_cm$TAB$pi_nearest$TAB$pi_proposed$TAB$pi_item"
+}
+
 entries_total=0
 unowned_total=0
 row_lines=""
@@ -514,6 +564,21 @@ row_lines=""
 while IFS="$TAB" read -r class cm scope pattern; do
   [ -n "$class" ] || continue
   if [ "$cm" = "managed" ]; then
+    continue
+  fi
+  # The class `role-source` tests each concrete matching file
+  # (spec-coverage-scan interface 6 and 8, C-RS-03, C-FCA-08-03). Every
+  # other class keeps the class-pattern test. A `role-source` file that no
+  # agent covers gives one row with its concrete path.
+  if [ "$class" = "role-source" ]; then
+    while IFS= read -r rp; do
+      [ -n "$rp" ] || continue
+      if covers "$rp" "$pattern"; then
+        process_item "$rp" "$cm"
+      fi
+    done <<ROLE_PATHS_EOF
+$PROJECT_PATHS
+ROLE_PATHS_EOF
     continue
   fi
   if [ "$scope" = "conditional" ]; then
@@ -531,37 +596,7 @@ PROJECT_PATHS_EOF
       continue
     fi
   fi
-  entries_total=$((entries_total + 1))
-  is_covered=0
-  while IFS= read -r aid; do
-    [ -n "$aid" ] || continue
-    last_effect=""
-    while IFS="$TAB" read -r rid raction rresource reffect; do
-      [ -n "$rid" ] || continue
-      if [ "$rid" = "$aid" ] || [ "$rid" = "*" ]; then
-        if [ "$raction" = "edit" ]; then
-          if covers "$pattern" "$rresource"; then
-            last_effect="$reffect"
-          fi
-        fi
-      fi
-    done <<RULES_EOF
-$RULES
-RULES_EOF
-    if [ "$last_effect" = "allow" ]; then
-      is_covered=1
-      break
-    fi
-  done <<AGENT_IDS_EOF
-$AGENT_IDS
-AGENT_IDS_EOF
-  if [ "$is_covered" -eq 0 ]; then
-    unowned_total=$((unowned_total + 1))
-    nearest=$(nearest_role "$pattern") || err "the nearest role failed"
-    proposed=$(propose_name "$pattern") || err "the proposed role failed"
-    row_lines="$row_lines
-$pattern$TAB$cm$TAB$nearest$TAB$proposed$TAB$pattern"
-  fi
+  process_item "$pattern" "$cm"
 done <<ENTRIES_EOF
 $ENTRIES
 ENTRIES_EOF
