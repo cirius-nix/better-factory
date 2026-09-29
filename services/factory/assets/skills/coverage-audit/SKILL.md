@@ -26,8 +26,10 @@ Do not use the coverage audit in these cases:
 ## How to call
 
 1. Run `sh .opencode/scripts/coverage-audit.sh .` from the project root.
-2. Read the report. The exit code `0` means no unowned author path. The exit code `1` means at
-   least one unowned author path.
+2. Read the report. The header holds the entry count, the unowned author path count, and the
+   delivery gap count. The exit code `0` means no unowned author path and no delivery gap. The
+   exit code `1` means at least one unowned author path or at least one delivery gap. The exit
+   code `2` means an input error.
 3. Present the report rows and the proposal to the user.
 4. Give the proposal to the `expert-role` skill. The proposal holds the role name, the ownership
    patterns, and the capability set.

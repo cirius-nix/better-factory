@@ -1,6 +1,6 @@
 # Feature: orchestration
 
-**Current version:** 9.1.0
+**Current version:** 10.0.0
 
 ## Summary
 
@@ -10,9 +10,9 @@ entries, and expert roles for each harness that they select.
 
 ## Current artifacts
 
-- [Requirements](versions/9.1.0/requirements/README.md)
-- [Specifications](versions/9.1.0/specifications/README.md)
-- [Decisions](versions/9.1.0/decisions/)
+- [Requirements](versions/10.0.0/requirements/README.md)
+- [Specifications](versions/10.0.0/specifications/README.md)
+- [Decisions](versions/10.0.0/decisions/)
 
 ## Versions
 
@@ -22,6 +22,7 @@ entries, and expert roles for each harness that they select.
 | 8.0.0 | [local-role-ownership](changes/change-local-role-ownership/README.md) | Requirements |
 | 9.0.0 | [mcp-author-env](changes/change-mcp-author-env/README.md) | Requirements |
 | 9.1.0 | [role-surface](changes/change-role-surface/README.md) | Specifications, Decisions |
+| 10.0.0 | [artifact-templates](changes/change-artifact-templates/README.md) | Requirements |
 
 ## Artifacts
 

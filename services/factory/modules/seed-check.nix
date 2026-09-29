@@ -1735,6 +1735,7 @@ let
     configYaml
     documentationSource
   ]
+  ++ templateRenderedSources
   ++ coverageScript.renderedSources
   ++ artifactCleanupScript.renderedSources
   ++ designOut.renderedSources
@@ -1753,6 +1754,7 @@ let
       copyMode = "managed";
     }
   ]
+  ++ templateFileEntries
   ++ coverageScript.extraFiles
   ++ artifactCleanupScript.extraFiles
   ++ designOut.extraFiles
@@ -1896,6 +1898,135 @@ let
   documentationSource = builtins.toFile "artifact-driven-README.md" (
     builtins.readFile documentationAsset
   );
+
+  # Managed artifact-driven template files (spec-contract-first interface 6
+  # to 9, invariants 2 to 6; task-template-delivery-proof). One source asset
+  # emits one `managed` file per template path that the guide `Template`
+  # column names. Each rendered source joins the rendered-source list of the
+  # run. The fixture proves the guide path set, the plan entry and its mode,
+  # the asset bytes, the specification contract order, and the generated
+  # declaration of the version and feature classes.
+  templateAssetDir = factoryDir + "/assets/documentation/artifact-driven/templates";
+  templateRels = [
+    "feature/README.md"
+    "change/README.md"
+    "change/requirements/README.md"
+    "change/requirements/req-name.md"
+    "change/specifications/README.md"
+    "change/specifications/spec-name.md"
+    "change/decisions/adr-name.md"
+    "change/tasks/README.md"
+    "change/tasks/task-name.md"
+  ];
+  templateEntries = builtins.map (
+    rel:
+    {
+      inherit rel;
+      path = "docs/wiki/documentation/artifact-driven/templates/${rel}";
+      source = builtins.toFile (builtins.baseNameOf rel) (
+        builtins.readFile (templateAssetDir + "/${rel}")
+      );
+    }
+  ) templateRels;
+  templateRenderedSources = builtins.map (e: e.source) templateEntries;
+  templateFileEntries = builtins.map (e: {
+    rel = e.path;
+    source = e.source;
+    copyMode = "managed";
+  }) templateEntries;
+  artifactGuideAsset = factoryDir + "/assets/documentation/artifact-driven/README.md";
+  artifactGuideText = builtins.readFile artifactGuideAsset;
+  artifactGuideLines = builtins.filter builtins.isString (builtins.split "\n" artifactGuideText);
+  guideTemplatePath =
+    line:
+    let
+      m = builtins.match ".*\\| \`(templates/[a-zA-Z0-9./-]+)\` \\|.*" line;
+    in
+    if m == null then null else builtins.head m;
+  guideTemplatePaths = builtins.filter (p: p != null) (builtins.map guideTemplatePath artifactGuideLines);
+  guideTemplateRels = builtins.map (p: "docs/wiki/documentation/artifact-driven/${p}") guideTemplatePaths;
+  plannedTemplateRels = builtins.map (e: e.path) templateEntries;
+  specTemplateText = builtins.readFile (templateAssetDir + "/change/specifications/spec-name.md");
+  versionSurfaceLine = "artifact-version\tnone\tmodel\tdocs/artifact/*/versions/*";
+  featureSurfaceLine = "artifact-feature\tseed\tmodel\tdocs/artifact/*/README.md";
+  repositoryTemplateAllow = builtins.any (
+    r:
+    r.action == "edit"
+    && r.effect == "allow"
+    && r.resource == "docs/wiki/documentation/artifact-driven/templates/*"
+  ) permDoc.agents.repository-expert.permissions;
+  templateAssertions = [
+    {
+      name = "template-guide-set";
+      assertion =
+        builtins.length guideTemplatePaths == 9
+        && builtins.sort builtins.lessThan guideTemplateRels
+        == builtins.sort builtins.lessThan plannedTemplateRels;
+      message = "template-guide-set: the guide `Template` path set differs from the nine planned template paths";
+    }
+    {
+      name = "template-plan-once";
+      assertion = builtins.all (
+        rel: builtins.length (builtins.filter (e: e.rel == rel) baseExtraFiles) == 1
+      ) plannedTemplateRels;
+      message = "template-plan-once: a planned template path occurs not exactly once in the plan";
+    }
+    {
+      name = "template-plan-entry";
+      assertion = builtins.all (
+        e:
+        builtins.hasAttr e.path plan.files
+        && plan.files.${e.path}.copyMode == "managed"
+        && plan.files.${e.path}.source == e.source
+        && builtins.elem (toString e.source) (builtins.map toString baseRenderedSources)
+        && builtins.readFile plan.files.${e.path}.source
+        == builtins.readFile (templateAssetDir + "/${e.rel}")
+      ) templateEntries;
+      message = "template-plan-entry: a planned template file differs from its `managed` mode, its rendered source, or its asset bytes";
+    }
+    {
+      name = "template-spec-order";
+      assertion =
+        startsWith specTemplateText "# spec-name:"
+        && contains specTemplateText "**Master:**"
+        && contains specTemplateText "**Covers:**"
+        && contains specTemplateText "**Context:**"
+        && contains specTemplateText "**Aggregate:**"
+        && pairsOk specTemplateText [
+          "## Contract"
+          "### Interface"
+          "### Events"
+          "### Data model"
+          "### Invariant"
+          "## Description"
+          "## Errors"
+        ];
+      message = "template-spec-order: the specification template misses a metadata line, a contract part, or the contract-first order";
+    }
+    {
+      name = "template-surface-version";
+      assertion =
+        contains declarationOut.text versionSurfaceLine
+        && !(contains declarationOut.text "artifact-version\tmanaged\tmodel");
+      message = "template-surface-version: the generated declaration misses `artifact-version` at `none`/`model` or retains the mode `managed`";
+    }
+    {
+      name = "template-surface-feature";
+      assertion = contains declarationOut.text featureSurfaceLine;
+      message = "template-surface-feature: the generated declaration misses `artifact-feature` at `seed`/`model`";
+    }
+    {
+      name = "template-repository-allow";
+      assertion = repositoryTemplateAllow;
+      message = "template-repository-allow: the rendered `repository-expert` permission misses the `edit` allow of the template pattern";
+    }
+  ];
+  templateFailing = builtins.filter (a: !a.assertion) templateAssertions;
+  templateMatch =
+    if templateFailing == [ ] then
+      true
+    else
+      throw "seed check: the artifact template fixture of `${arch}` fails ${(builtins.head templateFailing).message}";
 
   # Config-key fixture (C-CL18, C-CL20). The fixture selects the opencode
   # harness and the six known role names, so the shipped `references` and
@@ -3823,6 +3954,7 @@ assert mcpEnvMatch;
 assert capabilityMatch;
 assert bundleMatch;
 assert cleanupMatch;
+assert templateMatch;
 assert planPathMatch;
 assert logFixturePermissions;
 assert evalAssertions;
