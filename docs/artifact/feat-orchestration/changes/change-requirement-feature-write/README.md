@@ -3,7 +3,7 @@
 **Feature:** [feat-orchestration](../../README.md)
 **From:** 10.0.0
 **To:** 11.0.0
-**Type:** Requirements, Specifications
+**Type:** Requirements, Specifications, Decisions
 
 ## Reason
 
@@ -29,7 +29,8 @@ The change states the rule once at requirement level and then fixes the contract
 README holds two owners at two phases. The role `requirement-expert` creates the file of a new
 feature and writes the feature summary in phase 1. The role `artifact-release-expert` updates the
 version data of the file in phase 5. The exact write patterns, the exact rule order, and the
-residual deny set belong to phase 2.
+residual deny set belong to phase 2. The change records the two-owner split as the decision
+`adr-feature-readme-two-owners`.
 
 ## Scope
 
@@ -63,7 +64,7 @@ residual deny set belong to phase 2.
 
 - [Requirements](requirements/README.md) (the amended requirement `req-role-permissions`)
 - [Specifications](specifications/README.md) (present in phase 2: the three contract fixes)
-- [Decisions](decisions/) (present only if a decision changes)
+- [Decisions](decisions/) (the recorded ADR `adr-feature-readme-two-owners`)
 - [Implementation plan](tasks/README.md) (present in phase 3; the change needs code)
 
 ## Follow-ups
@@ -72,9 +73,9 @@ residual deny set belong to phase 2.
    of each role covers each file that the duties of the role name in the managed page. A later
    change adds the check. The requirement states the rule now, and review proves the rule until
    the check exists.
-2. **The ADR of the two-owner split (optional).** Phase 2 records the two-owner split as a
-   decision if the decision keeps more than one option. The `**Type:**` line then extends in
-   place to `Requirements, Specifications, Decisions`. The To version stays 11.0.0.
+2. **The ADR of the two-owner split (recorded).** The change records the two-owner split as the
+   decision `adr-feature-readme-two-owners`. The `**Type:**` line holds
+   `Requirements, Specifications, Decisions`, and the To version stays 11.0.0.
 
 ## Code paths
 

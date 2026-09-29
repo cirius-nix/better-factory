@@ -237,8 +237,12 @@ reference of the `expert-role` skill (spec-role-builder-reference).
 - The role `factory-expert` owns the role-contract surface: the factory component, the
   mixture-of-experts page, the `expert-role` skill, and its own role body. Its ownership section
   carries the same literal path patterns.
-- The permission array holds the broad `edit` deny rule before each ownership allow, and the
-  broad `shell` rule before each specific shell rule. The last matching rule wins.
+- The permission array starts with the broad `edit *` deny. Residual kind denies follow all
+  ownership allows. The broad `shell` rule comes before each specific shell rule. The last
+  matching rule wins (spec-role-permissions).
+- The role `requirement-expert` creates `docs/artifact/<feature>/README.md` and writes the summary
+  in phase 1. The role `artifact-release-expert` updates its version data in phase 5
+  (adr-feature-readme-two-owners, spec-role-permissions, spec-release-gate).
 - The role declaration may carry the optional field `ownership`. One entry is a plain string with
   the meaning `{ resource = s; effect = "allow"; }` or an attribute set with the required field
   `resource` and the optional field `effect`. The builder `checkRoleWith` normalizes each entry to
