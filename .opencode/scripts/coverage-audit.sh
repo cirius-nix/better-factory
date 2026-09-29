@@ -7,12 +7,13 @@
 # The script uses no jq and no yq.
 #
 # Report shape:
-#   coverage: <entry count> entries, <unowned count> unowned author paths
-#   <path><TAB><copy-mode><TAB><nearest-role><TAB><proposed-role>
+#   coverage: <entry count> entries, <unowned count> unowned author paths, <delivery count> delivery gaps
+#   <path-or-class-pattern><TAB><copy-mode><TAB><nearest-role><TAB><proposed-role>
 #   proposal: <role-name>
 #   - <ownership pattern>
 #
-# Exit codes: 0 no unowned author path, 1 one or more, 2 an input error.
+# Exit codes: 0 no unowned author path and no delivery gap, 1 one or more of
+# these gaps, 2 an input or command error.
 set -eu
 LC_ALL=C
 export LC_ALL
@@ -559,11 +560,36 @@ $pi_item$TAB$pi_cm$TAB$pi_nearest$TAB$pi_proposed$TAB$pi_item"
 
 entries_total=0
 unowned_total=0
+delivery_total=0
 row_lines=""
 
 while IFS="$TAB" read -r class cm scope pattern; do
   [ -n "$class" ] || continue
+  # A managed class is factory-owned (spec-coverage-scan interface 2 and 3).
+  # It never produces an ownership row, a nearest role, or a proposal. A
+  # managed class of scope `model` whose pattern matches no project path
+  # produces exactly one delivery row; a matching class produces none. A
+  # managed class of scope `conditional` produces no report row, including
+  # when its pattern matches no path (spec-coverage-scan interface 4,
+  # spec-coverage-surface interface 11 and 12).
   if [ "$cm" = "managed" ]; then
+    if [ "$scope" = "model" ]; then
+      dmatch=0
+      while IFS= read -r dp; do
+        [ -n "$dp" ] || continue
+        if covers "$dp" "$pattern"; then
+          dmatch=1
+          break
+        fi
+      done <<DELIVERY_PATHS_EOF
+$PROJECT_PATHS
+DELIVERY_PATHS_EOF
+      if [ "$dmatch" -eq 0 ]; then
+        delivery_total=$((delivery_total + 1))
+        row_lines="$row_lines
+$pattern$TAB$cm$TAB-$TAB-"
+      fi
+    fi
     continue
   fi
   # The class `role-source` tests each concrete matching file
@@ -601,8 +627,8 @@ done <<ENTRIES_EOF
 $ENTRIES
 ENTRIES_EOF
 
-printf 'coverage: %s entries, %s unowned author paths\n' "$entries_total" "$unowned_total"
-if [ "$unowned_total" -gt 0 ]; then
+printf 'coverage: %s entries, %s unowned author paths, %s delivery gaps\n' "$entries_total" "$unowned_total" "$delivery_total"
+if [ "$unowned_total" -gt 0 ] || [ "$delivery_total" -gt 0 ]; then
   ROWS=$(printf '%s\n' "$row_lines" | awk 'NF>0' | sort -t"$TAB" -k1,1) || err "the report sort failed"
   printf '%s\n' "$ROWS" | awk -F"$TAB" 'NF>=4 { print $1 "\t" $2 "\t" $3 "\t" $4 }' || err "the report rows failed"
   PROP_PAIRS=$(printf '%s\n' "$ROWS" | awk -F"$TAB" 'NF>=5 { print $4 "\t" $5 }' | sort -u) || err "the proposal sort failed"
@@ -616,7 +642,7 @@ $PROP_ROLES
 PROP_ROLES_EOF
 fi
 
-if [ "$unowned_total" -eq 0 ]; then
+if [ "$unowned_total" -eq 0 ] && [ "$delivery_total" -eq 0 ]; then
   exit 0
 fi
 exit 1
