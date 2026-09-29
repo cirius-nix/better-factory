@@ -37,7 +37,7 @@ The change fixes the contracts of three specifications: `spec-role-builder-refer
 `spec-coverage-surface`, and `spec-coverage-scan`. No requirement changes. The requirement set already states the rules: a
 shipped capability points only to a capability that the generated project receives
 (`req-capability-ship`), and every surface path has an owner (`req-write-coverage`). The change
-keeps the rules and fixes the contracts, so the type is `Specifications` and the To version is
+keeps the rules and fixes the contracts, so the type is `Specifications, Decisions` and the To version is
 9.1.0.
 
 ## Scope
@@ -68,7 +68,8 @@ keeps the rules and fixes the contracts, so the type is `Specifications` and the
 This change depends on [change-local-role-ownership](../change-local-role-ownership/README.md)
 (8.0.0) and on the change `change-coverage-audit` (5.0.0). The first change delivers the
 specification `spec-role-builder-reference`. The second change delivers the specification
-`spec-coverage-surface`. This change changes the contracts of both specifications. Both changes
+`spec-coverage-surface`. This change changes the contracts of the three specifications
+`spec-role-builder-reference`, `spec-coverage-surface`, and `spec-coverage-scan`. Both changes
 are released, so this change blocks no other change.
 
 ## Artifacts
