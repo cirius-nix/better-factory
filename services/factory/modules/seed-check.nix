@@ -472,8 +472,14 @@ let
       { action = "edit"; resource = "*"; effect = "deny"; }
       { action = "edit"; resource = "docs/artifact/*/changes/*/README.md"; effect = "allow"; }
       { action = "edit"; resource = "docs/artifact/*/changes/*/requirements/*"; effect = "allow"; }
+      { action = "edit"; resource = "docs/artifact/*/README.md"; effect = "allow"; }
       { action = "edit"; resource = "docs/artifact/README.md"; effect = "allow"; }
       { action = "edit"; resource = "docs/domain/*"; effect = "allow"; }
+      { action = "edit"; resource = "docs/artifact/*/versions/*"; effect = "deny"; }
+      { action = "edit"; resource = "docs/artifact/*/changes/*/specifications/*"; effect = "deny"; }
+      { action = "edit"; resource = "docs/artifact/*/changes/*/decisions/*"; effect = "deny"; }
+      { action = "edit"; resource = "docs/artifact/*/changes/*/tasks/*"; effect = "deny"; }
+      { action = "edit"; resource = "docs/artifact/*/changes/*/design/*"; effect = "deny"; }
       { action = "read"; resource = "*"; effect = "allow"; }
       { action = "glob"; resource = "*"; effect = "allow"; }
       { action = "grep"; resource = "*"; effect = "allow"; }
@@ -809,8 +815,14 @@ let
     requirement-expert = [
       "docs/artifact/*/changes/*/README.md"
       "docs/artifact/*/changes/*/requirements/*"
+      "docs/artifact/*/README.md"
       "docs/artifact/README.md"
       "docs/domain/*"
+      "docs/artifact/*/versions/*"
+      "docs/artifact/*/changes/*/specifications/*"
+      "docs/artifact/*/changes/*/decisions/*"
+      "docs/artifact/*/changes/*/tasks/*"
+      "docs/artifact/*/changes/*/design/*"
     ];
     solution-expert = [
       "docs/artifact/*/changes/*/specifications/*"

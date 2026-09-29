@@ -562,12 +562,36 @@ let
           effect = "allow";
         }
         {
+          resource = "docs/artifact/*/README.md";
+          effect = "allow";
+        }
+        {
           resource = "docs/artifact/README.md";
           effect = "allow";
         }
         {
           resource = "docs/domain/*";
           effect = "allow";
+        }
+        {
+          resource = "docs/artifact/*/versions/*";
+          effect = "deny";
+        }
+        {
+          resource = "docs/artifact/*/changes/*/specifications/*";
+          effect = "deny";
+        }
+        {
+          resource = "docs/artifact/*/changes/*/decisions/*";
+          effect = "deny";
+        }
+        {
+          resource = "docs/artifact/*/changes/*/tasks/*";
+          effect = "deny";
+        }
+        {
+          resource = "docs/artifact/*/changes/*/design/*";
+          effect = "deny";
         }
       ];
       research = "allow";
