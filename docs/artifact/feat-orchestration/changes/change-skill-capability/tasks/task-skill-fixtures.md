@@ -19,8 +19,8 @@ Prove the complete emitted skill folders, the six role grants, and all declared 
 - `services/factory/examples/multiple/flake.lock`
 - `services/factory/examples/consumer/flake.lock`
 - `services/factory/examples/self/flake.lock`
-- `services/factory/examples/coverage-fixture/flake.lock`
-- Test inputs under `services/factory/examples/` only if the presence fixture needs a repository file.
+- `services/factory/examples/skill-fixture/` (repo-local presence fixture root)
+- `services/factory/examples/skill-fixture-conflict/` (repo-local source-conflict fixture root)
 
 ## Steps
 
@@ -31,12 +31,13 @@ Prove the complete emitted skill folders, the six role grants, and all declared 
 5. Add evaluation-failure fixtures for a declared non-`skill` kind with its name, a missing shipped asset, a missing repo-local file, and an absent required root. Assert the checked failure with `builtins.tryEval` and force each lazy value before checking `success`.
 6. Add collision fixtures: shared shipped names and sources collapse; a conflicting source fails; an equal-byte repo-local file at an active shipped name passes without emitting a file; unequal bytes fail. Assert shipped-role table precedence and the exact `roles.<name>.capabilities` trace per declaring layer. Check a duplicate declared name gives one allow.
 7. Keep existing local-ownership and permission assertions. Add these proofs to the evaluation-time assertion chain; write no sixth result line.
-8. Refresh all five path-locked example `flake.lock` files against the changed factory source. Run the single and multiple checks and the self-host `factory-parity` proof. Run the consumer, self, and coverage-fixture checks with refreshed locks.
+8. Refresh the four path-locked example `flake.lock` files named above against the changed factory source. Run the single, multiple, and consumer flake checks. Run `nix flake check ./services/factory/examples/self` as the self-host parity proof with the repo-local `factory-expert` body as the optional input. Run `services/factory/scripts/coverage-proof.sh` to prove the coverage fixture; it has no flake or lock.
 
 ## Check
 
 - `nix flake check ./services/factory/examples/single` passes.
 - `nix flake check ./services/factory/examples/multiple` passes.
-- `factory-parity` passes for the self-host runner with `factoryExpertBody`.
-- The applicable consumer, self, and coverage-fixture checks pass with current locks. Each seed-check result holds exactly five lines: `layout: green`, `arch: green`, `facade: green`, `copy-mode: green`, and `emit: green`.
+- `nix flake check ./services/factory/examples/consumer` passes with its current lock.
+- `nix flake check ./services/factory/examples/self` passes with the repo-local `factory-expert` body supplied through `factoryExpertBody`.
+- `services/factory/scripts/coverage-proof.sh` passes for the coverage fixture. Each seed-check result holds exactly five lines: `layout: green`, `arch: green`, `facade: green`, `copy-mode: green`, and `emit: green`.
 - The generated skill file set equals the active skill asset file set. All negative fixtures fail evaluation for the specified reason, while the enclosing checks pass.

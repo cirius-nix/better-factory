@@ -31,4 +31,4 @@ Add `asd-ste-100-chat-no-slop` after `asd-ste-100` in six table entries and six 
 ## Check
 
 - Inspect the six table rows and six bodies; confirm each pair has the two STE skills in order and the master has neither.
-- Run the self check with `factoryExpertBody` and `factory-parity` after task-skill-fixtures. Without the repo-local `factory-expert` body edit, the body/table check fails even if the five asset role bodies pass.
+- Run the self check with `factoryExpertBody` and `nix flake check ./services/factory/examples/self` with the repo-local `factory-expert` body as the optional input after task-skill-fixtures. Without the repo-local `factory-expert` body edit, the body/table check fails even if the five asset role bodies pass.
