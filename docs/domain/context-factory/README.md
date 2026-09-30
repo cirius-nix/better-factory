@@ -153,14 +153,19 @@ notifier, one publish target, and named presets.
 - The factory renders a default permission set for each rendered content role from the two axes.
 - A role declaration may carry the field `ownership`.
 - A declared role whose name is absent from the role-contract table derives its write scope from the declaration.
-- The contract of a declared role holds the declared ownership, the restrictive research `deny`, the empty capability set, and the restrictive governance and shell defaults.
-- A declaration without `ownership` keeps the restrictive default.
+- The contract of a declared role holds the declared ownership, the declared skill set, the restrictive research `deny`, and the restrictive governance and shell defaults.
+- A declaration without ownership or skills keeps the restrictive default.
 - The managed layer keeps precedence for each shipped role, so a project overrides no shipped role contract.
 - The derive rejects an `edit` allow outside the declared ownership and an ownership path that escapes the project root.
 - The broad `edit` deny comes before the ownership allows.
 - An `ownership` entry is a plain string with the default effect `allow` or an attribute set with an optional `effect`, and the builder normalizes the entry to the shape `{ resource; effect; }`.
 - The local layer holds the same key space as the project layer, so a local role declaration may carry `ownership`.
 - The factory writes one line `managed-wins: roles.<name>.ownership from <layer>` for a discarded declared ownership of a shipped role name.
+- A declared skill entry holds `kind = "skill"`, one name, and one home. Another kind fails validation.
+- A declared shipped skill uses the fixed factory asset folder. A declared repo-local skill emits no file and needs a repository `SKILL.md` at evaluation.
+- Each active shipped skill emits its `SKILL.md` and all regular supporting files of the asset folder through the existing file-plan walker.
+- The shipped role table wins over a declared capability of the same role. A file-path conflict between different skill sources fails.
+- The declared skill allows follow `skill * ask` and precede the table skill allows. No skill widens the ownership axis.
 - A capability holds one of the seven option kinds: skill, command, MCP server, reference, plugin, model, or worktree.
 - A tool capability is a bundle: the server entry and its instruction skill.
 - Each role that uses a tool grants the instruction skill of the tool.
@@ -292,6 +297,7 @@ notifier, one publish target, and named presets.
 | Declare role | command | repository author |
 | Declare local role | command | repository author |
 | Declare capability | command | role author |
+| Declare skill | command | repository author |
 | State role contract | command | role author |
 | Declare local settings | command | repository author |
 | Select design option | command | repository author |

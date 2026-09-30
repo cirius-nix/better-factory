@@ -22,6 +22,12 @@ ownership of a local expert role, the declaration contract of a role absent from
 table, and the precedence of the shipped role contracts (spec-local-role-ownership). The context
 holds the local-role facts in its aggregate `agg-repository-blueprint`.
 
+The declared-skill contract is also internal to `context-factory`. The project declares a skill
+name and home in the role declaration. The factory validates the file at that home, emits the
+complete folder of a shipped skill, and derives the role's skill allow rule from the same
+declaration (spec-declared-skill, spec-capability-ship). No other bounded context consumes this
+contract. The context map still has no relationship between bounded contexts.
+
 The opencode harness is an external supplier of the harness protocol. The harness is not a
 bounded context. The factory follows the published language of the harness, namely the version 2
 shape: the plural key `agents`, the ordered array `permissions`, the group `mcp.servers`, the
