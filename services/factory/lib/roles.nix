@@ -24,6 +24,23 @@ let
     "source"
     "harness"
     "ownership"
+    "capabilities"
+  ];
+
+  # The declared skill vocabulary (spec-declared-skill, adr-declared-skill-shape).
+  # The kind `skill` is the only accepted kind in this change. A declared
+  # skill holds the home `shipped` or `repo-local`.
+  capabilityKindValues = [ "skill" ];
+
+  capabilityHomeValues = [
+    "shipped"
+    "repo-local"
+  ];
+
+  capabilityFields = [
+    "kind"
+    "name"
+    "home"
   ];
 
   harnessFields = [
@@ -106,6 +123,53 @@ let
       in
       builtins.map (e: normalize (normalizeOwnershipEntry roleName e)) value;
 
+  # Normalize one declared capability entry to the shape
+  # `{ kind; name; home; }` (spec-declared-skill interface 2 and 3). The
+  # entry holds exactly the fields `kind`, `name`, and `home`. The only
+  # accepted kind is `skill`. The name is one path segment matching
+  # `[A-Za-z0-9._-]+`, except `.` and `..`. The home is `shipped` or
+  # `repo-local`. No `asset`, `source`, `when`, or emitted-path field is
+  # accepted. Each failure gives the named `role-capability-*` message.
+  normalizeCapabilityEntry =
+    roleName: entry:
+    if !(builtins.isAttrs entry) then
+      throw "role-capability-entry: a declared capability of the role `${roleName}` must be an attribute set, got `${builtins.typeOf entry}`"
+    else
+      let
+        unknown = builtins.filter (f: !(builtins.elem f capabilityFields)) (
+          builtins.attrNames entry
+        );
+        missing = builtins.filter (f: !(builtins.hasAttr f entry)) capabilityFields;
+      in
+      if unknown != [ ] then
+        throw "role-capability-field: a declared capability of the role `${roleName}` holds the unknown field `${builtins.head unknown}`"
+      else if missing != [ ] then
+        throw "role-capability-entry: a declared capability of the role `${roleName}` misses the field `${builtins.head missing}`"
+      else if !(builtins.isString entry.kind) || !(builtins.elem entry.kind capabilityKindValues) then
+        throw "role-capability-kind: a declared capability of the role `${roleName}` holds the kind `${builtins.toJSON entry.kind}`; want `skill`"
+      else if
+        !(builtins.isString entry.name)
+        || builtins.match namePattern entry.name == null
+        || entry.name == "."
+        || entry.name == ".."
+      then
+        throw "role-capability-name: a declared capability of the role `${roleName}` holds the name `${builtins.toJSON entry.name}`; want one path segment matching [A-Za-z0-9._-]+, except `.` and `..`"
+      else if !(builtins.isString entry.home) || !(builtins.elem entry.home capabilityHomeValues) then
+        throw "role-capability-home: the declared capability `${entry.name}` of the role `${roleName}` holds the home `${builtins.toJSON entry.home}`; want `shipped` or `repo-local`"
+      else
+        {
+          inherit (entry) kind name home;
+        };
+
+  # Validate one declared capability list (spec-declared-skill interface 1 to
+  # 3). The value MUST be a list. Each entry reaches normalizeCapabilityEntry.
+  normalizeCapabilities =
+    roleName: value:
+    if !(builtins.isList value) then
+      throw "role-capability-type: the `capabilities` of the role `${roleName}` must be a list, got `${builtins.typeOf value}`"
+    else
+      builtins.map (normalizeCapabilityEntry roleName) value;
+
   isPathLike = v: builtins.typeOf v == "path" || builtins.isString v;
 
   # Validate one role declaration with explicit pure checks (C-11): the
@@ -118,8 +182,8 @@ let
   # render validates the merged set with allowReserved, so the
   # factory-injected built-in declaration passes. Returns the normalized
   # declaration: `enable` defaults to true, `name` to the attribute name,
-  # `ownership` to the empty list, and each harness group to the empty set.
-  # The structural header keys
+  # `ownership` and `capabilities` to the empty list, and each harness group
+  # to the empty set. The structural header keys
   # always win over a harness extra with the same name.
   checkRoleWith =
     {
@@ -180,6 +244,8 @@ let
             else
               let
                 ownership = if decl ? ownership then normalizeOwnership name decl.ownership else [ ];
+                capabilities =
+                  if decl ? capabilities then normalizeCapabilities name decl.capabilities else [ ];
               in
               {
                 enable = if decl ? enable then decl.enable else true;
@@ -187,6 +253,7 @@ let
                 description = decl.description;
                 source = decl.source;
                 inherit ownership;
+                inherit capabilities;
                 harness = {
                   opencode = if builtins.hasAttr "opencode" hg then hg.opencode else { };
                 };

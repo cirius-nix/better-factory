@@ -408,6 +408,7 @@ let
     { action = "websearch"; resource = "*"; effect = "allow"; }
     { action = "skill"; resource = "*"; effect = "ask"; }
     { action = "skill"; resource = "asd-ste-100"; effect = "allow"; }
+    { action = "skill"; resource = "asd-ste-100-chat-no-slop"; effect = "allow"; }
   ];
   permDesignerTail = [
     { action = "subagent"; resource = "*"; effect = "deny"; }
@@ -487,6 +488,7 @@ let
       { action = "websearch"; resource = "*"; effect = "allow"; }
       { action = "skill"; resource = "*"; effect = "ask"; }
       { action = "skill"; resource = "asd-ste-100"; effect = "allow"; }
+      { action = "skill"; resource = "asd-ste-100-chat-no-slop"; effect = "allow"; }
       { action = "skill"; resource = "ddd-review"; effect = "allow"; }
       { action = "subagent"; resource = "*"; effect = "deny"; }
       { action = "question"; resource = "*"; effect = "deny"; }
@@ -505,6 +507,7 @@ let
       { action = "websearch"; resource = "*"; effect = "allow"; }
       { action = "skill"; resource = "*"; effect = "ask"; }
       { action = "skill"; resource = "asd-ste-100"; effect = "allow"; }
+      { action = "skill"; resource = "asd-ste-100-chat-no-slop"; effect = "allow"; }
       { action = "skill"; resource = "ddd-review"; effect = "allow"; }
       { action = "skill"; resource = "context7-mcp"; effect = "allow"; }
       { action = "skill"; resource = "codegraph"; effect = "allow"; }
@@ -530,6 +533,7 @@ let
       { action = "websearch"; resource = "*"; effect = "allow"; }
       { action = "skill"; resource = "*"; effect = "ask"; }
       { action = "skill"; resource = "asd-ste-100"; effect = "allow"; }
+      { action = "skill"; resource = "asd-ste-100-chat-no-slop"; effect = "allow"; }
       { action = "skill"; resource = "artifact-cleanup"; effect = "allow"; }
       { action = "subagent"; resource = "*"; effect = "deny"; }
       { action = "question"; resource = "*"; effect = "deny"; }
@@ -553,6 +557,7 @@ let
       { action = "websearch"; resource = "*"; effect = "allow"; }
       { action = "skill"; resource = "*"; effect = "ask"; }
       { action = "skill"; resource = "asd-ste-100"; effect = "allow"; }
+      { action = "skill"; resource = "asd-ste-100-chat-no-slop"; effect = "allow"; }
       { action = "skill"; resource = "context7-mcp"; effect = "allow"; }
       { action = "skill"; resource = "codegraph"; effect = "allow"; }
       { action = "subagent"; resource = "*"; effect = "deny"; }
@@ -593,6 +598,7 @@ let
       { action = "websearch"; resource = "*"; effect = "allow"; }
       { action = "skill"; resource = "*"; effect = "ask"; }
       { action = "skill"; resource = "asd-ste-100"; effect = "allow"; }
+      { action = "skill"; resource = "asd-ste-100-chat-no-slop"; effect = "allow"; }
       { action = "subagent"; resource = "*"; effect = "deny"; }
       { action = "question"; resource = "*"; effect = "deny"; }
       { action = "shell"; resource = "*"; effect = "ask"; }
@@ -1808,11 +1814,20 @@ let
   capabilityOut = harnessLib.capabilitySources {
     roleNames = capabilityRoleNames;
     tool = design.toolFeed settings;
+    listTree = filePlan.listTree;
   };
   capabilityExpectedRels = [
     ".agents/skills/artifact-cleanup/SKILL.md"
     ".agents/skills/artifact-master/SKILL.md"
     ".agents/skills/asd-ste-100/SKILL.md"
+    ".agents/skills/asd-ste-100/references/dictionary.md"
+    ".agents/skills/asd-ste-100/references/examples.md"
+    ".agents/skills/asd-ste-100/references/review-checklist.md"
+    ".agents/skills/asd-ste-100/references/writing-rules.md"
+    ".agents/skills/asd-ste-100-chat-no-slop/SKILL.md"
+    ".agents/skills/asd-ste-100-chat-no-slop/references/eval.md"
+    ".agents/skills/asd-ste-100-chat-no-slop/references/examples-chat.md"
+    ".agents/skills/asd-ste-100-chat-no-slop/references/slop-patterns.md"
     ".agents/skills/context7-mcp/SKILL.md"
     ".agents/skills/codegraph/SKILL.md"
     ".agents/skills/coverage-audit/SKILL.md"
@@ -1856,10 +1871,12 @@ let
       "artifact-master"
     ];
     tool = "unset";
+    listTree = filePlan.listTree;
   };
   expertRoleAbsentOut = harnessLib.capabilitySources {
     roleNames = [ "requirement-expert" ];
     tool = "unset";
+    listTree = filePlan.listTree;
   };
 
   # Factory declaration fixture (spec-coverage-surface interface 15 and 22,
@@ -2196,6 +2213,360 @@ let
     capabilityHasAllow "requirement-expert" "unset" "asd-ste-100"
     && capabilityHasAllow "requirement-expert" "unset" "ddd-review";
 
+  # The generated skill file set equals the active skill asset file set
+  # (spec-harness-merge data model). The active skill names come from the
+  # generated skill paths, so the assertion proves that each folder is
+  # complete and that no extra file is emitted.
+  capabilitySkillNames = builtins.foldl' (
+    acc: e:
+    let
+      m = builtins.match "^\\.agents/skills/([^/]+)/.*$" e.rel;
+    in
+    if m == null then
+      acc
+    else
+      let
+        n = builtins.elemAt m 0;
+      in
+      if builtins.elem n acc then acc else acc ++ [ n ]
+  ) [ ] capabilityOut.fileDecls;
+  capabilityRenderedSkillRels = builtins.filter (
+    rel: builtins.match "^\\.agents/skills/.*$" rel != null
+  ) (builtins.map (e: e.rel) capabilityOut.fileDecls);
+  capabilityAssetRels = builtins.concatLists (
+    builtins.map (
+      name:
+      builtins.map (p: ".agents/skills/${name}/${p}") (
+        filePlan.listTree (factoryDir + "/assets/skills/${name}") ""
+      )
+    ) capabilitySkillNames
+  );
+  capabilitySkillSetOk =
+    builtins.sort builtins.lessThan capabilityRenderedSkillRels
+    == builtins.sort builtins.lessThan capabilityAssetRels;
+  capabilitySkillBytesOk = builtins.all (
+    rel:
+    let
+      m = builtins.match "^\\.agents/skills/([^/]+)/(.*)$" rel;
+    in
+    builtins.readFile plan.files.${rel}.source
+    == builtins.readFile (factoryDir + "/assets/skills/${builtins.elemAt m 0}/${builtins.elemAt m 1}")
+  ) capabilityRenderedSkillRels;
+
+  # Declared skill fixtures (spec-declared-skill, spec-role-permissions
+  # interface 4, task-skill-fixtures step 4 to 6). A role outside the
+  # role-contract table declares one skill at each home. The fixture
+  # repository root holds the repo-local `SKILL.md`; the shipped home emits
+  # the factory asset folder.
+  declaredFixtureRoot = factoryDir + "/examples/skill-fixture";
+  declaredConflictRoot = factoryDir + "/examples/skill-fixture-conflict";
+  declaredRoleSource = factoryDir + "/assets/roles/artifact-master/ROLE.md";
+  declaredProject = orchestration.evalAgents {
+    uses = [ "opencode" ];
+    roles = {
+      declared-shipped = {
+        description = "declared shipped skill fixture";
+        source = declaredRoleSource;
+        capabilities = [
+          {
+            kind = "skill";
+            name = "coverage-audit";
+            home = "shipped";
+          }
+        ];
+      };
+      declared-local = {
+        description = "declared repo-local skill fixture";
+        source = declaredRoleSource;
+        capabilities = [
+          {
+            kind = "skill";
+            name = "game-guide";
+            home = "repo-local";
+          }
+        ];
+      };
+    };
+  };
+  declaredNames = [
+    "declared-shipped"
+    "declared-local"
+  ];
+  declaredMerged = harnessLib.mergeAgents {
+    project = declaredProject;
+    roleNames = declaredNames;
+    tool = "unset";
+    repoRoot = declaredFixtureRoot;
+  };
+  declaredSelected = harnessLib.renderSelected {
+    merged = declaredMerged;
+    uses = [ "opencode" ];
+  };
+  declaredDoc = builtins.fromJSON (
+    builtins.readFile (fileByRel declaredSelected.fileDecls ".opencode/opencode.jsonc").source
+  );
+  declaredShippedExpected = [
+    { action = "edit"; resource = "*"; effect = "deny"; }
+    { action = "read"; resource = "*"; effect = "allow"; }
+    { action = "glob"; resource = "*"; effect = "allow"; }
+    { action = "grep"; resource = "*"; effect = "allow"; }
+    { action = "webfetch"; resource = "*"; effect = "deny"; }
+    { action = "websearch"; resource = "*"; effect = "deny"; }
+    { action = "skill"; resource = "*"; effect = "ask"; }
+    { action = "skill"; resource = "coverage-audit"; effect = "allow"; }
+    { action = "subagent"; resource = "*"; effect = "deny"; }
+    { action = "question"; resource = "*"; effect = "deny"; }
+    { action = "shell"; resource = "*"; effect = "deny"; }
+  ];
+  declaredLocalExpected = [
+    { action = "edit"; resource = "*"; effect = "deny"; }
+    { action = "read"; resource = "*"; effect = "allow"; }
+    { action = "glob"; resource = "*"; effect = "allow"; }
+    { action = "grep"; resource = "*"; effect = "allow"; }
+    { action = "webfetch"; resource = "*"; effect = "deny"; }
+    { action = "websearch"; resource = "*"; effect = "deny"; }
+    { action = "skill"; resource = "*"; effect = "ask"; }
+    { action = "skill"; resource = "game-guide"; effect = "allow"; }
+    { action = "subagent"; resource = "*"; effect = "deny"; }
+    { action = "question"; resource = "*"; effect = "deny"; }
+    { action = "shell"; resource = "*"; effect = "deny"; }
+  ];
+  # The declared shipped skill emits the factory asset folder.
+  declaredShippedOut = harnessLib.capabilitySources {
+    roleNames = [ "declared-shipped" ];
+    tool = "unset";
+    listTree = filePlan.listTree;
+    decls = declaredMerged.decls;
+    repoRoot = declaredFixtureRoot;
+  };
+  # The declared repo-local skill emits no file.
+  declaredLocalOut = harnessLib.capabilitySources {
+    roleNames = [ "declared-local" ];
+    tool = "unset";
+    listTree = filePlan.listTree;
+    decls = declaredMerged.decls;
+    repoRoot = declaredFixtureRoot;
+  };
+  # Shared shipped names and sources collapse to one path.
+  declaredSharedOut = harnessLib.capabilitySources {
+    roleNames = [
+      "declared-shared-a"
+      "declared-shared-b"
+    ];
+    tool = "unset";
+    listTree = filePlan.listTree;
+    decls = {
+      declared-shared-a = {
+        capabilities = [
+          {
+            kind = "skill";
+            name = "coverage-audit";
+            home = "shipped";
+          }
+        ];
+      };
+      declared-shared-b = {
+        capabilities = [
+          {
+            kind = "skill";
+            name = "coverage-audit";
+            home = "shipped";
+          }
+        ];
+      };
+    };
+    repoRoot = declaredFixtureRoot;
+  };
+  # An equal-byte repo-local file at an active shipped name passes and emits
+  # no file beside the shipped folder.
+  declaredEqualOut = harnessLib.capabilitySources {
+    roleNames = [
+      "requirement-expert"
+      "declared-local-equal"
+    ];
+    tool = "unset";
+    listTree = filePlan.listTree;
+    decls = {
+      declared-local-equal = {
+        capabilities = [
+          {
+            kind = "skill";
+            name = "asd-ste-100";
+            home = "repo-local";
+          }
+        ];
+      };
+    };
+    repoRoot = declaredFixtureRoot;
+  };
+  declaredShippedCount = builtins.length (
+    builtins.filter (e: e.rel == ".agents/skills/coverage-audit/SKILL.md") declaredShippedOut.fileDecls
+  );
+  # The declared non-skill kind fails validation and names the kind.
+  declaredBadKindFailed =
+    (builtins.tryEval (
+      builtins.deepSeq (
+        orchestration.evalAgents {
+          uses = [ ];
+          roles = {
+            bad-kind = {
+              description = "declared non-skill kind fixture";
+              source = declaredRoleSource;
+              capabilities = [
+                {
+                  kind = "command";
+                  name = "interview";
+                  home = "shipped";
+                }
+              ];
+            };
+          };
+        }
+      ) true
+    )).success == false;
+  declaredMissingAssetFailed =
+    (builtins.tryEval (
+      builtins.deepSeq (
+        harnessLib.capabilitySources {
+          roleNames = [ "declared-missing" ];
+          tool = "unset";
+          listTree = filePlan.listTree;
+          decls = {
+            declared-missing = {
+              capabilities = [
+                {
+                  kind = "skill";
+                  name = "no-such-skill";
+                  home = "shipped";
+                }
+              ];
+            };
+          };
+          repoRoot = declaredFixtureRoot;
+        }
+      ) true
+    )).success == false;
+  declaredMissingLocalFailed =
+    (builtins.tryEval (
+      builtins.deepSeq (
+        harnessLib.mergeAgents {
+          project = declaredProject;
+          roleNames = [ "declared-local" ];
+          tool = "unset";
+          repoRoot = factoryDir + "/assets";
+        }
+      ) true
+    )).success == false;
+  declaredAbsentRootFailed =
+    (builtins.tryEval (
+      builtins.deepSeq (
+        harnessLib.mergeAgents {
+          project = declaredProject;
+          roleNames = [ "declared-local" ];
+          tool = "unset";
+        }
+      ) true
+    )).success == false;
+  declaredConflictFailed =
+    (builtins.tryEval (
+      builtins.deepSeq (
+        harnessLib.capabilitySources {
+          roleNames = [
+            "requirement-expert"
+            "declared-local-conflict"
+          ];
+          tool = "unset";
+          listTree = filePlan.listTree;
+          decls = {
+            declared-local-conflict = {
+              capabilities = [
+                {
+                  kind = "skill";
+                  name = "asd-ste-100";
+                  home = "repo-local";
+                }
+              ];
+            };
+          };
+          repoRoot = declaredConflictRoot;
+        }
+      ) true
+    )).success == false;
+  # Shipped-role precedence: the table wins and the trace names each
+  # declaring layer.
+  shippedCapsProject = orchestration.evalAgents {
+    uses = [ "opencode" ];
+    roles = {
+      requirement-expert = {
+        description = "shipped capabilities project fixture";
+        source = factoryDir + "/assets/roles/requirement-expert/ROLE.md";
+        capabilities = [
+          {
+            kind = "skill";
+            name = "coverage-audit";
+            home = "shipped";
+          }
+        ];
+      };
+    };
+  };
+  shippedCapsLocal = orchestration.evalAgents {
+    uses = [ "opencode" ];
+    roles = {
+      requirement-expert = {
+        description = "shipped capabilities local fixture";
+        source = factoryDir + "/assets/roles/requirement-expert/ROLE.md";
+        capabilities = [
+          {
+            kind = "skill";
+            name = "codegraph";
+            home = "shipped";
+          }
+        ];
+      };
+    };
+  };
+  shippedCapsMerged = harnessLib.mergeAgents {
+    project = shippedCapsProject;
+    local = shippedCapsLocal;
+    roleNames = [ "requirement-expert" ];
+    tool = "unset";
+  };
+  shippedCapsExpectedTrace = [
+    "managed-wins: roles.requirement-expert.capabilities from project"
+    "managed-wins: roles.requirement-expert.capabilities from local"
+  ];
+  shippedCapsPrecedenceOk =
+    harnessLib.permissionRulesFor {
+      roleName = "requirement-expert";
+      tool = "unset";
+      decls = shippedCapsMerged.decls;
+    }
+    == permExpected.requirement-expert;
+  # A duplicate declared name gives one allow.
+  declaredDuplicateOk =
+    harnessLib.permissionRulesFor {
+      roleName = "declared-local";
+      tool = "unset";
+      decls = {
+        declared-local = {
+          capabilities = [
+            {
+              kind = "skill";
+              name = "game-guide";
+              home = "repo-local";
+            }
+            {
+              kind = "skill";
+              name = "game-guide";
+              home = "repo-local";
+            }
+          ];
+        };
+      };
+    }
+    == declaredLocalExpected;
+
   capabilityAssertions = [
     {
       name = "capability-plan-files";
@@ -2383,6 +2754,93 @@ let
       name = "factory-role-source-covered";
       assertion = factoryRoleBodyCovered;
       message = "factory-role-source-covered: the narrow `factory-expert` permission does not cover the concrete `factory-expert` role body";
+    }
+    {
+      name = "capability-skill-set";
+      assertion = capabilitySkillSetOk;
+      message = "capability-skill-set: the generated skill file set differs from the active skill asset folder set";
+    }
+    {
+      name = "capability-skill-bytes";
+      assertion = capabilitySkillBytesOk;
+      message = "capability-skill-bytes: a generated skill file differs from its asset bytes";
+    }
+    {
+      name = "capability-declared-shipped";
+      assertion =
+        declaredShippedCount == 1
+        && builtins.length declaredShippedOut.fileDecls == 1
+        && builtins.readFile (builtins.head declaredShippedOut.fileDecls).source
+        == builtins.readFile (factoryDir + "/assets/skills/coverage-audit/SKILL.md");
+      message = "capability-declared-shipped: a declared shipped skill misses its factory folder, its bytes, or its occurrence count";
+    }
+    {
+      name = "capability-declared-local";
+      assertion = declaredLocalOut.fileDecls == [ ];
+      message = "capability-declared-local: a declared repo-local skill emits a file";
+    }
+    {
+      name = "capability-declared-shared";
+      assertion =
+        builtins.length (
+          builtins.filter (e: e.rel == ".agents/skills/coverage-audit/SKILL.md") declaredSharedOut.fileDecls
+        ) == 1;
+      message = "capability-declared-shared: two roles with one shipped name and source do not collapse to one path";
+    }
+    {
+      name = "capability-declared-equal";
+      assertion =
+        builtins.length (
+          builtins.filter (e: e.rel == ".agents/skills/asd-ste-100/SKILL.md") declaredEqualOut.fileDecls
+        ) == 1;
+      message = "capability-declared-equal: an equal-byte repo-local skill at an active shipped name emits a second path";
+    }
+    {
+      name = "capability-declared-bad-kind";
+      assertion = declaredBadKindFailed;
+      message = "capability-declared-bad-kind: a declared kind outside `skill` passes evaluation";
+    }
+    {
+      name = "capability-declared-missing-asset";
+      assertion = declaredMissingAssetFailed;
+      message = "capability-declared-missing-asset: a declared shipped skill without a factory asset passes evaluation";
+    }
+    {
+      name = "capability-declared-missing-local";
+      assertion = declaredMissingLocalFailed;
+      message = "capability-declared-missing-local: a declared repo-local skill without its repository file passes evaluation";
+    }
+    {
+      name = "capability-declared-absent-root";
+      assertion = declaredAbsentRootFailed;
+      message = "capability-declared-absent-root: a declared repo-local skill passes without a repository root";
+    }
+    {
+      name = "capability-declared-conflict";
+      assertion = declaredConflictFailed;
+      message = "capability-declared-conflict: a repo-local file with bytes other than the shipped skill passes evaluation";
+    }
+    {
+      name = "capability-declared-permissions";
+      assertion =
+        declaredDoc.agents."declared-shipped".permissions == declaredShippedExpected
+        && declaredDoc.agents."declared-local".permissions == declaredLocalExpected;
+      message = "capability-declared-permissions: a declared skill grant differs from the ordered expected array";
+    }
+    {
+      name = "capability-declared-precedence";
+      assertion = shippedCapsPrecedenceOk;
+      message = "capability-declared-precedence: a declared capabilities value of a shipped role changes the shipped array";
+    }
+    {
+      name = "capability-declared-trace";
+      assertion = shippedCapsMerged.traces == shippedCapsExpectedTrace;
+      message = "capability-declared-trace: the shipped-role capabilities trace differs from one line per declaring layer";
+    }
+    {
+      name = "capability-declared-duplicate";
+      assertion = declaredDuplicateOk;
+      message = "capability-declared-duplicate: a duplicate declared skill name yields more than one allow";
     }
   ]
   ++ builtins.map (role: {

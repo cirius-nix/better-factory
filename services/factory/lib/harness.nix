@@ -605,6 +605,13 @@ let
         }
         {
           kind = "skill";
+          name = "asd-ste-100-chat-no-slop";
+          home = "shipped";
+          when = "always";
+          asset = ../assets/skills/asd-ste-100-chat-no-slop/SKILL.md;
+        }
+        {
+          kind = "skill";
           name = "ddd-review";
           home = "shipped";
           when = "ddd";
@@ -661,6 +668,13 @@ let
           home = "shipped";
           when = "always";
           asset = ../assets/skills/asd-ste-100/SKILL.md;
+        }
+        {
+          kind = "skill";
+          name = "asd-ste-100-chat-no-slop";
+          home = "shipped";
+          when = "always";
+          asset = ../assets/skills/asd-ste-100-chat-no-slop/SKILL.md;
         }
         {
           kind = "skill";
@@ -784,6 +798,13 @@ let
         }
         {
           kind = "skill";
+          name = "asd-ste-100-chat-no-slop";
+          home = "shipped";
+          when = "always";
+          asset = ../assets/skills/asd-ste-100-chat-no-slop/SKILL.md;
+        }
+        {
+          kind = "skill";
           name = "artifact-cleanup";
           home = "shipped";
           when = "always";
@@ -867,6 +888,13 @@ let
           home = "shipped";
           when = "always";
           asset = ../assets/skills/asd-ste-100/SKILL.md;
+        }
+        {
+          kind = "skill";
+          name = "asd-ste-100-chat-no-slop";
+          home = "shipped";
+          when = "always";
+          asset = ../assets/skills/asd-ste-100-chat-no-slop/SKILL.md;
         }
         {
           kind = "skill";
@@ -962,6 +990,13 @@ let
           home = "shipped";
           when = "always";
           asset = ../assets/skills/asd-ste-100/SKILL.md;
+        }
+        {
+          kind = "skill";
+          name = "asd-ste-100-chat-no-slop";
+          home = "shipped";
+          when = "always";
+          asset = ../assets/skills/asd-ste-100-chat-no-slop/SKILL.md;
         }
         {
           kind = "mcp";
@@ -1091,6 +1126,13 @@ let
           when = "always";
           asset = ../assets/skills/asd-ste-100/SKILL.md;
         }
+        {
+          kind = "skill";
+          name = "asd-ste-100-chat-no-slop";
+          home = "shipped";
+          when = "always";
+          asset = ../assets/skills/asd-ste-100-chat-no-slop/SKILL.md;
+        }
       ];
       governance = {
         subagent = "deny";
@@ -1172,28 +1214,50 @@ let
     let
       declaration = decls.${roleName} or { };
       declaredOwnership = declaration.ownership or [ ];
+      declaredCapabilities = declaration.capabilities or [ ];
+      shipped = builtins.hasAttr roleName roleContracts;
       c =
-        if builtins.hasAttr roleName roleContracts then
+        if shipped then
           roleContracts.${roleName}
-        else if declaredOwnership != [ ] then
-          defaultRoleContract // { ownership = declaredOwnership; }
         else
-          defaultRoleContract;
+          defaultRoleContract
+          // {
+            ownership = declaredOwnership;
+            capabilities = declaredCapabilities;
+          };
       skillActive =
         cap:
         let
           when = cap.when or "always";
         in
         when == "always" || (when == "design-tool" && cap.name == tool);
-      # The allow rule of one `skill` capability (spec-role-permissions). The
-      # legacy chain maps unconditionally. Every other active skill capability
-      # adds its rule, so a standalone instruction skill grants its load
-      # (spec-coverage-bundle C-CA23, C-FCA-06-02).
+      # The allow rule of one `skill` capability of the shipped table
+      # (spec-role-permissions). The legacy chain maps unconditionally. Every
+      # other active skill capability adds its rule, so a standalone
+      # instruction skill grants its load (spec-coverage-bundle C-CA23,
+      # C-FCA-06-02). A declared role holds no table capability, so the
+      # declared list below is its only skill source.
       skillAllowed =
         cap:
         builtins.elem cap.name legacySkillChain
         || skillActive cap;
-      skillAllows = builtins.filter (cap: cap.kind == "skill" && skillAllowed cap) c.capabilities;
+      tableSkillAllows =
+        if shipped then
+          builtins.filter (cap: cap.kind == "skill" && skillAllowed cap) c.capabilities
+        else
+          [ ];
+      # The effective declared skill names of a role outside the table, in
+      # declaration-list order with duplicates collapsed (spec-declared-skill
+      # invariant 2, adr-declared-skill-order). A shipped role keeps its
+      # table contract, so a declared `capabilities` value adds no grant.
+      declaredSkillNames = uniqueDeclaredSkills (
+        builtins.map (cap: cap.name) (
+          builtins.filter (cap: cap.kind == "skill") declaredCapabilities
+        )
+      );
+      uniqueDeclaredSkills = builtins.foldl' (
+        acc: n: if builtins.elem n acc then acc else acc ++ [ n ]
+      ) [ ];
     in
     [ { action = "edit"; resource = "*"; effect = "deny"; } ]
     ++ builtins.map (p: { action = "edit"; inherit (p) resource effect; }) c.ownership
@@ -1229,11 +1293,16 @@ let
         effect = "ask";
       }
     ]
+    ++ builtins.map (name: {
+      action = "skill";
+      resource = name;
+      effect = "allow";
+    }) (if shipped then [ ] else declaredSkillNames)
     ++ builtins.map (cap: {
       action = "skill";
       resource = cap.name;
       effect = "allow";
-    }) skillAllows
+    }) tableSkillAllows
     ++ [
       {
         action = "subagent";
@@ -1617,6 +1686,41 @@ let
     else
       b;
 
+  # The repo-local presence check of a declared skill (spec-declared-skill
+  # interface 5, adr-repo-local-skill-presence). A repo-local skill emits no
+  # file, so the check proves that the file `.agents/skills/<name>/SKILL.md`
+  # exists under the checked repository root. A null root cannot count as a
+  # successful presence check.
+  checkRepoLocalSkill =
+    repoRoot: name:
+    if repoRoot == null then
+      throw "role-skill-local: the repo-local skill `${name}` needs a repository root; the evaluation receives no root"
+    else if !(builtins.pathExists (repoRoot + "/.agents/skills/${name}/SKILL.md")) then
+      throw "role-skill-local: the repo-local skill `${name}` has no file `.agents/skills/${name}/SKILL.md` under the repository root"
+    else
+      true;
+
+  # The declared repo-local skill names of a declaration map, for each
+  # rendered name outside the role-contract table. A shipped role keeps its
+  # table contract and ignores its declared capabilities.
+  declaredRepoLocalNames =
+    decls:
+    builtins.concatLists (
+      builtins.map (
+        n:
+        if builtins.hasAttr n roleContracts then
+          [ ]
+        else
+          let
+            d = decls.${n};
+            caps = if builtins.isAttrs d then d.capabilities or [ ] else [ ];
+          in
+          builtins.map (c: c.name) (
+            builtins.filter (c: c.kind == "skill" && c.home == "repo-local") caps
+          )
+      ) (builtins.attrNames decls)
+    );
+
   # Merge the project and local layers with the managed layer in the order
   # managed, then project, then local. project and local are validated
   # agents groups (see modules/orchestration.nix); a layer that holds no
@@ -1632,6 +1736,7 @@ let
       roleNames ? [ ],
       tool ? "unset",
       ux ? false,
+      repoRoot ? null,
     }:
     let
       p = project;
@@ -1688,6 +1793,38 @@ let
         );
       shippedOwnershipTraces =
         ownershipTrace "project" (p.roles or { }) ++ ownershipTrace "local" (l.roles or { });
+      # The shipped-role declared-capabilities precedence trace
+      # (spec-declared-skill data model, spec-harness-merge interface 3). When
+      # the project layer or the local layer declares a non-empty
+      # `capabilities` of a rendered name in the table `roleContracts`, the
+      # table wins and the factory writes one line
+      # `managed-wins: roles.<name>.capabilities from <layer>`. The declared
+      # grants and files for that shipped role are ignored.
+      capabilitiesTrace =
+        layer: layerRoles:
+        builtins.concatLists (
+          builtins.map (
+            n:
+            let
+              d = layerRoles.${n};
+              caps = if builtins.isAttrs d then d.capabilities or [ ] else [ ];
+              rendered =
+                if builtins.isAttrs d && d ? name && builtins.isString d.name then d.name else n;
+            in
+            if builtins.hasAttr rendered roleContracts && caps != [ ] then
+              [ "managed-wins: roles.${rendered}.capabilities from ${layer}" ]
+            else
+              [ ]
+          ) (builtins.attrNames layerRoles)
+        );
+      shippedCapabilitiesTraces =
+        capabilitiesTrace "project" (p.roles or { }) ++ capabilitiesTrace "local" (l.roles or { });
+      # The declared repo-local skills of a role outside the table fail
+      # evaluation before the permission render when the file is absent or
+      # when no repository root is supplied (spec-declared-skill interface 5).
+      repoLocalAccepted = builtins.all (
+        checkRepoLocalSkill repoRoot
+      ) (declaredRepoLocalNames decls);
       mergedHarness = h: deepUserWins (p.${h} or { }) (l.${h} or { });
       baseOpencode = mergedHarness "opencode";
       managed = managedOpencodeSettings {
@@ -1710,17 +1847,21 @@ let
           )
         else
           [ ];
-      traces = opencodeTraces ++ mcpTraces ++ shippedOwnershipTraces;
+      traces =
+        opencodeTraces
+        ++ mcpTraces
+        ++ shippedOwnershipTraces
+        ++ shippedCapabilitiesTraces;
       force = builtins.map (msg: builtins.trace msg true) traces;
       result = {
         uses = mergedUses;
         mcp = mergedMcp;
         roles = mergedRoles;
         opencode = withManaged;
-        inherit traces;
+        inherit decls traces;
       };
     in
-    builtins.deepSeq force result;
+    builtins.deepSeq repoLocalAccepted (builtins.deepSeq force result);
 
   # Render the merged opencode settings in one pass into the one document
   # `.opencode/opencode.jsonc`. An unselected harness receives no file and
@@ -1775,23 +1916,32 @@ let
     };
 
   # Render the shipped file capabilities of the enabled rendered-role set
-  # (spec-capability-kinds interface 10, spec-capability-ship interface 6 to
-  # 9, C-CL03, C-CL05, C-CL09, C-CL29). The function skips a capability with
+  # (spec-capability-kinds interface 10, spec-capability-ship interface 1 to
+  # 5, C-CL03, C-CL05, C-CL09, C-CL29). The function skips a capability with
   # the emitter `design`, because the design module owns that emit. An
-  # inactive capability emits no file. The instruction skill of an active
-  # `mcp` bundle is a `skill` capability, so the `skill` branch emits its
-  # file once; the field `instruction` is a validation link only. Two
-  # capabilities with the same emitted path collapse to one entry when the
-  # asset agrees; two different assets at one path fail evaluation
-  # (C-CL13). The shipped `expert-role` skill also emits its two reference
-  # files beside `SKILL.md` (spec-role-builder-reference interface 2 to 4,
-  # C-RS-01). Every file routes through the rendered-source list. Returns
-  # the file declarations and the rendered-source list of the run.
+  # inactive capability emits no file. A shipped skill emits its complete
+  # asset folder through the caller-supplied `listTree`; the folder holds
+  # `SKILL.md` and each regular supporting file (spec-capability-ship
+  # interface 2 and 3, adr-skill-folder-walk). A declared skill of a role
+  # outside the table emits its folder at the home `shipped`; a declared
+  # repo-local skill emits no file and needs its repository file
+  # (spec-declared-skill, adr-declared-skill-root). Two capabilities with the
+  # same emitted path collapse to one entry when the asset agrees; two
+  # different assets at one path fail evaluation (C-CL13). Every file routes
+  # through the rendered-source list. Returns the file declarations and the
+  # rendered-source list of the run.
   capabilitySources =
-    { roleNames, tool ? "unset" }:
+    {
+      roleNames,
+      tool ? "unset",
+      listTree,
+      decls ? { },
+      repoRoot ? null,
+    }:
     let
+      isShippedRole = r: builtins.hasAttr r roleContracts;
       capsOf =
-        r: if builtins.hasAttr r roleContracts then roleContracts.${r}.capabilities else [ ];
+        r: if isShippedRole r then roleContracts.${r}.capabilities else [ ];
       active =
         cap:
         let
@@ -1805,53 +1955,86 @@ let
         && cap.home == "shipped"
         && (cap.emitter or "capability") == "capability"
         && active cap;
-      # The two shipped reference files of the `expert-role` skill
-      # (spec-role-builder-reference interface 2 to 4, C-RS-01). Each joins
-      # the plan as a managed extra file whose source is a rendered path of
-      # the run. A repo-local or inactive capability adds no entry.
-      skillReferences =
-        cap:
-        if cap.kind == "skill" && cap.name == "expert-role" && cap.home == "shipped" then
-          builtins.map (name: {
-            rel = ".agents/skills/expert-role/references/${name}";
-            source = builtins.toFile name (
-              builtins.readFile (../assets/skills/expert-role/references + "/${name}")
-            );
-            asset = ../assets/skills/expert-role/references + "/${name}";
-            copyMode = "managed";
-          }) [ "role-template.md" "role-builder.md" ]
+      # The complete folder of one shipped skill: one managed entry per
+      # regular relative path below `assets/skills/<name>/`. A missing
+      # `SKILL.md` or a missing folder fails evaluation.
+      folderEntries =
+        name:
+        let
+          root = ../assets/skills + "/${name}";
+          rels = if builtins.pathExists root then listTree root "" else [ ];
+        in
+        if !(builtins.elem "SKILL.md" rels) then
+          throw "role-skill-asset: the shipped skill `${name}` has no `SKILL.md` under the factory asset root `assets/skills/${name}/`"
         else
-          [ ];
-      entries = builtins.concatLists (
+          builtins.map (p: {
+            rel = ".agents/skills/${name}/${p}";
+            source = builtins.toFile (builtins.baseNameOf p) (
+              builtins.readFile (root + "/${p}")
+            );
+            asset = root + "/${p}";
+            copyMode = "managed";
+          }) rels;
+      commandEntry =
+        cap:
+        {
+          rel = ".opencode/commands/${cap.name}.md";
+          source = builtins.toFile (builtins.baseNameOf (toString cap.asset)) (
+            builtins.readFile cap.asset
+          );
+          asset = cap.asset;
+          copyMode = "managed";
+        };
+      fileEntriesFor = cap: if cap.kind == "skill" then folderEntries cap.name else [ (commandEntry cap) ];
+      # The table entries of the enabled shipped roles. A shipped role keeps
+      # the table; its declared capabilities add no grant and no file.
+      tableEntries = builtins.concatLists (
         builtins.map (
           r:
           builtins.concatLists (
-            builtins.map (
-              cap:
-              let
-                rel =
-                  if cap.kind == "skill" then
-                    ".agents/skills/${cap.name}/SKILL.md"
-                  else
-                    ".opencode/commands/${cap.name}.md";
-                source = builtins.toFile (builtins.baseNameOf (toString cap.asset)) (
-                  builtins.readFile cap.asset
-                );
-              in
-              [
-                {
-                  inherit rel source;
-                  asset = cap.asset;
-                  copyMode = "managed";
-                }
-              ]
-              ++ skillReferences cap
-            ) (builtins.filter emit (capsOf r))
+            builtins.map fileEntriesFor (builtins.filter emit (capsOf r))
           )
         ) roleNames
       );
+      # The declared entries of the rendered roles outside the table. Only
+      # the home `shipped` emits a file.
+      declaredRoles = builtins.filter (r: !(isShippedRole r)) roleNames;
+      declaredCapsOf = r: (decls.${r} or { }).capabilities or [ ];
+      declaredShippedEntries = builtins.concatLists (
+        builtins.map (
+          r:
+          builtins.concatLists (
+            builtins.map (c: folderEntries c.name) (
+              builtins.filter (c: c.kind == "skill" && c.home == "shipped") (declaredCapsOf r)
+            )
+          )
+        ) declaredRoles
+      );
+      # The name collision check (adr-declared-skill-collision): a repo-local
+      # declaration of the name of an active shipped skill is valid only when
+      # its file has the same bytes as the shipped `SKILL.md`; it emits no
+      # file.
+      activeShippedNames = builtins.concatLists (
+        builtins.map (r: builtins.map (cap: cap.name) (builtins.filter emit (capsOf r))) roleNames
+      );
+      declaredLocalNames = declaredRepoLocalNames decls;
+      checkLocal =
+        name:
+        if !(checkRepoLocalSkill repoRoot name) then
+          false
+        else if
+          builtins.elem name activeShippedNames
+          && builtins.readFile (repoRoot + "/.agents/skills/${name}/SKILL.md")
+          != builtins.readFile (../assets/skills + "/${name}/SKILL.md")
+        then
+          throw "capability-duplicate: the repo-local skill `${name}` differs from the active shipped skill of the same name"
+        else
+          true;
+      localAccepted = builtins.all checkLocal declaredLocalNames;
+      entries = tableEntries ++ declaredShippedEntries;
       deduped = dedupeFileEntries entries;
     in
+    assert localAccepted;
     {
       fileDecls = builtins.map (e: {
         inherit (e) rel source copyMode;

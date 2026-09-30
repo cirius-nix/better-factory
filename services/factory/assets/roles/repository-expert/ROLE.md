@@ -35,5 +35,6 @@ The local read tools are `read`, `glob`, and `grep`. The external research tools
 and `websearch`.
 
 - skill: asd-ste-100 (shipped)
+- skill: asd-ste-100-chat-no-slop (shipped)
 
 A capability grants no write outside the ownership scope.

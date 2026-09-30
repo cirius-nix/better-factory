@@ -4,7 +4,7 @@
       "flake": false,
       "locked": {
         "lastModified": 1,
-        "narHash": "sha256-EviLyqL77hVWZsupKxbYeC9hgQR6N1HizLIpbKcBPSc=",
+        "narHash": "sha256-u31jlD715L8CDwPdd8Ix+HiVBt2qPVubGWcp1nZO2V0=",
         "path": "../..",
         "type": "path"
       },
@@ -17,7 +17,7 @@
       "flake": false,
       "locked": {
         "lastModified": 1,
-        "narHash": "sha256-Zo/thTRaVyoteRdzdWp4QSMkHJA6A2d0J877U1xua1M=",
+        "narHash": "sha256-ZJczFOdYy9vJcnChZe/NsoN/6wA0AKY0kpJ3pXJIcPY=",
         "path": "../../../../utils/agent/role/factory-expert",
         "type": "path"
       },

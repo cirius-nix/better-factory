@@ -138,6 +138,7 @@ let
     inherit roleNames;
     tool = design.toolFeed settings;
     ux = settings.ux;
+    repoRoot = repoRootChecked;
   };
 
   roleRender = rolesLib.renderRoles {
@@ -167,6 +168,9 @@ let
   capabilityOut = harnessLib.capabilitySources {
     inherit roleNames;
     tool = design.toolFeed settings;
+    listTree = filePlan.listTree;
+    decls = merged.decls;
+    repoRoot = repoRootChecked;
   };
 
   # Managed documentation page (spec-contract-first C-CL16, C-CL25). One

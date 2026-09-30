@@ -16,11 +16,44 @@ The fields of `factory.project.agents.roles.<name>`:
 | `description` | str | Required | Tells the harness when to use the role. |
 | `source` | path | Required | The body file. The file must exist. |
 | `ownership` | list | `[ ]` | The declared ownership path patterns of a local role. |
+| `capabilities` | list | `[ ]` | The declared skill entries. Each entry holds `kind`, `name`, and `home`. |
 | `harness.opencode` | attrs | `{ }` | Extra frontmatter fields of `.opencode/agents/<name>.md`. |
 
 The source convention is `utils/agent/role/<name>/ROLE.md`. Use the option
 `factory.project.agents.roles.<name>` for a role that the factory renders. The field `ownership`
-is optional. A declaration without `ownership` keeps the restrictive default.
+is optional. A declaration without `ownership` keeps the restrictive default. The field
+`capabilities` is optional. A declaration without `capabilities` keeps the empty skill set.
+
+### Declared skills
+
+The optional field `capabilities` holds the declared skills of the role. Each entry holds exactly
+three fields:
+
+```nix
+capabilities = [
+  { kind = "skill"; name = "my-skill"; home = "repo-local"; }
+];
+```
+
+- `kind` is `skill`. The factory accepts no other kind in this change. Another kind fails
+  evaluation with a message that names the kind.
+- `name` is one path segment. It matches `[A-Za-z0-9._-]+`. The name is not `.` and not `..`.
+- `home` is `shipped` or `repo-local`.
+
+The home `shipped` uses the fixed factory asset root `services/factory/assets/skills/<name>/`. The
+factory emits the complete folder to the standard path `.agents/skills/<name>/SKILL.md` and the
+supporting files below it. The folder must hold `SKILL.md`. A new shipped skill needs its factory
+asset before the declaration can pass. A consumer declaration cannot make the asset.
+
+The home `repo-local` emits no file. The author keeps `.agents/skills/<name>/SKILL.md` in the
+repository. The factory checks the file at evaluation. An absent file fails evaluation.
+
+A repo-local skill with the name of an active shipped skill is valid only when its file has the
+same bytes as the shipped `SKILL.md`. It emits no file.
+
+A declared skill adds one `skill` `allow` rule to the declaring role. A declared skill adds no
+`edit` rule. The skill never changes the ownership of the role. A shipped role keeps its table
+contract. A declared `capabilities` value of a shipped role adds no grant and no file.
 
 ### Ownership
 
