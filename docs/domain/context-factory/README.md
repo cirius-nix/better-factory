@@ -21,7 +21,9 @@ of each surface path, and the coverage scan. It decides the external code intell
 roles `solution-expert` and `factory-expert` through the codegraph MCP server. It decides the
 declared author path for an environment variable of a canonical MCP entry, and it keeps the secret
 value out of the repository. It decides the artifact cleanup of the version folders and the change
-folders of a feature.
+folders of a feature. It decides the complete skill folder of each shipped skill. It decides the
+declared skill that a repository author gives a role: its name, its home, its emitted file, and its
+permission rule.
 
 It also fixes the delivery path with one docs site, one CI choice, one
 notifier, one publish target, and named presets.
@@ -131,6 +133,9 @@ notifier, one publish target, and named presets.
 | release role | The shipped role `artifact-release-expert` that owns the version folders, the artifact cleanup, and the update of the feature README in phase 5. |
 | author environment variable | The environment variable that an author adds to the `env` of a canonical MCP entry; the canonical keys stay factory-owned. |
 | environment substitution | The OpenCode `{env:NAME}` form that reads the value from the OpenCode process environment. |
+| supporting file | A file beside `SKILL.md` that a skill needs, for example a file of its `references/` folder. |
+| skill folder | The emitted folder of one skill at `.agents/skills/<name>/`: `SKILL.md` and each supporting file of the skill. |
+| declared skill | A skill that a repository author declares for a role in the project declaration. |
 
 ## Business rules
 
@@ -148,14 +153,19 @@ notifier, one publish target, and named presets.
 - The factory renders a default permission set for each rendered content role from the two axes.
 - A role declaration may carry the field `ownership`.
 - A declared role whose name is absent from the role-contract table derives its write scope from the declaration.
-- The contract of a declared role holds the declared ownership, the restrictive research `deny`, the empty capability set, and the restrictive governance and shell defaults.
-- A declaration without `ownership` keeps the restrictive default.
+- The contract of a declared role holds the declared ownership, the declared skill set, the restrictive research `deny`, and the restrictive governance and shell defaults.
+- A declaration without ownership or skills keeps the restrictive default.
 - The managed layer keeps precedence for each shipped role, so a project overrides no shipped role contract.
 - The derive rejects an `edit` allow outside the declared ownership and an ownership path that escapes the project root.
 - The broad `edit` deny comes before the ownership allows.
 - An `ownership` entry is a plain string with the default effect `allow` or an attribute set with an optional `effect`, and the builder normalizes the entry to the shape `{ resource; effect; }`.
 - The local layer holds the same key space as the project layer, so a local role declaration may carry `ownership`.
 - The factory writes one line `managed-wins: roles.<name>.ownership from <layer>` for a discarded declared ownership of a shipped role name.
+- A declared skill entry holds `kind = "skill"`, one name, and one home. Another kind fails validation.
+- A declared shipped skill uses the fixed factory asset folder. A declared repo-local skill emits no file and needs a repository `SKILL.md` at evaluation.
+- Each active shipped skill emits its `SKILL.md` and all regular supporting files of the asset folder through the existing file-plan walker.
+- The shipped role table wins over a declared capability of the same role. A file-path conflict between different skill sources fails.
+- The declared skill allows follow `skill * ask` and precede the table skill allows. No skill widens the ownership axis.
 - A capability holds one of the seven option kinds: skill, command, MCP server, reference, plugin, model, or worktree.
 - A tool capability is a bundle: the server entry and its instruction skill.
 - Each role that uses a tool grants the instruction skill of the tool.
@@ -253,7 +263,24 @@ notifier, one publish target, and named presets.
 - The coverage scan proves the write coverage of a project.
 - The factory ships the repository role, and the shipped role set holds seven roles.
 - The proposal never names the shipped repository role.
-- The `home` axis of the capability model stays unchanged.
+- The `home` axis holds two values: `shipped` and `repo-local`. A built-in capability and a
+  declared capability use the same axis.
+- A shipped skill ships complete: the generated project receives `SKILL.md` and each supporting
+  file of the skill at the standard skill path.
+- One rule covers the supporting files of each shipped skill, and no shipped skill holds its own
+  shipping rule.
+- The factory ships the `asd-ste-100-chat-no-slop` skill as a managed asset, and the six roles that
+  hold `asd-ste-100` hold it.
+- A repository author declares a skill of a role in the project declaration, and the declaration
+  opens for the option kind `skill`.
+- A declared skill holds one name that the author chooses and one home.
+- The factory emits the file of a declared `shipped` skill to the standard path
+  `.agents/skills/<name>/SKILL.md` from the skill asset under the factory asset tree.
+- The factory emits no file of a declared `repo-local` skill, and the author keeps the skill file in
+  the repository.
+- Each declared skill gives the declaring role its `skill` allow rule, and the declared skill grants
+  no write outside the ownership scope.
+- The declaration contract holds the set of declared skills.
 
 ## Inbound messages
 
@@ -270,6 +297,7 @@ notifier, one publish target, and named presets.
 | Declare role | command | repository author |
 | Declare local role | command | repository author |
 | Declare capability | command | role author |
+| Declare skill | command | repository author |
 | State role contract | command | role author |
 | Declare local settings | command | repository author |
 | Select design option | command | repository author |
@@ -375,6 +403,9 @@ notifier, one publish target, and named presets.
 - A repository author wants a short history, so the project keeps only the three most recent versions and changes of a feature.
 - A delete of a version folder is safe only when the plan names the paths to delete and the paths to keep.
 - The same feature state gives the same cleanup plan.
+- A shipped skill is complete only when its skill folder holds each supporting file of the skill.
+- A repository author wants the file and the permission rule of a declared skill to come from one
+  declaration, so the two halves cannot drift.
 
 ## Open questions
 

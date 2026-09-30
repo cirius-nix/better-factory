@@ -109,3 +109,6 @@ write two rows.
 | repository role | context-factory | The shipped role `repository-expert` that owns the seven standard surface classes and the class `factory-config`. | - |
 | author environment variable | context-factory | The environment variable that an author adds to the `env` of a canonical MCP entry; the canonical keys stay factory-owned. | - |
 | environment substitution | context-factory | The OpenCode `{env:NAME}` form that reads the value from the OpenCode process environment. | - |
+| supporting file | context-factory | A file beside `SKILL.md` that a skill needs, for example a file of its `references/` folder. | - |
+| skill folder | context-factory | The emitted folder of one skill at `.agents/skills/<name>/`: `SKILL.md` and each supporting file of the skill. | - |
+| declared skill | context-factory | A skill that a repository author declares for a role in the project declaration. | shipped capability |

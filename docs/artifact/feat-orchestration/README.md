@@ -1,6 +1,6 @@
 # Feature: orchestration
 
-**Current version:** 11.0.0
+**Current version:** 12.0.0
 
 ## Summary
 
@@ -10,9 +10,9 @@ entries, and expert roles for each harness that they select.
 
 ## Current artifacts
 
-- [Requirements](versions/11.0.0/requirements/README.md)
-- [Specifications](versions/11.0.0/specifications/README.md)
-- [Decisions](versions/11.0.0/decisions/)
+- [Requirements](versions/12.0.0/requirements/README.md)
+- [Specifications](versions/12.0.0/specifications/README.md)
+- [Decisions](versions/12.0.0/decisions/)
 
 ## Versions
 
@@ -24,6 +24,7 @@ entries, and expert roles for each harness that they select.
 | 9.1.0 | [role-surface](changes/change-role-surface/README.md) | Specifications, Decisions |
 | 10.0.0 | [artifact-templates](changes/change-artifact-templates/README.md) | Requirements |
 | 11.0.0 | [requirement-feature-write](changes/change-requirement-feature-write/README.md) | Requirements, Specifications, Decisions |
+| 12.0.0 | [skill-capability](changes/change-skill-capability/README.md) | Requirements |
 
 ## Artifacts
 

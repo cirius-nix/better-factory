@@ -62,16 +62,22 @@ reads the feature folders and the feature README, so it changes no blueprint fac
 role owns the version folders, the change folders of the cleanup, and the update of the feature
 README in phase 5 (spec-release-gate).
 
-The blueprint also records the declared ownership of a local expert role
-(spec-local-role-ownership). A role declaration may carry the optional field `ownership`. One
+The blueprint also records the declared ownership and skills of a local expert role
+(spec-local-role-ownership, spec-declared-skill). A role declaration may carry the optional field `ownership`. One
 entry is a plain string or an attribute set with the optional field `effect`. The builder
 normalizes each entry to the rule shape `{ resource; effect; }`. A declared role whose rendered
 name is absent from the role-contract table derives its contract from the declaration: the
-declared ownership plus the restrictive research `deny`, the empty capability set, and the
-restrictive governance rules and shell rules. A declaration without `ownership` keeps the
+declared ownership, its declared skill set, the restrictive research `deny`, and the
+restrictive governance rules and shell rules. A declaration without either field keeps the
 restrictive default. The managed layer keeps precedence for each shipped role. The derive rejects
 an ownership path that escapes the project root. The blueprint also records the role-builder
 reference of the `expert-role` skill (spec-role-builder-reference).
+
+Each active shipped skill emits every regular file of its asset folder through the existing
+`filePlan.listTree` (spec-capability-ship). The same rule covers the references of `expert-role`.
+The skill `asd-ste-100-chat-no-slop` joins each of the six roles that holds `asd-ste-100`. The
+`artifact-master` holds neither. A declared `shipped` skill reads the fixed asset folder. A
+declared `repo-local` skill emits no file and needs `SKILL.md` under the repository root.
 
 ## State transitions
 
@@ -89,6 +95,7 @@ reference of the `expert-role` skill (spec-role-builder-reference).
 | declared | Declare role | declared |
 | declared | Declare local role | declared |
 | declared | Declare capability | declared |
+| declared | Declare skill | declared |
 | declared | State role contract | declared |
 | declared | Select design option | declared |
 | declared | Select design tool | declared |
@@ -145,7 +152,13 @@ reference of the `expert-role` skill (spec-role-builder-reference).
   its value in the factory data table `capabilityValues`. The plan holds each emitted capability
   path once.
 - The `asd-ste-100` skill is a shipped managed asset. Every generated project receives
-  `.agents/skills/asd-ste-100/SKILL.md`.
+  `.agents/skills/asd-ste-100/SKILL.md` and its four reference files.
+- Each active shipped skill emits `SKILL.md` and every regular supporting file of its factory
+  asset folder at the same relative path under `.agents/skills/<name>/`. The asset folder is the
+  one file-set source. The existing `filePlan.listTree` supplies its relative paths. No named
+  skill has a second shipping branch (spec-capability-ship, adr-skill-folder-walk).
+- The six roles that hold `asd-ste-100` also hold `asd-ste-100-chat-no-slop`, its complete folder,
+  and its allow rule. The `artifact-master` holds neither STE skill.
 - The role models are repo-local. A generated project receives no factory model.
 - A tool capability is a bundle: the `mcp` entry and its instruction skill. The pair holds the
   same activation. A shipped tool capability without its instruction skill fails the ship rule.
@@ -251,9 +264,17 @@ reference of the `expert-role` skill (spec-role-builder-reference).
   that starts with `/`, a pattern that starts with `~`, an empty pattern, and a pattern with a
   path segment `..`. The rule is syntactic (spec-local-role-ownership).
 - A declared role whose rendered name is absent from the role-contract table derives from the
-  declaration: the declared ownership plus the restrictive research `deny`, the empty capability
-  set, and the restrictive governance rules and shell rules. A declaration without `ownership`
-  keeps the restrictive default (spec-local-role-ownership).
+  declaration: its ownership and restricted skill capability list plus the restrictive research
+  `deny`, governance, and shell rules. A declaration with neither field keeps the restrictive
+  default (spec-local-role-ownership, spec-declared-skill).
+- The declared capability list accepts `skill` only. Each entry has one name and one home.
+  A shipped skill uses `assets/skills/<name>/` and emits its complete folder. A repo-local skill
+  emits no file and needs `.agents/skills/<name>/SKILL.md` in the repository at evaluation.
+  A missing file fails evaluation (spec-declared-skill).
+- The ordered skill rules put `skill * ask` first, then declared allows, then table allows.
+  A duplicate grant occurs once. The shipped table wins for a shipped role name. Identical
+  shipped sources collapse; different sources at one target fail (spec-role-permissions,
+  spec-declared-skill).
 - A shipped role name keeps the shipped contract. The declared ownership adds no rule, and the
   blueprint writes one line `managed-wins: roles.<name>.ownership from <layer>` to the standard
   error. Evaluation stays green (spec-local-role-ownership).
@@ -341,6 +362,7 @@ feature folders, so the blueprint emits no cleanup event itself.
 | Declare role | The blueprint records one role source, its declaration, and its two-axis contract. | Role rendered, Permission set rendered |
 | Declare local role | The blueprint records the declared ownership of a local role, the two entry forms, and the declaration contract. A declared role name absent from the table receives the declaration contract. | Local role declared, Ownership declared, Permission set rendered |
 | Declare capability | The blueprint records one capability of a role, its kind, and its home. A shipped capability joins the plan. | Capability declared, Capability bundled, Capability shipped, Capability resolved |
+| Declare skill | The blueprint checks one declared skill and its home. A shipped skill joins the plan. A repo-local skill needs the repository file. The permission derive grants the skill without changing ownership. | Capability declared, Capability shipped, Permission set rendered |
 | State role contract | The blueprint records the ownership axis and the capability axis of the role. | Role contract stated |
 | Select design option | The blueprint records the design method and the ux flag, and computes the design files and chapters. An unknown value is an error. | Design option selected |
 | Select design tool | The blueprint records the design tool and activates the canonical MCP entry of the tool. An unknown value is an error. | Design tool selected |
